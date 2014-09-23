@@ -92,7 +92,7 @@ void PageRank(graph<vertex> GA) {
     vertices output = edgeMap(GA, Frontier, PR_F<vertex>(p_curr,p_next,GA.V),GA.m/20);
 
     vertexMap(Frontier,PR_Vertex_F(p_curr,p_next,damping,n));
-    break;
+
     //compute L1-norm between p_curr and p_next
     {parallel_for(intT i=0;i<n;i++) {
       p_curr[i] = fabs(p_curr[i]-p_next[i]);
