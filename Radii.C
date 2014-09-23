@@ -92,14 +92,14 @@ void Radii(graph<vertex> GA) {
     Visited[v] = (long) 1<<i;
     }}
 
-  vertices Frontier(n,sampleSize,starts); //initial frontier of size 64
+  vertexSubset Frontier(n,sampleSize,starts); //initial frontier of size 64
 
   intT round = 0;
   while(!Frontier.isEmpty()){
     round++;
     //cout<<"Round "<<round<<" "<<Frontier.numNonzeros()<<endl;
     vertexMap(Frontier, Radii_Vertex_F(Visited,NextVisited));
-    vertices output = edgeMap(GA, Frontier, Radii_F(Visited,NextVisited,radii,round),GA.m/20);
+    vertexSubset output = edgeMap(GA, Frontier, Radii_F(Visited,NextVisited,radii,round),GA.m/20);
     swap(NextVisited,Visited);
     Frontier.del();
     Frontier = output;

@@ -59,14 +59,12 @@ struct BC_Back_F {
   inline bool update(intT s, intT d){ //Update function for backwards phase
     fType oldV = Dependencies[d];
     Dependencies[d] += Dependencies[s];
-    //Dependencies[d] += ((NumPaths[d]/NumPaths[s])*(1+Dependencies[s]));
     return oldV == 0.0;
   }
   inline bool updateAtomic (intT s, intT d) { //atomic Update
     volatile fType oldV, newV;
     do {
       oldV = Dependencies[d];
-      //newV = oldV + (NumPaths[d]/NumPaths[s])*(1+Dependencies[s]);
       newV = oldV + Dependencies[s];
     } while(!CAS(&Dependencies[d],oldV,newV));
     return oldV == 0.0;
@@ -74,7 +72,7 @@ struct BC_Back_F {
   inline bool cond (intT d) { return Visited[d] == 0; } //check if visited
 };
 
-//vertex map function to mark visited vertices
+//vertex map function to mark visited vertexSubset
 struct BC_Vertex_F {
   bool* Visited;
   BC_Vertex_F(bool* _Visited) : Visited(_Visited) {}
@@ -84,7 +82,7 @@ struct BC_Vertex_F {
   }
 };
 
-//vertex map function (used on backwards phase) to mark visited vertices
+//vertex map function (used on backwards phase) to mark visited vertexSubset
 //and add to Dependencies score
 struct BC_Back_Vertex_F {
   bool* Visited;
@@ -110,9 +108,9 @@ void BC(intT start, graph<vertex> GA) {
   bool* Visited = newA(bool,n);
   {parallel_for(intT i=0;i<n;i++) Visited[i] = 0;}
   Visited[start] = 1;
-  vertices Frontier(n,start);
+  vertexSubset Frontier(n,start);
  
-  vector<vertices> Levels;
+  vector<vertexSubset> Levels;
   Levels.push_back(Frontier);
 
   intT round = 0;
@@ -120,7 +118,7 @@ void BC(intT start, graph<vertex> GA) {
   while(!Frontier.isEmpty()){ //first phase
     round++;
     //cout<<"Round "<<round<<" "<<Frontier.numNonzeros()<<endl;
-    vertices output = edgeMap(GA, Frontier, BC_F(NumPaths,Visited),threshold,DENSE);
+    vertexSubset output = edgeMap(GA, Frontier, BC_F(NumPaths,Visited),threshold,DENSE);
     vertexMap(output, BC_Vertex_F(Visited)); //mark visited
     Levels.push_back(output); //save frontier onto Levels
     Frontier = output;
@@ -143,8 +141,8 @@ void BC(intT start, graph<vertex> GA) {
   GA.transpose();
  
   for(intT r=round-2;r>=0;r--) { //backwards phase
-    vertices output = edgeMap(GA, Frontier, 
-			      BC_Back_F(Dependencies,Visited),threshold,DENSE/*_PARALLEL*/);
+    vertexSubset output = edgeMap(GA, Frontier, 
+			      BC_Back_F(Dependencies,Visited),threshold);
     output.del();
     Frontier.del();
     Frontier = Levels[r]; //gets frontier from Levels array
@@ -159,9 +157,6 @@ void BC(intT start, graph<vertex> GA) {
     Dependencies[i]=(Dependencies[i]-inverseNumPaths[i])/inverseNumPaths[i];
   }
   free(inverseNumPaths);
-
-  //for(intT i=0;i<n;i++) cout<<Dependencies[i]<<" ";cout<<endl;
-
   free(Visited);
   free(Dependencies);
 }

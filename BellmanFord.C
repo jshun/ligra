@@ -44,7 +44,7 @@ struct BF_F {
     return (writeMin(&ShortestPathLen[d],newDist) &&
 	    CAS(&Visited[d],0,1));
   }
-  inline bool cond (intT d) { return 1; } //does nothing
+  inline bool cond (intT d) { return cond_true(d); } //does nothing
 };
 
 //reset visited vertices
@@ -68,7 +68,7 @@ int* BellmanFord(intT start, wghGraph<vertex> GA) {
   int* Visited = newA(int,n);
   {parallel_for(intT i=0;i<n;i++) Visited[i] = 0;}
 
-  vertices Frontier(n,start); //initial frontier
+  vertexSubset Frontier(n,start); //initial frontier
 
   intT round = 0;
   while(!Frontier.isEmpty()){
@@ -80,7 +80,7 @@ int* BellmanFord(intT start, wghGraph<vertex> GA) {
     }
     //cout<<"Round "<<round<<" "<<Frontier.numNonzeros()<<endl;
 
-    vertices output = edgeMap(GA, Frontier, BF_F(ShortestPathLen,Visited), GA.m/20,DENSE_FORWARD);
+    vertexSubset output = edgeMap(GA, Frontier, BF_F(ShortestPathLen,Visited), GA.m/20,DENSE_FORWARD);
     vertexMap(output,BF_Vertex_F(Visited));
     Frontier.del();
     Frontier = output;

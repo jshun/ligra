@@ -38,35 +38,35 @@ using namespace std;
 //*****START FRAMEWORK*****
 
 //*****VERTEX OBJECT*****
-struct vertices {
+struct vertexSubset {
   intT n, m;
   intT* s;
   bool* d;
   bool isDense;
 
   // make a singleton vertex in range of n
-vertices(intT _n, intT v) 
+vertexSubset(intT _n, intT v) 
 : n(_n), m(1), d(NULL), isDense(0) {
   s = newA(intT,1);
   s[0] = v;
 }
   
   //empty vertex set
-vertices(intT _n) : n(_n), m(0), d(NULL), s(NULL), isDense(0) {}
+vertexSubset(intT _n) : n(_n), m(0), d(NULL), s(NULL), isDense(0) {}
 
-  // make vertices from array of vertex indices
+  // make vertexSubset from array of vertex indices
   // n is range, and m is size of array
-vertices(intT _n, intT _m, intT* indices) 
+vertexSubset(intT _n, intT _m, intT* indices) 
 : n(_n), m(_m), s(indices), d(NULL), isDense(0) {}
 
-  // make vertices from boolean array, where n is range
-vertices(intT _n, bool* bits) 
+  // make vertexSubset from boolean array, where n is range
+vertexSubset(intT _n, bool* bits) 
 : n(_n), d(bits), s(NULL), isDense(1)  {
   m = sequence::sum(bits,_n);
 }
 
-  // make vertices from boolean array giving number of true values
-vertices(intT _n, intT _m, bool* bits) 
+  // make vertexSubset from boolean array giving number of true values
+vertexSubset(intT _n, intT _m, bool* bits) 
 : n(_n), m(_m), s(NULL), d(bits), isDense(1)  {}
 
   // delete the contents
@@ -105,7 +105,7 @@ vertices(intT _n, intT _m, bool* bits)
   }
 
   // check for equality
-  bool eq (vertices& b) {
+  bool eq (vertexSubset& b) {
     toDense();
     b.toDense();
     bool* c = newA(bool,n);
@@ -160,7 +160,7 @@ void remDuplicates(intT* indices, intT* flags, intT m, intT n) {
 //*****EDGE FUNCTIONS*****
 
 template <class F, class vertex>
-  bool* edgeMapDense(graph<vertex> GA, bool* vertices, F f, bool parallel = 0) {
+  bool* edgeMapDense(graph<vertex> GA, bool* vertexSubset, F f, bool parallel = 0) {
   intT numVertices = GA.n;
   vertex *G = GA.V;
   bool* next = newA(bool,numVertices);
@@ -171,13 +171,13 @@ template <class F, class vertex>
       if(!parallel || d < 1000) {
 	for(intT j=0; j<d; j++){
 	  intT ngh = G[i].getInNeighbor(j);
-	  if (vertices[ngh] && f.update(ngh,i)) next[i] = 1;
+	  if (vertexSubset[ngh] && f.update(ngh,i)) next[i] = 1;
 	  if(!f.cond(i)) break;
 	}
       } else {
 	{parallel_for(intT j=0; j<d; j++){
 	  intT ngh = G[i].getInNeighbor(j);
-	  if (vertices[ngh] && f.updateAtomic(ngh,i)) next[i] = 1;
+	  if (vertexSubset[ngh] && f.updateAtomic(ngh,i)) next[i] = 1;
 	  }}
       }
     }
@@ -186,13 +186,13 @@ template <class F, class vertex>
 }
 
 template <class F, class vertex>
-bool* edgeMapDenseForward(graph<vertex> GA, bool* vertices, F f) {
+bool* edgeMapDenseForward(graph<vertex> GA, bool* vertexSubset, F f) {
   intT numVertices = GA.n;
   vertex *G = GA.V;
   bool* next = newA(bool,numVertices);
   {parallel_for(long i=0;i<numVertices;i++) next[i] = 0;}
   {parallel_for (long i=0; i<numVertices; i++){
-    if (vertices[i]) {
+    if (vertexSubset[i]) {
       intT d = G[i].getOutDegree();
       if(d < 1000) {
 	for(intT j=0; j<d; j++){
@@ -255,7 +255,7 @@ static int edgesTraversed = 0;
 
 // decides on sparse or dense base on number of nonzeros in the active vertices
 template <class F, class vertex>
-vertices edgeMap(graph<vertex> GA, vertices &V, F f, intT threshold = -1, 
+vertexSubset edgeMap(graph<vertex> GA, vertexSubset &V, F f, intT threshold = -1, 
 		 char option=DENSE, bool remDups=false) {
   intT numVertices = GA.n;
   uintT numEdges = GA.m;
@@ -279,7 +279,7 @@ vertices edgeMap(graph<vertex> GA, vertices &V, F f, intT threshold = -1,
     }}
   uintT outDegrees = sequence::plusReduce(degrees, m);
   edgesTraversed += outDegrees;
-  if (outDegrees == 0) return vertices(numVertices);
+  if (outDegrees == 0) return vertexSubset(numVertices);
   if (m + outDegrees > threshold) { 
     V.toDense();
     free(degrees);
@@ -287,7 +287,7 @@ vertices edgeMap(graph<vertex> GA, vertices &V, F f, intT threshold = -1,
     bool* R = (option == DENSE_FORWARD) ? 
       edgeMapDenseForward(GA,V.d,f) : 
       edgeMapDense(GA, V.d, f, option);
-    vertices v1 = vertices(numVertices, R);
+    vertexSubset v1 = vertexSubset(numVertices, R);
     //cout << "size (D) = " << v1.m << endl;
     return  v1;
   } else { 
@@ -299,14 +299,16 @@ vertices edgeMap(graph<vertex> GA, vertices &V, F f, intT threshold = -1,
     //cout << "size (S) = " << R.first << endl;
     free(degrees);
     free(frontierVertices);
-    return vertices(numVertices, R.first, R.second);
+    return vertexSubset(numVertices, R.first, R.second);
   }
 }
 
 //*****VERTEX FUNCTIONS*****
 
+//Note: this is the optimized version of vertexMap which does not
+//perform a filter
 template <class F>
-void vertexMap(vertices V, F add) {
+void vertexMap(vertexSubset V, F add) {
   intT n = V.numRows();
   uintT m = V.numNonzeros();
   if(V.isDense) {
@@ -318,8 +320,10 @@ void vertexMap(vertices V, F add) {
   }
 }
 
+//Note: this is the version of vertexMap in which only a subset of the
+//input vertexSubset is returned
 template <class F>
-vertices vertexFilter(vertices V, F filter) {
+vertexSubset vertexFilter(vertexSubset V, F filter) {
   intT n = V.numRows();
   uintT m = V.numNonzeros();
   V.toDense();
@@ -327,13 +331,13 @@ vertices vertexFilter(vertices V, F filter) {
   {parallel_for(long i=0;i<n;i++) d_out[i] = 0;}
   {parallel_for(long i=0;i<n;i++)
       if(V.d[i]) d_out[i] = filter(i);}
-  return vertices(n,d_out);
+  return vertexSubset(n,d_out);
 }
 
 //*****WEIGHTED EDGE FUNCTIONS*****
 
 template <class F, class vertex>
-  bool* edgeMapDense(wghGraph<vertex> GA, bool* vertices, F f, bool parallel = 0) {
+  bool* edgeMapDense(wghGraph<vertex> GA, bool* vertexSubset, F f, bool parallel = 0) {
   intT numVertices = GA.n;
   vertex *G = GA.V;
   bool* next = newA(bool,numVertices);
@@ -344,9 +348,9 @@ template <class F, class vertex>
       if(!parallel || d < 1000) {
 	for(intT j=0; j<d; j++){
 	  intT ngh = G[i].getInNeighbor(j);
-	  if(vertices[ngh]){
+	  if(vertexSubset[ngh]){
 	    intT edgeLen = G[i].getInWeight(j);
-	    if (vertices[ngh] && f.update(ngh,i,edgeLen)) next[i] = 1;
+	    if (vertexSubset[ngh] && f.update(ngh,i,edgeLen)) next[i] = 1;
 	  }
 	  if (!f.cond(i)) break;
 	}
@@ -354,9 +358,9 @@ template <class F, class vertex>
       else {
 	{parallel_for(intT j=0; j<d; j++){
 	  intT ngh = G[i].getInNeighbor(j);
-	  if(vertices[ngh]){
+	  if(vertexSubset[ngh]){
 	    intT edgeLen = G[i].getInWeight(j);
-	    if (vertices[ngh] && f.updateAtomic(ngh,i,edgeLen)) next[i] = 1;
+	    if (vertexSubset[ngh] && f.updateAtomic(ngh,i,edgeLen)) next[i] = 1;
 	  }
 	  }}
       }
@@ -367,13 +371,13 @@ template <class F, class vertex>
 }
 
 template <class F, class vertex>
-bool* edgeMapDenseForward(wghGraph<vertex> GA, bool* vertices, F f) {
+bool* edgeMapDenseForward(wghGraph<vertex> GA, bool* vertexSubset, F f) {
   intT numVertices = GA.n;
   vertex *G = GA.V;
   bool* next = newA(bool,numVertices);
   {parallel_for(long i=0;i<numVertices;i++) next[i] = 0;}
   {parallel_for (long i=0; i<numVertices; i++){
-    if (vertices[i]) {
+    if (vertexSubset[i]) {
       intT d = G[i].getOutDegree();
       if(d < 1000) {
 	for(intT j=0; j<d; j++){
@@ -438,9 +442,9 @@ template <class F, class vertex>
   return pair<uintT,intT*>(nextM, nextIndices);
 }
 
-// decides on sparse or dense base on number of nonzeros in the active vertices
+// decides on sparse or dense base on number of nonzeros in the active vertexSubset
 template <class F, class vertex>
-  vertices edgeMap(wghGraph<vertex> GA, vertices V, F f, intT threshold = -1, char option=DENSE, bool remDups=false) {
+  vertexSubset edgeMap(wghGraph<vertex> GA, vertexSubset V, F f, intT threshold = -1, char option=DENSE, bool remDups=false) {
   intT numVertices = GA.n;
   uintT numEdges = GA.m;
   if(threshold == -1) threshold = numEdges/20; //default threshold
@@ -463,7 +467,7 @@ template <class F, class vertex>
     frontierVertices[i] = v;
     }}
   uintT outDegrees = sequence::plusReduce(degrees, m);    
-  if (outDegrees == 0) return vertices(numVertices);
+  if (outDegrees == 0) return vertexSubset(numVertices);
   if (m + outDegrees > threshold) { 
     V.toDense();
     free(degrees);
@@ -471,7 +475,7 @@ template <class F, class vertex>
     bool* R = option == DENSE_FORWARD ? 
       edgeMapDenseForward(GA,V.d,f) : 
       edgeMapDense(GA, V.d, f,option);
-    vertices v1 = vertices(numVertices, R);
+    vertexSubset v1 = vertexSubset(numVertices, R);
     //cout << "size (D) = " << v1.m << endl;
     return  v1;
   } else { 
@@ -483,7 +487,7 @@ template <class F, class vertex>
     //cout << "size (S) = " << R.first << endl;
     free(degrees);
     free(frontierVertices);
-    return vertices(numVertices, R.first, R.second);
+    return vertexSubset(numVertices, R.first, R.second);
   }
 }
 

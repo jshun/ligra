@@ -101,21 +101,21 @@ void PageRankDelta(graph<vertex> GA) {
   bool* frontier = newA(bool,n);
   {parallel_for(intT i=0;i<n;i++) frontier[i] = 1;}
 
-  vertices Frontier(n,n,frontier);
+  vertexSubset Frontier(n,n,frontier);
   bool* all = newA(bool,n);
   {parallel_for(intT i=0;i<n;i++) all[i] = 1;}
 
-  vertices All(n,n,all);
+  vertexSubset All(n,n,all);
 
   intT round = 0;
 
   while(1){
     round++;
     // cout<<"Round "<<round<<", frontier size = "<<Frontier.numNonzeros()<<endl;
-    vertices output = edgeMap(GA, Frontier, PR_F<vertex>(GA.V,Delta,nghSum),GA.m/20,DENSE_FORWARD);
+    vertexSubset output = edgeMap(GA, Frontier, PR_F<vertex>(GA.V,Delta,nghSum),GA.m/20,DENSE_FORWARD);
     output.del();
 
-    vertices active 
+    vertexSubset active 
       = (round == 1) ? 
       vertexFilter(All,PR_Vertex_F_FirstRound(p,Delta,nghSum,damping,one_over_n,epsilon2)) :
       vertexFilter(All,PR_Vertex_F(p,Delta,nghSum,damping,epsilon2));

@@ -58,13 +58,13 @@ void BFS(graph<vertex> GA) {
     intT start = i;
     if(Parents[start] == -1) {
       Parents[start] = start;
-      vertices Frontier(n,start); //creates initial frontier
+      vertexSubset Frontier(n,start); //creates initial frontier
       intT round = 0;
       while(!Frontier.isEmpty()){ //loop until frontier is empty
 	round++;
 	numVisited+=Frontier.numNonzeros();
 	//apply edgemap
-	vertices output = edgeMap(GA, Frontier, BFS_F(Parents,start),GA.m/20);    
+	vertexSubset output = edgeMap(GA, Frontier, BFS_F(Parents,start),GA.m/20);    
 	Frontier.del();
 	Frontier = output; //set new frontier
       } 
@@ -74,7 +74,7 @@ void BFS(graph<vertex> GA) {
   }
   free(Parents); 
 
-   cout<<"Vertices visited = "<<numVisited<<endl;
+  //cout<<"Vertices visited = "<<numVisited<<endl;
   // cout<<"Edges traversed = "<<edgesTraversed<<endl;
 }
 

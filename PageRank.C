@@ -84,15 +84,14 @@ void PageRank(graph<vertex> GA) {
   bool* frontier = newA(bool,n);
   {parallel_for(intT i=0;i<n;i++) frontier[i] = 1;}
 
-  vertices Frontier(n,n,frontier);
+  vertexSubset Frontier(n,n,frontier);
   
   intT round = 0;
   while(1){
     round++;
-    vertices output = edgeMap(GA, Frontier, PR_F<vertex>(p_curr,p_next,GA.V),GA.m/20);
+    vertexSubset output = edgeMap(GA, Frontier, PR_F<vertex>(p_curr,p_next,GA.V),GA.m/20);
 
     vertexMap(Frontier,PR_Vertex_F(p_curr,p_next,damping,n));
-
     //compute L1-norm between p_curr and p_next
     {parallel_for(intT i=0;i<n;i++) {
       p_curr[i] = fabs(p_curr[i]-p_next[i]);
