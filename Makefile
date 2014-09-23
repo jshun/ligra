@@ -28,7 +28,7 @@ endif
 
 COMMON= ligra.h graph.h utils.h IO.h parallel.h gettime.h quickSort.h parseCommandLine.h
 
-ALL= BFS BC Components Radii PageRank PageRankDelta BellmanFord BFSCC Touch
+ALL= BFS BC Components Radii PageRank PageRankDelta BellmanFord BFSCC
 
 all: $(ALL)
 
