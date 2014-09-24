@@ -18,7 +18,7 @@ parallel performance in our experience.
 
 Note: OpenMP support in Ligra has not been thoroughly tested. If you
 experience any errors, please send an email to [Julian
-Shun](jshun@cs.cmu.edu). A known issue is that OpenMP will not work
+Shun](mailto:jshun@cs.cmu.edu). A known issue is that OpenMP will not work
 correctly when using the experimental version of gcc 4.8.0.
 
 Currently, Ligra comes with 8 implementation files:
