@@ -127,11 +127,11 @@ ligra.h
 ### Functions
 
 **edgeMap**: takes as input 3 required arguments and 3 optional arguments:
-a graph *G*, vertices data structure *V*, struct *F*, threshold argument
+a graph *G*, vertexSubset *V*, struct *F*, threshold argument
 (optional, default threshold is *m*/20), an option in {DENSE,
 DENSE_FORWARD} (optional, default value is DENSE), and a boolean
 indiciating whether to remove duplicates (optional, default does not
-remove duplicates). It returns as output a vertices data structure Out
+remove duplicates). It returns as output a vertexSubset Out
 (see section 4 of paper for how Out is computed).
 
 The *F* struct must contain three boolean functions: update,
@@ -161,7 +161,7 @@ return value.
 
 **vertexFilter**: takes as input a vertexSubset *V* and a boolean
 function *F* which is applied to all vertices in *V*. It returns a
-vertices data structure containing all vertices *v* in *V* such that *F(v)*
+vertexSubset containing all vertices *v* in *V* such that *F(v)*
 returns true.
 
 
