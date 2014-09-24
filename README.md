@@ -6,15 +6,22 @@ A Lightweight Graph Processing Framework for Shared Memory
 Compilation
 --------
 
-This code currently compiles with g++ version 4.8.0 or higher with
-support for Cilk+, with the Intel icpc compiler, and with OpenMP. To
-compile with g++ using Cilk, define the environment variable CILK. To
-compile with icpc, define the environment variable MKLROOT and make
-sure CILK is not defined. To compile with OpenMP, define the
-environment variable OPENMP and make sure CILK and MKLROOT are not
-defined. To compile with g++ with no parallel support, make sure CILK,
-MKLROOT and OPENMP are not defined. Using Cilk+ seems to give the best
-parallel performance in our experience.
+Recommended environment
+	* Intel icpc compiler
+	* g++ &gt;= 4.8.0 with support for Cilk+, 
+
+To compile with g++ using Cilk, define the environment variable CILK. To
+compile with icpc, define the environment variable MKLROOT and make sure CILK
+is not defined. To compile with g++ with no parallel support, make sure CILK,
+MKLROOT and OPENMP are not defined. Using Cilk+ seems to give the best parallel
+performance in our experience.
+ 
+
+Alternative
+	* OpenMP
+
+To compile with OpenMP, define the environment variable OPENMP and make sure
+CILK and MKLROOT are not defined. 
 
 Note: OpenMP support in Ligra has not been thoroughly tested. If you
 experience any errors, please send an email to [Julian
