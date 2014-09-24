@@ -7,6 +7,7 @@ Practice of Parallel Programming, 2013 by Julian Shun and Guy Blelloch.
 
 Compile
 --------
+
 This code currently compiles with g++ version 4.8.0 or higher with
 support for Cilk+, with the Intel icpc compiler, and with OpenMP. To
 compile with g++ using Cilk, define the environment variable CILK. To
@@ -25,8 +26,9 @@ correctly when using the experimental version of gcc 4.8.0.
 Currently, Ligra comes with 8 implementation files:
 BFS.C, BC.C (betweenness centrality), Radii.C, Components.C,
 BellmanFord.C, PageRank.C, PageRankDelta.C and BFSCC.C. To compile all
-of them, simply run "make" with the appropriate environment variables
-set as described above. 
+of them, simply run "make" or "make -j N" (where N is the number of
+make threads to run in parallel) with the appropriate environment
+variables set as described above. 
 
 Run Examples
 -------
@@ -56,7 +58,8 @@ To develop a new implementation, simply include "ligra.h" in the
 implementation files. When finished, one may add it to the ALL
 variable in Makefile.
 
-The input format of an unweighted graphs should be in one of two formats.
+The input format of an unweighted graphs should be in one of two
+formats.
 
 1) The adjacency graph format from the Problem Based Benchmark Suite
  (http://www.cs.cmu.edu/~pbbs/benchmarks/graphIO.html). The adjacency
@@ -137,8 +140,9 @@ The F struct must contain three boolean functions: update,
 updateAtomic and cond.  update and updateAtomic should take two
 integer arguments (corresponding to source and destination vertex). In
 addition, updateAtomic should be atomic with respect to the
-destination vertex. cond takes one argument corresponding to a vertex. 
-For the cond function which always returns true, cond_true can be called.
+destination vertex. cond takes one argument corresponding to a vertex.
+For the cond function which always returns true, cond_true can be
+called.
 
 The threshold argument determines when edgeMap switches between
 edgemapSparse and edgemapDense---for a threshold value T, edgeMap
