@@ -71,26 +71,17 @@ formats.
  the end if i is the last vertex. All vertices and offsets are 0 based
  and represented in decimal. The specific format is as follows:
 
-AdjacencyGraph
-&lt;n>
-
+AdjacencyGraph  
+&lt;n>  
 &lt;m>
-
-&lt;o0>
-
-&lt;o1>
-
-...
-
-&lt;o(n-1)>
-
-&lt;e0>
-
-&lt;e1>
-
-...
-
-&lt;e(m-1)>
+&lt;o0> 
+&lt;o1>  
+...  
+&lt;o(n-1)>  
+&lt;e0>  
+&lt;e1>  
+...  
+&lt;e(m-1)>  
 
 This file is represented as plain text.
 
