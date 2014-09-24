@@ -150,7 +150,7 @@ graph<vertex> readGraphFromFile(char* fname, bool isSymmetric) {
 
     quickSort(temp,m,pairFirstCmp<intE>());
  
-    tOffsets[0] = 0; inEdges[0] = temp[0].second;
+    tOffsets[temp[0].first] = 0; inEdges[0] = temp[0].second;
     {parallel_for(intT i=1;i<m;i++) {
       inEdges[i] = temp[i].second;
       if(temp[i].first != temp[i-1].first) {
@@ -159,11 +159,10 @@ graph<vertex> readGraphFromFile(char* fname, bool isSymmetric) {
       }}
     free(temp);
 
-    uintT currOffset = m;
-    for(intT i=n-1;i>=0;i--) {
-      if(tOffsets[i] == INT_T_MAX) tOffsets[i] = currOffset;
-      else currOffset = tOffsets[i];
-    }
+
+    //fill in offsets of degree 0 vertices by taking closest non-zero
+    //offset to the right
+    sequence::scanIBack(tOffsets,tOffsets,n,minF<intT>(),(intT)m);
 
     {parallel_for(uintT i=0;i<n;i++){
       uintT o = tOffsets[i];
@@ -233,7 +232,7 @@ wghGraph<vertex> readWghGraphFromFile(char* fname, bool isSymmetric) {
 
     quickSort(temp,m,pairFirstCmp<intPair>());
 
-    tOffsets[0] = 0; 
+    tOffsets[temp[0].first] = 0; 
     inEdgesAndWghs[0] = temp[0].second.first;
     inEdgesAndWghs[1] = temp[0].second.second;
     {parallel_for(intT i=1;i<m;i++) {
@@ -246,11 +245,9 @@ wghGraph<vertex> readWghGraphFromFile(char* fname, bool isSymmetric) {
 
     free(temp);
 
-    uintT currOffset = m;
-    for(intT i=n-1;i>=0;i--) {
-      if(tOffsets[i] == INT_T_MAX) tOffsets[i] = currOffset;
-      else currOffset = tOffsets[i];
-    }
+    //fill in offsets of degree 0 vertices by taking closest non-zero
+    //offset to the right
+    sequence::scanIBack(tOffsets,tOffsets,n,minF<intT>(),(intT)m);
     
     {parallel_for(uintT i=0;i<n;i++){
       uintT o = tOffsets[i];
@@ -336,7 +333,7 @@ graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
 
     quickSort(temp,m,pairFirstCmp<intE>());
 
-    tOffsets[0] = 0; inEdges[0] = temp[0].second;
+    tOffsets[temp[0].first] = 0; inEdges[0] = temp[0].second;
     {parallel_for(intT i=1;i<m;i++) {
       inEdges[i] = temp[i].second;
       if(temp[i].first != temp[i-1].first) {
@@ -345,11 +342,9 @@ graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
       }}
     free(temp);
 
-    uintT currOffset = m;
-    for(intT i=n-1;i>=0;i--) {
-      if(tOffsets[i] == INT_T_MAX) tOffsets[i] = currOffset;
-      else currOffset = tOffsets[i];
-    }
+    //fill in offsets of degree 0 vertices by taking closest non-zero
+    //offset to the right
+    sequence::scanIBack(tOffsets,tOffsets,n,minF<intT>(),(intT)m);
 
     {parallel_for(uintT i=0;i<n;i++){
       uintT o = tOffsets[i];
@@ -438,7 +433,7 @@ wghGraph<vertex> readWghGraphFromBinary(char* iFile, bool isSymmetric) {
     free(offsets);
     quickSort(temp,m,pairFirstCmp<intE>());
 
-    tOffsets[0] = 0; 
+    tOffsets[temp[0].first] = 0; 
     inEdgesAndWghs[0] = temp[0].second;
     inEdgesAndWghs[1] = 1;
     {parallel_for(intT i=1;i<m;i++) {
@@ -449,11 +444,10 @@ wghGraph<vertex> readWghGraphFromBinary(char* iFile, bool isSymmetric) {
       }
       }}
     free(temp);
-    uintT currOffset = m;
-    for(intT i=n-1;i>=0;i--) {
-      if(tOffsets[i] == INT_T_MAX) tOffsets[i] = currOffset;
-      else currOffset = tOffsets[i];
-    }
+
+    //fill in offsets of degree 0 vertices by taking closest non-zero
+    //offset to the right
+    sequence::scanIBack(tOffsets,tOffsets,n,minF<intT>(),(intT)m);
 
     {parallel_for(uintT i=0;i<n;i++){
       uintT o = tOffsets[i];

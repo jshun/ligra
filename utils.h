@@ -43,6 +43,9 @@ struct identityF { E operator() (const E& x) {return x;}};
 template <class E>
 struct addF { E operator() (const E& a, const E& b) const {return a+b;}};
 
+template <class E>
+struct minF { E operator() (const E& a, const E& b) const {return (a < b) ? a : b;}};
+
 #define _BSIZE 2048
 #define _SCAN_LOG_BSIZE 10
 #define _SCAN_BSIZE (1 << _SCAN_LOG_BSIZE)
@@ -166,6 +169,18 @@ namespace sequence {
   template <class ET, class intT, class F> 
   ET scan(ET *In, ET* Out, intT n, F f, ET zero) {
     return scan(Out, (intT) 0, n, f, getA<ET,intT>(In), zero, false, false);}
+
+  template <class ET, class intT, class F> 
+  ET scanI(ET *In, ET* Out, intT n, F f, ET zero) {
+    return scan(Out, (intT) 0, n, f, getA<ET,intT>(In), zero, true, false);}
+
+  template <class ET, class intT, class F> 
+  ET scanBack(ET *In, ET* Out, intT n, F f, ET zero) {
+    return scan(Out, (intT) 0, n, f, getA<ET,intT>(In), zero, false, true);}
+
+  template <class ET, class intT, class F> 
+  ET scanIBack(ET *In, ET* Out, intT n, F f, ET zero) {
+    return scan(Out, (intT) 0, n, f, getA<ET,intT>(In), zero, true, true);}
 
   template <class ET, class intT> 
   ET plusScan(ET *In, ET* Out, intT n) {
