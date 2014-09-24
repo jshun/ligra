@@ -73,8 +73,8 @@ formats.
 
 AdjacencyGraph  
 &lt;n>  
-&lt;m>
-&lt;o0> 
+&lt;m>  
+&lt;o0>  
 &lt;o1>  
 ...  
 &lt;o(n-1)>  
