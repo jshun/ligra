@@ -73,14 +73,23 @@ formats.
 
 AdjacencyGraph
 &lt;n>
+
 &lt;m>
+
 &lt;o0>
+
 &lt;o1>
+
 ...
+
 &lt;o(n-1)>
+
 &lt;e0>
+
 &lt;e1>
+
 ...
+
 &lt;e(m-1)>
 
 This file is represented as plain text.
