@@ -2,10 +2,8 @@ Ligra
 ===========================
 A Lightweight Graph Processing Framework for Shared Memory
 ======================
-A paper on the innovative ideas in this project is presented at Principles and
-Practice of Parallel Programming, 2013 by Julian Shun and Guy Blelloch.
 
-Compile
+Compilation
 --------
 
 This code currently compiles with g++ version 4.8.0 or higher with
@@ -93,7 +91,7 @@ file stores in binary the offsets for the vertices in the CSR format
 the CSR format (the <e>'s above).
 
 Weighted graphs: For format (1), the weights are listed at the end of
-the file (after <e(m-1)>). Currently for format (2), the weights are
+the file (after &lt;e(m-1)>). Currently for format (2), the weights are
 all set to 1.
 
 By default, format (1) is used. To run an input with format (2), pass
@@ -123,20 +121,20 @@ Code Walkthrough
 
 ### Data Structure
 
-vertices (i.e. the vertex subset). Various constructors are given in
+**vertexSubset**: represents a subset of vertices in the graph. Various constructors are given in
 ligra.h
 
 ### Functions
 
-edgeMap: takes as input 3 required arguments and 3 optional arguments:
-a graph G, vertices data structure V, struct F, threshold argument
-(optional, default threshold is |E|/20), an option in {DENSE,
+**edgeMap**: takes as input 3 required arguments and 3 optional arguments:
+a graph *G*, vertices data structure *V*, struct *F*, threshold argument
+(optional, default threshold is *m*/20), an option in {DENSE,
 DENSE_FORWARD} (optional, default value is DENSE), and a boolean
 indiciating whether to remove duplicates (optional, default does not
 remove duplicates). It returns as output a vertices data structure Out
 (see section 4 of paper for how Out is computed).
 
-The F struct must contain three boolean functions: update,
+The *F* struct must contain three boolean functions: update,
 updateAtomic and cond.  update and updateAtomic should take two
 integer arguments (corresponding to source and destination vertex). In
 addition, updateAtomic should be atomic with respect to the
@@ -145,9 +143,9 @@ For the cond function which always returns true, cond_true can be
 called.
 
 The threshold argument determines when edgeMap switches between
-edgemapSparse and edgemapDense---for a threshold value T, edgeMap
+edgemapSparse and edgemapDense---for a threshold value *T*, edgeMap
 calls edgemapSparse if the vertex subset size plus its number of
-outgoing edges is less than T, and otherwise calls edgemapDense.
+outgoing edges is less than *T*, and otherwise calls edgemapDense.
 
 DENSE and is a read-based version where all vertices not satisfying
 Cond loop over their incoming edges and DENSE_FORWARD is a write-based
@@ -157,17 +155,20 @@ optimization is described in Section 4 of the paper.
 Note that duplicate removal can only be avoided if updateAtomic
 returns true at most once for each vertex in a call to edgeMap.
 
-vertexMap: takes as input 2 arguments: a vertices data structure V and
-a function F which is applied to all vertices in V. It does not have a
+**vertexMap**: takes as input 2 arguments: a vertexSubset *V* and
+a function *F* which is applied to all vertices in *V*. It does not have a
 return value.
 
-vertexFilter: takes as input a vertices data structure V and a boolean
-function F which is applied to all vertices in V. It returns a
-vertices data structure containing all vertices v in V such that F(v)
-returned true.
+**vertexFilter**: takes as input a vertexSubset *V* and a boolean
+function *F* which is applied to all vertices in *V*. It returns a
+vertices data structure containing all vertices *v* in *V* such that *F(v)*
+returns true.
 
 
+Resources  
+-------- 
 
-
-
-
+Conference publication: Julian Shun and Guy Blelloch. [*Ligra: A
+Lightweight Graph Processing Framework for Shared Memory*](http://www.cs.cmu.edu/~jshun/ligra.pdf). Proceedings
+of the ACM SIGPLAN Symposium on Principles and Practice of Parallel
+Programming (PPoPP), pp. 135-146, 2013.
