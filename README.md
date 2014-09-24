@@ -1,7 +1,12 @@
-This code is part of the project "Ligra: A Lightweight Graph Processing
-Framework for Shared Memory", presented at Principles and Practice of 
-Parallel Programming, 2013 by Julian Shun and Guy Blelloch.
+Ligra
+===========================
+A Lightweight Graph Processing Framework for Shared Memory
+======================
+A paper on the innovative ideas in this project is presented at Principles and
+Practice of Parallel Programming, 2013 by Julian Shun and Guy Blelloch.
 
+Compile
+--------
 This code currently compiles with g++ version 4.8.0 or higher with
 support for Cilk+, with the Intel icpc compiler, and with OpenMP. To
 compile with g++ using Cilk, define the environment variable CILK. To
@@ -17,11 +22,33 @@ experience any errors, please send an email to Julian Shun
 (jshun@cs.cmu.edu). A known issue is that OpenMP will not work
 correctly when using the experimental version of gcc 4.8.0.
 
-Implementations---Currently, Ligra comes with 8 implementation files:
+Currently, Ligra comes with 8 implementation files:
 BFS.C, BC.C (betweenness centrality), Radii.C, Components.C,
 BellmanFord.C, PageRank.C, PageRankDelta.C and BFSCC.C. To compile all
 of them, simply run "make" with the appropriate environment variables
-set as described above. Currently the results of the computation are
+set as described above. 
+
+Run Examples
+-------
+Example of running the code: An example unweighted graph
+rMatGraph_J_5_100 and weighted graph rMatGraph_WJ_5_100 are
+provided. They are symmetric graphs, so should be called with the "-s"
+flag. For example "./BFS -s rMatGraph_J_5_100" and "./BellmanFord -s
+rMatGraph_WJ_5_100". For BFS, BC and BellmanFord, one can also pass
+the "-r" flag followed by an integer to indicate the source vertex.
+rMat graphs along with other graphs can be generated with the graph
+generators at www.cs.cmu.edu/~pbbs. By default, the applications are
+run four times, with times reported for the last three runs. This can
+be changed by passing the flag "-rounds" followed by an integer
+indicating the number of timed runs.
+
+To write your own Ligra code, it would be helpful to look at the code
+for the provided applications as reference.
+
+
+Write your own code with Ligra
+-------
+Currently the results of the computation are
 not used, but the code can be easily modified to output the results to
 a file.
 
@@ -42,16 +69,16 @@ The input format of an unweighted graphs should be in one of two formats.
  and represented in decimal. The specific format is as follows:
 
 AdjacencyGraph
-<n>
-<m>
-<o0>
-<o1>
+&lt;n>
+&lt;m>
+&lt;o0>
+&lt;o1>
 ...
-<o(n-1)>
-<e0>
-<e1>
+&lt;o(n-1)>
+&lt;e0>
+&lt;e1>
 ...
-<e(m-1)>
+&lt;e(m-1)>
 
 This file is represented as plain text.
 
@@ -88,12 +115,15 @@ BFS.C (for unweighted graphs) and BellmanFord.C (for weighted graphs).
 To write a parallel for loop in your code, simply use the parallel_for
 construct in place of "for".
 
-Data Structure: 
+Code Walkthrough
+---------
+
+### Data Structure
 
 vertices (i.e. the vertex subset). Various constructors are given in
 ligra.h
 
-Functions:
+### Functions
 
 edgeMap: takes as input 3 required arguments and 3 optional arguments:
 a graph G, vertices data structure V, struct F, threshold argument
@@ -135,17 +165,5 @@ returned true.
 
 
 
-Example of running the code: An example unweighted graph
-rMatGraph_J_5_100 and weighted graph rMatGraph_WJ_5_100 are
-provided. They are symmetric graphs, so should be called with the "-s"
-flag. For example "./BFS -s rMatGraph_J_5_100" and "./BellmanFord -s
-rMatGraph_WJ_5_100". For BFS, BC and BellmanFord, one can also pass
-the "-r" flag followed by an integer to indicate the source vertex.
-rMat graphs along with other graphs can be generated with the graph
-generators at www.cs.cmu.edu/~pbbs. By default, the applications are
-run four times, with times reported for the last three runs. This can
-be changed by passing the flag "-rounds" followed by an integer
-indicating the number of timed runs.
 
-To write your own Ligra code, it would be helpful to look at the code
-for the provided applications as reference.
+
