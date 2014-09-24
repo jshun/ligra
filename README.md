@@ -7,8 +7,9 @@ Compilation
 --------
 
 Recommended environment
-	* Intel icpc compiler
-	* g++ &gt;= 4.8.0 with support for Cilk+, 
+
+* Intel icpc compiler
+* g++ &gt;= 4.8.0 with support for Cilk+, 
 
 To compile with g++ using Cilk, define the environment variable CILK. To
 compile with icpc, define the environment variable MKLROOT and make sure CILK
@@ -18,7 +19,7 @@ performance in our experience.
  
 
 Alternative
-	* OpenMP
+* OpenMP
 
 To compile with OpenMP, define the environment variable OPENMP and make sure
 CILK and MKLROOT are not defined. 
