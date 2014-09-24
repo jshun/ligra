@@ -23,9 +23,9 @@ correctly when using the experimental version of gcc 4.8.0.
 
 After the appropriate environment variables are set, to compile, simply run 
 
-'''
-make -j 16 
-'''
+```
+$ make -j 16 
+```
 
 This is to compile and build with 16 threads in parallel. You can use the
 number of your choice.
