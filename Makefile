@@ -6,20 +6,19 @@ ifdef EDGELONG
 INTE = -DEDGELONG
 endif
 
-# # no compare and swap!
-# ifdef OPENMP
-# PCC = g++
-# PCFLAGS = -fopenmp -mcx16 -O3 -DOPENMP $(INTT) $(INTE)
-
+#compilers
 ifdef CILK
 PCC = g++
-#-cilk
 PCFLAGS = -fcilkplus -lcilkrts -O2 -DCILK $(INTT) $(INTE)
 PLFLAGS = -fcilkplus -lcilkrts
 
 else ifdef MKLROOT
 PCC = icpc
 PCFLAGS = -O3 -DCILKP $(INTT) $(INTE)
+
+else ifdef OPENMP
+PCC = g++
+PCFLAGS = -fopenmp -O3 -DOPENMP $(INTT) $(INTE)
 
 else
 PCC = g++

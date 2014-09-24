@@ -55,6 +55,7 @@ void BFS(intT start, graph<vertex> GA) {
   while(!Frontier.isEmpty()){ //loop until frontier is empty
     round++;
     numVisited+=Frontier.numNonzeros();
+    //cout << round << " " << Frontier.numNonzeros() << endl;
     //apply edgemap
     vertexSubset output = edgeMap(GA, Frontier, BFS_F(Parents),GA.m/20);    
     Frontier.del();

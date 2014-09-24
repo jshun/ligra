@@ -3,11 +3,19 @@ Framework for Shared Memory", presented at Principles and Practice of
 Parallel Programming, 2013 by Julian Shun and Guy Blelloch.
 
 This code currently compiles with g++ version 4.8.0 or higher with
-support for Cilk+ and also with the Intel icpc compiler. To compile
-with g++ using Cilk, define the environment variable CILK. To compile
-with icpc, define the environment variable MKLROOT and make sure CILK
-is not defined. To compile with g++ with no parallel support, make
-sure both CILK and MKLROOT are not defined.
+support for Cilk+, with the Intel icpc compiler, and with OpenMP. To
+compile with g++ using Cilk, define the environment variable CILK. To
+compile with icpc, define the environment variable MKLROOT and make
+sure CILK is not defined. To compile with OpenMP, define the
+environment variable OPENMP and make sure CILK and MKLROOT are not
+defined. To compile with g++ with no parallel support, make sure CILK,
+MKLROOT and OPENMP are not defined. Using Cilk+ seems to give the best
+parallel performance in our experience.
+
+Note: OpenMP support in Ligra has not been throughly tested. If you
+experience any errors, please send an email to Julian Shun
+(jshun@cs.cmu.edu). A known issue is that OpenMP will not work
+correctly when using the experimental version of gcc 4.8.0.
 
 Implementations---Currently, Ligra comes with 8 implementation files:
 BFS.C, BC.C (betweenness centrality), Radii.C, Components.C,
