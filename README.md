@@ -21,12 +21,14 @@ experience any errors, please send an email to [Julian
 Shun](mailto:jshun@cs.cmu.edu). A known issue is that OpenMP will not work
 correctly when using the experimental version of gcc 4.8.0.
 
-Currently, Ligra comes with 8 implementation files:
-BFS.C, BC.C (betweenness centrality), Radii.C, Components.C,
-BellmanFord.C, PageRank.C, PageRankDelta.C and BFSCC.C. To compile all
-of them, simply run "make" or "make -j N" (where N is the number of
-make threads to run in parallel) with the appropriate environment
-variables set as described above. 
+After the appropriate environment variables are set, to compile, simply run 
+
+'''
+make -j 16 
+'''
+
+This is to compile and build with 16 threads in parallel. You can use the
+number of your choice.
 
 Run Examples
 -------
@@ -118,6 +120,10 @@ construct in place of "for".
 
 Code Walkthrough
 ---------
+Currently, Ligra comes with 8 implementation files:
+BFS.C, BC.C (betweenness centrality), Radii.C, Components.C,
+BellmanFord.C, PageRank.C, PageRankDelta.C and BFSCC.C. 
+
 
 ### Data Structure
 
