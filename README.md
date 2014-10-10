@@ -11,25 +11,27 @@ Recommended environment
 * Intel icpc compiler
 * g++ &gt;= 4.8.0 with support for Cilk+, 
 
-To compile with g++ using Cilk, define the environment variable CILK. To
-compile with icpc, define the environment variable MKLROOT and make sure CILK
-is not defined. To compile with g++ with no parallel support, make sure CILK,
-MKLROOT and OPENMP are not defined. Using Cilk+ seems to give the best parallel
-performance in our experience.
+To compile with g++ using Cilk, define the environment variable
+CILK. To compile with icpc, define the environment variable MKLROOT
+and make sure CILK is not defined. To compile with g++ with no
+parallel support, make sure CILK, MKLROOT and OPENMP are not
+defined. Using Cilk+ seems to give the best parallel performance in
+our experience.
  
 
 Alternative
 * OpenMP
 
-To compile with OpenMP, define the environment variable OPENMP and make sure
-CILK and MKLROOT are not defined. 
+To compile with OpenMP, define the environment variable OPENMP and
+make sure CILK and MKLROOT are not defined.
 
 Note: OpenMP support in Ligra has not been thoroughly tested. If you
 experience any errors, please send an email to [Julian
-Shun](mailto:jshun@cs.cmu.edu). A known issue is that OpenMP will not work
-correctly when using the experimental version of gcc 4.8.0.
+Shun](mailto:jshun@cs.cmu.edu). A known issue is that OpenMP will not
+work correctly when using the experimental version of gcc 4.8.0.
 
-After the appropriate environment variables are set, to compile, simply run 
+After the appropriate environment variables are set, to compile,
+simply run
 
 ```
 $ make -j 16 
@@ -46,8 +48,8 @@ provided. They are symmetric graphs, so should be called with the "-s"
 flag. For example:
 
 ```
-$./BFS -s rMatGraph_J_5_100
-$./BellmanFord -s rMatGraph_WJ_5_100
+$ ./BFS -s rMatGraph_J_5_100
+$ ./BellmanFord -s rMatGraph_WJ_5_100
 ``` 
 
 For BFS, BC and BellmanFord, one can also pass the "-r" flag followed
@@ -64,9 +66,8 @@ for the provided applications as reference.
 
 Write your own code with Ligra
 -------
-Currently the results of the computation are
-not used, but the code can be easily modified to output the results to
-a file.
+Currently the results of the computation are not used, but the code
+can be easily modified to output the results to a file.
 
 To develop a new implementation, simply include "ligra.h" in the
 implementation files. When finished, one may add it to the ALL
@@ -107,8 +108,8 @@ file stores in binary the offsets for the vertices in the CSR format
 the CSR format (the <e>'s above).
 
 Weighted graphs: For format (1), the weights are listed at the end of
-the file (after &lt;e(m-1)>). Currently for format (2), the weights are
-all set to 1.
+the file (after &lt;e(m-1)>). Currently for format (2), the weights
+are all set to 1.
 
 By default, format (1) is used. To run an input with format (2), pass
 the "-b" flag as a command line argument.
@@ -138,7 +139,7 @@ Currently, Ligra comes with 8 implementation files: BFS.C
 (breadth-first search), BC.C (betweenness centrality), Radii.C (graph
 radii estimation), Components.C (connected components), BellmanFord.C
 (Bellman-Ford shortest paths), PageRank.C, PageRankDelta.C and
-BFSCC.C.
+BFSCC.C (connected components based on BFS).
 
 
 ### Data Structure
@@ -176,9 +177,9 @@ optimization is described in Section 4 of the paper.
 Note that duplicate removal can only be avoided if updateAtomic
 returns true at most once for each vertex in a call to edgeMap.
 
-**vertexMap**: takes as input 2 arguments: a vertexSubset *V* and
-a function *F* which is applied to all vertices in *V*. It does not have a
-return value.
+**vertexMap**: takes as input 2 arguments: a vertexSubset *V* and a
+function *F* which is applied to all vertices in *V*. It does not have
+a return value.
 
 **vertexFilter**: takes as input a vertexSubset *V* and a boolean
 function *F* which is applied to all vertices in *V*. It returns a
@@ -190,6 +191,7 @@ Resources
 -------- 
 
 Conference publication: Julian Shun and Guy Blelloch. [*Ligra: A
-Lightweight Graph Processing Framework for Shared Memory*](http://www.cs.cmu.edu/~jshun/ligra.pdf). Proceedings
-of the ACM SIGPLAN Symposium on Principles and Practice of Parallel
+Lightweight Graph Processing Framework for Shared
+Memory*](http://www.cs.cmu.edu/~jshun/ligra.pdf). Proceedings of the
+ACM SIGPLAN Symposium on Principles and Practice of Parallel
 Programming (PPoPP), pp. 135-146, 2013.
