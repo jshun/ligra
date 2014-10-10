@@ -43,14 +43,20 @@ Run Examples
 Example of running the code: An example unweighted graph
 rMatGraph_J_5_100 and weighted graph rMatGraph_WJ_5_100 are
 provided. They are symmetric graphs, so should be called with the "-s"
-flag. For example "./BFS -s rMatGraph_J_5_100" and "./BellmanFord -s
-rMatGraph_WJ_5_100". For BFS, BC and BellmanFord, one can also pass
-the "-r" flag followed by an integer to indicate the source vertex.
-rMat graphs along with other graphs can be generated with the graph
-generators at www.cs.cmu.edu/~pbbs. By default, the applications are
-run four times, with times reported for the last three runs. This can
-be changed by passing the flag "-rounds" followed by an integer
-indicating the number of timed runs.
+flag. For example:
+
+```
+$./BFS -s rMatGraph_J_5_100
+$./BellmanFord -s rMatGraph_WJ_5_100
+``` 
+
+For BFS, BC and BellmanFord, one can also pass the "-r" flag followed
+by an integer to indicate the source vertex.  rMat graphs along with
+other graphs can be generated with the graph generators at
+www.cs.cmu.edu/~pbbs. By default, the applications are run four times,
+with times reported for the last three runs. This can be changed by
+passing the flag "-rounds" followed by an integer indicating the
+number of timed runs.
 
 To write your own Ligra code, it would be helpful to look at the code
 for the provided applications as reference.
@@ -128,15 +134,17 @@ construct in place of "for".
 
 Code Walkthrough
 ---------
-Currently, Ligra comes with 8 implementation files:
-BFS.C, BC.C (betweenness centrality), Radii.C, Components.C,
-BellmanFord.C, PageRank.C, PageRankDelta.C and BFSCC.C. 
+Currently, Ligra comes with 8 implementation files: BFS.C
+(breadth-first search), BC.C (betweenness centrality), Radii.C (graph
+radii estimation), Components.C (connected components), BellmanFord.C
+(Bellman-Ford shortest paths), PageRank.C, PageRankDelta.C and
+BFSCC.C.
 
 
 ### Data Structure
 
-**vertexSubset**: represents a subset of vertices in the graph. Various constructors are given in
-ligra.h
+**vertexSubset**: represents a subset of vertices in the
+graph. Various constructors are given in ligra.h
 
 ### Functions
 
@@ -148,13 +156,12 @@ indiciating whether to remove duplicates (optional, default does not
 remove duplicates). It returns as output a vertexSubset Out
 (see section 4 of paper for how Out is computed).
 
-The *F* struct must contain three boolean functions: update,
-updateAtomic and cond.  update and updateAtomic should take two
-integer arguments (corresponding to source and destination vertex). In
-addition, updateAtomic should be atomic with respect to the
-destination vertex. cond takes one argument corresponding to a vertex.
-For the cond function which always returns true, cond_true can be
-called.
+The *F* struct contains three boolean functions: update, updateAtomic
+and cond.  update and updateAtomic should take two integer arguments
+(corresponding to source and destination vertex). In addition,
+updateAtomic should be atomic with respect to the destination
+vertex. cond takes one argument corresponding to a vertex.  For the
+cond function which always returns true, cond_true can be called.
 
 The threshold argument determines when edgeMap switches between
 edgemapSparse and edgemapDense---for a threshold value *T*, edgeMap

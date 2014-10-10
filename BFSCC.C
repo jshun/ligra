@@ -27,9 +27,12 @@
 using namespace std;
 
 //This implementation uses BFS's to find connected components until
-//all vertices have been visited. This will work well for dense
-//low-diameter graphs. Do not use it on very high-diameter graphs or
-//graphs with very many components.
+//all vertices have been visited (based on ideas from the paper "BFS
+//and Coloring-Based Parallel Algorithms for Strongly Connected
+//Components and Related Problems" in IPDPS 2014 by Slota et
+//al.). This implementation will work well for dense low-diameter
+//graphs. Do not use it on very high-diameter graphs or graphs with
+//very many components.
 
 struct BFS_F {
   intT* Parents;
