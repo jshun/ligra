@@ -60,40 +60,10 @@ with times reported for the last three runs. This can be changed by
 passing the flag "-rounds" followed by an integer indicating the
 number of timed runs.
 
-To write your own Ligra code, it would be helpful to look at the code
-for the provided applications as reference.
 
 
-Write your own code with Ligra
--------
-Currently the results of the computation are not used, but the code
-can be easily modified to output the results to a file.
-
-To develop a new implementation, simply include "ligra.h" in the
-implementation files. When finished, one may add it to the ALL
-variable in Makefile. The function that is passed to the Ligra driver
-is the following Compute function, which is filled in by the user:
-
-```
-template<class vertex>
-void Compute(intT start, graph<vertex> GA){ 
-//for unweighted graph applications
-
-}
-
-template<class vertex>
-void Compute(intT start, wghGraph<vertex> GA) { 
-//for weighted graph applications
-
-}
-```
-
-For weighted graph applications, add "#define WEIGHTED 1" before
-including ligra.h.
-
-To write a parallel for loop in your code, simply use the parallel_for
-construct in place of "for".
-
+Input Format
+-----------
 The input format of an unweighted graphs should be in one of two
 formats.
 
@@ -142,7 +112,8 @@ and to represent them as 64-bit integers, compile with the variable
 EDGELONG defined.
 
 
-Code Walkthrough
+
+Ligra Graph Applications
 ---------
 Currently, Ligra comes with 8 implementation files: BFS.C
 (breadth-first search), BC.C (betweenness centrality), Radii.C (graph
@@ -151,6 +122,8 @@ radii estimation), Components.C (connected components), BellmanFord.C
 BFSCC.C (connected components based on BFS).
 
 
+Ligra Data Structure and Functions
+---------
 ### Data Structure
 
 **vertexSubset**: represents a subset of vertices in the
@@ -195,6 +168,39 @@ function *F* which is applied to all vertices in *V*. It returns a
 vertexSubset containing all vertices *v* in *V* such that *F(v)*
 returns true.
 
+
+Write your own code with Ligra
+-------
+To write your own Ligra code, it would be helpful to look at the code
+for the provided applications as reference.
+
+Currently the results of the computation are not used, but the code
+can be easily modified to output the results to a file.
+
+To develop a new implementation, simply include "ligra.h" in the
+implementation files. When finished, one may add it to the ALL
+variable in Makefile. The function that is passed to the Ligra driver
+is the following Compute function, which is filled in by the user:
+
+```
+template<class vertex>
+void Compute(intT start, graph<vertex> GA){ 
+//for unweighted graph applications
+
+}
+
+template<class vertex>
+void Compute(intT start, wghGraph<vertex> GA) { 
+//for weighted graph applications
+
+}
+```
+
+For weighted graph applications, add "#define WEIGHTED 1" before
+including ligra.h.
+
+To write a parallel for loop in your code, simply use the parallel_for
+construct in place of "for".
 
 Resources  
 -------- 
