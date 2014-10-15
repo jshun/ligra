@@ -24,8 +24,6 @@
 #include "ligra.h"
 #include <vector>
 #include "math.h"
-#include "parallel.h"
-#include "parseCommandLine.h"
 using namespace std;
 
 typedef double fType;
@@ -117,7 +115,6 @@ void BC(intT start, graph<vertex> GA) {
   timer t1,t2;
   while(!Frontier.isEmpty()){ //first phase
     round++;
-    //cout<<"Round "<<round<<" "<<Frontier.numNonzeros()<<endl;
     vertexSubset output = edgeMap(GA, Frontier, BC_F(NumPaths,Visited),threshold);
     vertexMap(output, BC_Vertex_F(Visited)); //mark visited
     Levels.push_back(output); //save frontier onto Levels

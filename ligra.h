@@ -33,6 +33,7 @@
 #include "utils.h"
 #include "graph.h"
 #include "IO.h"
+#include "parseCommandLine.h"
 using namespace std;
 
 //*****START FRAMEWORK*****

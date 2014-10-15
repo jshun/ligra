@@ -22,8 +22,6 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "ligra.h"
-#include "gettime.h"
-#include "parseCommandLine.h"
 using namespace std;
 
 //atomically do bitwise-OR of *a with b and store in location a
@@ -97,7 +95,6 @@ void Radii(graph<vertex> GA) {
   intT round = 0;
   while(!Frontier.isEmpty()){
     round++;
-    //cout<<"Round "<<round<<" "<<Frontier.numNonzeros()<<endl;
     vertexMap(Frontier, Radii_Vertex_F(Visited,NextVisited));
     vertexSubset output = edgeMap(GA, Frontier, Radii_F(Visited,NextVisited,radii,round),GA.m/20);
     swap(NextVisited,Visited);

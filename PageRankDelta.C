@@ -22,9 +22,7 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "ligra.h"
-#include "gettime.h"
 #include "math.h"
-#include "parseCommandLine.h"
 using namespace std;
 
 template <class vertex>
@@ -108,13 +106,10 @@ void PageRankDelta(graph<vertex> GA) {
   vertexSubset All(n,n,all);
 
   intT round = 0;
-
   while(1){
     round++;
-    // cout<<"Round "<<round<<", frontier size = "<<Frontier.numNonzeros()<<endl;
     vertexSubset output = edgeMap(GA, Frontier, PR_F<vertex>(GA.V,Delta,nghSum),GA.m/20,DENSE_FORWARD);
     output.del();
-
     vertexSubset active 
       = (round == 1) ? 
       vertexFilter(All,PR_Vertex_F_FirstRound(p,Delta,nghSum,damping,one_over_n,epsilon2)) :
@@ -124,15 +119,12 @@ void PageRankDelta(graph<vertex> GA) {
       nghSum[i] = fabs(Delta[i]);
       }}
     double L1_norm = sequence::plusReduce(nghSum,n);
-    //cout<<"L1 norm = "<<L1_norm<<endl;
-
     if(L1_norm < epsilon) break;
     //reset
     vertexMap(All,PR_Vertex_Reset(nghSum));
     Frontier.del();
     Frontier = active;
   }
-  cout<<"Finished in "<<round<<" iterations\n";
   Frontier.del();
   free(p); free(Delta); free(nghSum);
   All.del();

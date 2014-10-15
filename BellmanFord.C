@@ -22,8 +22,6 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "ligra.h"
-#include "gettime.h"
-#include "parseCommandLine.h"
 using namespace std;
 
 struct BF_F {
@@ -78,14 +76,11 @@ int* BellmanFord(intT start, wghGraph<vertex> GA) {
       {parallel_for(intT i=0;i<n;i++) ShortestPathLen[i] = -(INT_MAX/2);}
       break;
     }
-    //cout<<"Round "<<round<<" "<<Frontier.numNonzeros()<<endl;
-
     vertexSubset output = edgeMap(GA, Frontier, BF_F(ShortestPathLen,Visited), GA.m/20,DENSE_FORWARD);
     vertexMap(output,BF_Vertex_F(Visited));
     Frontier.del();
     Frontier = output;
   } 
-
   Frontier.del();
   free(Visited);
   return ShortestPathLen;

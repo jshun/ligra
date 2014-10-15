@@ -76,9 +76,6 @@ void BFS(graph<vertex> GA) {
     }
   }
   free(Parents); 
-
-  //cout<<"Vertices visited = "<<numVisited<<endl;
-  // cout<<"Edges traversed = "<<edgesTraversed<<endl;
 }
 
 int parallel_main(int argc, char* argv[]) {  

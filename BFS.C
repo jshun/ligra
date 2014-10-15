@@ -22,8 +22,6 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "ligra.h"
-#include "parallel.h"
-#include "parseCommandLine.h"
 using namespace std;
 
 struct BFS_F {
@@ -50,23 +48,13 @@ void BFS(intT start, graph<vertex> GA) {
 
   vertexSubset Frontier(n,start); //creates initial frontier
 
-  intT round = 0;
-  intT numVisited = 0;
   while(!Frontier.isEmpty()){ //loop until frontier is empty
-    round++;
-    numVisited+=Frontier.numNonzeros();
-    //cout << round << " " << Frontier.numNonzeros() << endl;
-    //apply edgemap
     vertexSubset output = edgeMap(GA, Frontier, BFS_F(Parents),GA.m/20);    
     Frontier.del();
     Frontier = output; //set new frontier
   } 
-
   Frontier.del();
   free(Parents); 
-
-  // cout<<"Vertices visited = "<<numVisited<<endl;
-  // cout<<"Edges traversed = "<<edgesTraversed<<endl;
 }
 
 int parallel_main(int argc, char* argv[]) {  

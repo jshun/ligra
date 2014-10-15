@@ -22,8 +22,6 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "ligra.h"
-#include "gettime.h"
-#include "parseCommandLine.h"
 using namespace std;
 
 struct CC_F {
@@ -72,9 +70,7 @@ void Components(graph<vertex> GA) {
 
   vertexSubset Frontier(n,n,frontier); //initial frontier contains all vertices
  
-  intT round = 0;
   while(!Frontier.isEmpty()){ //iterate until IDS converge
-    round++;
     vertexMap(Frontier,CC_Vertex_F(IDs,prevIDs));
     vertexSubset output = edgeMap(GA, Frontier, CC_F(IDs,prevIDs),GA.m/20);
     Frontier.del();
