@@ -83,7 +83,7 @@ struct PR_Vertex_Reset {
 };
 
 template <class vertex>
-void PageRankDelta(graph<vertex> GA) {
+void Compute(intT r, graph<vertex> GA) {
   const intT n = GA.n;
   const double damping = 0.85;
   const double epsilon = 0.0000001;
@@ -128,33 +128,4 @@ void PageRankDelta(graph<vertex> GA) {
   Frontier.del();
   free(p); free(Delta); free(nghSum);
   All.del();
-}
-
-int parallel_main(int argc, char* argv[]) {  
-  commandLine P(argc,argv," [-s] <inFile>");
-  char* iFile = P.getArgument(0);
-  bool symmetric = P.getOptionValue("-s");
-  bool binary = P.getOptionValue("-b");
-  long rounds = P.getOptionLongValue("-rounds",3);
-  if(symmetric) {
-    graph<symmetricVertex> G = 
-      readGraph<symmetricVertex>(iFile,symmetric,binary); //symmetric graph
-    PageRankDelta(G);
-    for(int r=0;r<rounds;r++) {
-      startTime();
-      PageRankDelta(G);
-      nextTime("PageRankDelta");
-    }
-    G.del(); 
-  } else {
-    graph<asymmetricVertex> G = 
-      readGraph<asymmetricVertex>(iFile,symmetric,binary); //asymmetric graph
-    PageRankDelta(G);
-    for(int r=0;r<rounds;r++) {
-      startTime();
-      PageRankDelta(G);
-      nextTime("PageRankDelta");
-    }
-    G.del();
-  }
 }

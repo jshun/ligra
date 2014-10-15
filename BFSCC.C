@@ -27,12 +27,9 @@
 using namespace std;
 
 //This implementation uses BFS's to find connected components until
-//all vertices have been visited (based on ideas from the paper "BFS
-//and Coloring-Based Parallel Algorithms for Strongly Connected
-//Components and Related Problems" in IPDPS 2014 by Slota et
-//al.). This implementation will work well for dense low-diameter
-//graphs. Do not use it on very high-diameter graphs or graphs with
-//very many components.
+//all vertices have been visited. This implementation will work well
+//for dense low-diameter graphs. Do not use it on very high-diameter
+//graphs or graphs with very many components.
 
 struct BFS_F {
   intT* Parents;
@@ -50,7 +47,7 @@ struct BFS_F {
 };
 
 template <class vertex>
-void BFS(graph<vertex> GA) {
+void Compute(intT r, graph<vertex> GA) {
   intT n = GA.n;
   //creates Parents array, initialized to all -1, except for start
   intT* Parents = newA(intT,GA.n);
@@ -76,34 +73,4 @@ void BFS(graph<vertex> GA) {
     }
   }
   free(Parents); 
-}
-
-int parallel_main(int argc, char* argv[]) {  
-  commandLine P(argc,argv," [-s] <inFile>");
-  char* iFile = P.getArgument(0);
-  bool symmetric = P.getOptionValue("-s");
-  bool binary = P.getOptionValue("-b");
-  long start = P.getOptionLongValue("-r",0);
-  long rounds = P.getOptionLongValue("-rounds",3);
-  if(symmetric) {
-    graph<symmetricVertex> G = 
-      readGraph<symmetricVertex>(iFile,symmetric,binary); //symmetric graph
-    BFS(G);
-    for(int r=0;r<rounds;r++) {
-      startTime();
-      BFS(G);
-      nextTime("BFS");
-    }
-    G.del(); 
-  } else {
-    graph<asymmetricVertex> G = 
-      readGraph<asymmetricVertex>(iFile,symmetric,binary); //asymmetric graph
-    BFS(G);
-    for(int r=0;r<rounds;r++) {
-      startTime();
-      BFS(G);
-      nextTime("BFS");
-    }
-    G.del();
-  }
 }

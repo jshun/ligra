@@ -58,7 +58,7 @@ struct CC_Vertex_F {
 };
 
 template <class vertex>
-void Components(graph<vertex> GA) {
+void Compute(intT r, graph<vertex> GA) {
   intT n = GA.n;
   intT* IDs = newA(intT,n);
   intT* prevIDs = newA(intT,n);
@@ -80,31 +80,3 @@ void Components(graph<vertex> GA) {
   free(IDs); free(prevIDs);
 }
 
-int parallel_main(int argc, char* argv[]) {  
-  commandLine P(argc,argv," [-s] <inFile>");
-  char* iFile = P.getArgument(0);
-  bool symmetric = P.getOptionValue("-s");
-  bool binary = P.getOptionValue("-b");
-  long rounds = P.getOptionLongValue("-rounds",3);
-  if(symmetric) {
-    graph<symmetricVertex> G = 
-      readGraph<symmetricVertex>(iFile,symmetric,binary); //symmetric graph
-    Components(G);
-    for(int r=0;r<rounds;r++) {
-      startTime();
-      Components(G);
-      nextTime("Components");
-    }
-    G.del(); 
-  } else {
-    graph<asymmetricVertex> G = 
-      readGraph<asymmetricVertex>(iFile,symmetric,binary); //asymmetric graph
-    Components(G);
-    for(int r=0;r<rounds;r++) {
-      startTime();
-      Components(G);
-      nextTime("Components");
-    }
-    G.del();
-  }
-}

@@ -39,7 +39,7 @@ struct BFS_F {
 };
 
 template <class vertex>
-void BFS(intT start, graph<vertex> GA) {
+void Compute(intT start, graph<vertex> GA) {
   intT n = GA.n;
   //creates Parents array, initialized to all -1, except for start
   intT* Parents = newA(intT,GA.n);
@@ -57,32 +57,32 @@ void BFS(intT start, graph<vertex> GA) {
   free(Parents); 
 }
 
-int parallel_main(int argc, char* argv[]) {  
-  commandLine P(argc,argv," [-s] <inFile>");
-  char* iFile = P.getArgument(0);
-  bool symmetric = P.getOptionValue("-s");
-  bool binary = P.getOptionValue("-b");
-  long start = P.getOptionLongValue("-r",0);
-  long rounds = P.getOptionLongValue("-rounds",3);
-  if(symmetric) {
-    graph<symmetricVertex> G = 
-      readGraph<symmetricVertex>(iFile,symmetric,binary); //symmetric graph
-    BFS((intT)start,G);
-    for(int r=0;r<rounds;r++) {
-      startTime();
-      BFS((intT)start,G);
-      nextTime("BFS");
-    }
-    G.del(); 
-  } else {
-    graph<asymmetricVertex> G = 
-      readGraph<asymmetricVertex>(iFile,symmetric,binary); //asymmetric graph
-    BFS((intT)start,G);
-    for(int r=0;r<rounds;r++) {
-      startTime();
-      BFS((intT)start,G);
-      nextTime("BFS");
-    }
-    G.del();
-  }
-}
+// int parallel_main(int argc, char* argv[]) {  
+//   commandLine P(argc,argv," [-s] <inFile>");
+//   char* iFile = P.getArgument(0);
+//   bool symmetric = P.getOptionValue("-s");
+//   bool binary = P.getOptionValue("-b");
+//   long start = P.getOptionLongValue("-r",0);
+//   long rounds = P.getOptionLongValue("-rounds",3);
+//   if(symmetric) {
+//     graph<symmetricVertex> G = 
+//       readGraph<symmetricVertex>(iFile,symmetric,binary); //symmetric graph
+//     BFS((intT)start,G);
+//     for(int r=0;r<rounds;r++) {
+//       startTime();
+//       BFS((intT)start,G);
+//       nextTime("BFS");
+//     }
+//     G.del(); 
+//   } else {
+//     graph<asymmetricVertex> G = 
+//       readGraph<asymmetricVertex>(iFile,symmetric,binary); //asymmetric graph
+//     BFS((intT)start,G);
+//     for(int r=0;r<rounds;r++) {
+//       startTime();
+//       BFS((intT)start,G);
+//       nextTime("BFS");
+//     }
+//     G.del();
+//   }
+// }

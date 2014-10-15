@@ -34,6 +34,7 @@
 #include "graph.h"
 #include "IO.h"
 #include "parseCommandLine.h"
+#include "gettime.h"
 using namespace std;
 
 //*****START FRAMEWORK*****
@@ -493,3 +494,73 @@ template <class F, class vertex>
 }
 
 inline bool cond_true (intT d) { return 1; }
+
+#ifndef WEIGHTED
+template<class vertex>
+void Compute(intT start, graph<vertex> GA);
+
+//driver
+int parallel_main(int argc, char* argv[]) {  
+  commandLine P(argc,argv," [-s] <inFile>");
+  char* iFile = P.getArgument(0);
+  bool symmetric = P.getOptionValue("-s");
+  bool binary = P.getOptionValue("-b");
+  long start = P.getOptionLongValue("-r",0);
+  long rounds = P.getOptionLongValue("-rounds",3);
+  if(symmetric) {
+    graph<symmetricVertex> G = 
+      readGraph<symmetricVertex>(iFile,symmetric,binary); //symmetric graph
+    Compute((intT)start,G);
+    for(int r=0;r<rounds;r++) {
+      startTime();
+      Compute((intT)start,G);
+      nextTime("Running time");
+    }
+    G.del(); 
+  } else {
+    graph<asymmetricVertex> G = 
+      readGraph<asymmetricVertex>(iFile,symmetric,binary); //asymmetric graph
+    Compute((intT)start,G);
+    for(int r=0;r<rounds;r++) {
+      startTime();
+      Compute((intT)start,G);
+      nextTime("Running time");
+    }
+    G.del();
+  }
+}
+
+#else
+template<class vertex>
+void Compute(intT start, wghGraph<vertex> GA);
+
+int parallel_main(int argc, char* argv[]) {  
+  commandLine P(argc,argv," [-s] <inFile>");
+  char* iFile = P.getArgument(0);
+  bool symmetric = P.getOptionValue("-s");
+  bool binary = P.getOptionValue("-b");
+  long start = P.getOptionLongValue("-r",0);
+  long rounds = P.getOptionLongValue("-rounds",3);
+  if(symmetric) {
+    wghGraph<symmetricWghVertex> WG = 
+      readWghGraph<symmetricWghVertex>(iFile,symmetric,binary);
+    Compute((intT)start,WG);
+    for(int r = 0; r < rounds; r++){
+      startTime();
+      Compute((intT)start,WG);
+      nextTime("Running time");
+    }
+    WG.del(); 
+  } else {
+    wghGraph<asymmetricWghVertex> WG = 
+      readWghGraph<asymmetricWghVertex>(iFile,symmetric,binary);
+    Compute((intT)start,WG);
+    for(int r = 0; r < rounds; r++){
+      startTime();
+      Compute((intT)start,WG);
+      nextTime("Running time");
+    }
+    WG.del();
+  }
+}
+#endif

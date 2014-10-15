@@ -44,8 +44,8 @@ Run Examples
 -------
 Example of running the code: An example unweighted graph
 rMatGraph_J_5_100 and weighted graph rMatGraph_WJ_5_100 are
-provided. They are symmetric graphs, so should be called with the "-s"
-flag. For example:
+provided. Symmetric graphs should be called with the "-s"
+flag for better performance. For example:
 
 ```
 $ ./BFS -s rMatGraph_J_5_100
@@ -71,7 +71,26 @@ can be easily modified to output the results to a file.
 
 To develop a new implementation, simply include "ligra.h" in the
 implementation files. When finished, one may add it to the ALL
-variable in Makefile.
+variable in Makefile. The function that is passed to the Ligra driver
+is the following Compute function, which is filled in by the user:
+
+"""
+template<class vertex>
+void Compute(intT start, graph<vertex> GA){ //for unweighted graphs
+
+}
+
+template<class vertex>
+void Compute(intT start, wghGraph<vertex> GA) { //for weighted graphs
+
+}
+"""
+
+For weighted graph applications, add "#define WEIGHTED 1" before
+including ligra.h.
+
+To write a parallel for loop in your code, simply use the parallel_for
+construct in place of "for".
 
 The input format of an unweighted graphs should be in one of two
 formats.
@@ -120,18 +139,6 @@ default the vertex IDs (edge values) are stored as 32-bit integers,
 and to represent them as 64-bit integers, compile with the variable
 EDGELONG defined.
 
-The readGraph function in IO.h takes three arguments: iFile,
-symmetric, and binary. iFile is the name of the input file. symmetric
-is a boolean variable which should be true if and only if the input
-graph is symmetric (used for optimization purposes so we don't have to
-transpose the graph) and binary is a boolean value which should be
-true if and only if the input graph is represented as binary (format
-(2) above). For an example of how to use the readGraph function,
-please take a look at the examples in the parallel_main functions of
-BFS.C (for unweighted graphs) and BellmanFord.C (for weighted graphs).
-
-To write a parallel for loop in your code, simply use the parallel_for
-construct in place of "for".
 
 Code Walkthrough
 ---------

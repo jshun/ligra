@@ -95,7 +95,7 @@ struct BC_Back_Vertex_F {
 };
 
 template <class vertex>
-void BC(intT start, graph<vertex> GA) {
+void Compute(intT start, graph<vertex> GA) {
   intT n = GA.n;
   intT threshold = GA.m/20;
 
@@ -156,36 +156,4 @@ void BC(intT start, graph<vertex> GA) {
   free(inverseNumPaths);
   free(Visited);
   free(Dependencies);
-}
-
-int parallel_main(int argc, char* argv[]) {
-  commandLine P(argc,argv," [-s] <inFile>");
-  char* iFile = P.getArgument(0);
-  bool symmetric = P.getOptionValue("-s");
-  bool binary = P.getOptionValue("-b");
-  long start = P.getOptionLongValue("-r",0);
-  long rounds = P.getOptionLongValue("-rounds",3);
-  if(symmetric) {
-    graph<symmetricVertex> G = 
-      readGraph<symmetricVertex>(iFile,symmetric,binary); //symmetric graph
-    BC((intT)start,G);
-    for(int r=0;r<rounds;r++) {
-      startTime();
-      BC((intT)start,G);
-      nextTime("BC");
-    }
-    G.del(); 
-  } else {
-    graph<asymmetricVertex> G = 
-      readGraph<asymmetricVertex>(iFile,symmetric,binary); //asymmetric graph
-    BC((intT)start,G);
-    G.transpose();
-    for(int r=0;r<rounds;r++) {
-      startTime();
-      BC((intT)start,G);
-      nextTime("BC");
-      G.transpose();
-    }
-    G.del();
-  }
 }

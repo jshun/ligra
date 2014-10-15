@@ -71,7 +71,7 @@ struct Radii_Vertex_F {
 };
 
 template <class vertex>
-void Radii(graph<vertex> GA) {
+void Compute(intT r, graph<vertex> GA) {
   intT n = GA.n;
   intT* radii = newA(intT,n);
   long* Visited = newA(long,n);
@@ -104,33 +104,4 @@ void Radii(graph<vertex> GA) {
   free(Visited); free(NextVisited);  
   Frontier.del();
   free(radii); 
-}
-
-int parallel_main(int argc, char* argv[]) {  
-  commandLine P(argc,argv," [-s] <inFile>");
-  char* iFile = P.getArgument(0);
-  bool symmetric = P.getOptionValue("-s");
-  bool binary = P.getOptionValue("-b");
-  long rounds = P.getOptionLongValue("-rounds",3);
-  if(symmetric) {
-    graph<symmetricVertex> G = 
-      readGraph<symmetricVertex>(iFile,symmetric,binary); //symmetric graph
-    Radii(G);
-    for(int r=0;r<rounds;r++) {
-      startTime();
-      Radii(G);
-      nextTime("Radii");
-    }
-    G.del(); 
-  } else {
-    graph<asymmetricVertex> G = 
-      readGraph<asymmetricVertex>(iFile,symmetric,binary); //asymmetric graph
-    Radii(G);
-    for(int r=0;r<rounds;r++) {
-      startTime();
-      Radii(G);
-      nextTime("Radii");
-    }
-    G.del();
-  }
 }

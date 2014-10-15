@@ -21,6 +21,8 @@
 // LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+#define WEIGHTED 1
 #include "ligra.h"
 using namespace std;
 
@@ -56,7 +58,7 @@ struct BF_Vertex_F {
 };
 
 template <class vertex>
-int* BellmanFord(intT start, wghGraph<vertex> GA) {
+void Compute(intT start, wghGraph<vertex> GA) {
   intT n = GA.n;
   //initialize ShortestPathLen to "infinity"
   int* ShortestPathLen = newA(int,n);
@@ -83,39 +85,5 @@ int* BellmanFord(intT start, wghGraph<vertex> GA) {
   } 
   Frontier.del();
   free(Visited);
-  return ShortestPathLen;
-}
-
-int parallel_main(int argc, char* argv[]) {  
-  commandLine P(argc,argv," [-s] <inFile>");
-  char* iFile = P.getArgument(0);
-  bool symmetric = P.getOptionValue("-s");
-  bool binary = P.getOptionValue("-b");
-  long start = P.getOptionLongValue("-r",0);
-  long rounds = P.getOptionLongValue("-rounds",3);
-  if(symmetric) {
-    wghGraph<symmetricWghVertex> WG = 
-      readWghGraph<symmetricWghVertex>(iFile,symmetric,binary);
-    intE* ShortestPaths = BellmanFord((intT)start,WG);
-    for(int r = 0; r < rounds; r++){
-      free(ShortestPaths);
-      startTime();
-      ShortestPaths = BellmanFord((intT)start,WG);
-      nextTime("Bellman Ford");
-    }
-    free(ShortestPaths);
-    WG.del(); 
-  } else {
-    wghGraph<asymmetricWghVertex> WG = 
-      readWghGraph<asymmetricWghVertex>(iFile,symmetric,binary);
-    intE* ShortestPaths = BellmanFord((intT)start,WG);
-    for(int r = 0; r < rounds; r++){
-      free(ShortestPaths);
-      startTime();
-      ShortestPaths = BellmanFord((intT)start,WG);
-      nextTime("Bellman Ford");
-    }
-    free(ShortestPaths);
-    WG.del();
-  }
+  free(ShortestPathLen);
 }
