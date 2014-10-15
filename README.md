@@ -76,12 +76,14 @@ is the following Compute function, which is filled in by the user:
 
 ```
 template<class vertex>
-void Compute(intT start, graph<vertex> GA){ //for unweighted graphs
+void Compute(intT start, graph<vertex> GA){ 
+//for unweighted graph applications
 
 }
 
 template<class vertex>
-void Compute(intT start, wghGraph<vertex> GA) { //for weighted graphs
+void Compute(intT start, wghGraph<vertex> GA) { 
+//for weighted graph applications
 
 }
 ```
