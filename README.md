@@ -74,7 +74,7 @@ implementation files. When finished, one may add it to the ALL
 variable in Makefile. The function that is passed to the Ligra driver
 is the following Compute function, which is filled in by the user:
 
-"""
+```
 template<class vertex>
 void Compute(intT start, graph<vertex> GA){ //for unweighted graphs
 
@@ -84,7 +84,7 @@ template<class vertex>
 void Compute(intT start, wghGraph<vertex> GA) { //for weighted graphs
 
 }
-"""
+```
 
 For weighted graph applications, add "#define WEIGHTED 1" before
 including ligra.h.
