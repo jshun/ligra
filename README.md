@@ -197,11 +197,13 @@ can be easily modified to output the results to a file.
 To develop a new implementation, simply include "ligra.h" in the
 implementation files. When finished, one may add it to the ALL
 variable in Makefile. The function that is passed to the Ligra driver
-is the following Compute function, which is filled in by the user:
+is the following Compute function, which is filled in by the user. The
+first argument is the graph, and second argument specifies the
+starting vertex for algorithms that require one.
 
 ```
 template<class vertex>
-void Compute(intT start, graph<vertex> GA){ 
+void Compute(graph<vertex> GA, intT start){ 
 
 }
 
