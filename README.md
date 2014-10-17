@@ -206,7 +206,6 @@ template<class vertex>
 void Compute(graph<vertex> GA, intT start){ 
 
 }
-
 ```
 
 For weighted graph applications, add "#define WEIGHTED 1" before
