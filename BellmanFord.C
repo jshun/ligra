@@ -58,7 +58,7 @@ struct BF_Vertex_F {
 };
 
 template <class vertex>
-void Compute(intT start, wghGraph<vertex> GA) {
+void Compute(graph<vertex> GA, intT start) {
   intT n = GA.n;
   //initialize ShortestPathLen to "infinity"
   int* ShortestPathLen = newA(int,n);

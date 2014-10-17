@@ -61,7 +61,6 @@ passing the flag "-rounds" followed by an integer indicating the
 number of timed runs.
 
 
-
 Input Format
 -----------
 The input format of an unweighted graphs should be in one of two
@@ -112,7 +111,6 @@ and to represent them as 64-bit integers, compile with the variable
 EDGELONG defined.
 
 
-
 Ligra Graph Applications
 ---------
 Currently, Ligra comes with 8 implementation files: BFS.C
@@ -144,7 +142,21 @@ and cond.  update and updateAtomic should take two integer arguments
 (corresponding to source and destination vertex). In addition,
 updateAtomic should be atomic with respect to the destination
 vertex. cond takes one argument corresponding to a vertex.  For the
-cond function which always returns true, cond_true can be called.
+cond function which always returns true, cond_true can be called. 
+
+```
+struct F {
+  inline bool update (intT s, intT d) {
+  //fill in
+  }
+  inline bool updateAtomic (intT s, intT d){ 
+  //fill in
+  }
+  inline bool cond (intT d) {
+  //fill in 
+  }
+};
+```
 
 The threshold argument determines when edgeMap switches between
 edgemapSparse and edgemapDense---for a threshold value *T*, edgeMap
@@ -168,9 +180,15 @@ function *F* which is applied to all vertices in *V*. It returns a
 vertexSubset containing all vertices *v* in *V* such that *F(v)*
 returns true.
 
+```
+//resets p
+struct F {
+  inline bool operator () (intT i) {
+  //fill in
+  }
+};
+```
 
-Write your own code with Ligra
--------
 To write your own Ligra code, it would be helpful to look at the code
 for the provided applications as reference.
 
@@ -185,15 +203,9 @@ is the following Compute function, which is filled in by the user:
 ```
 template<class vertex>
 void Compute(intT start, graph<vertex> GA){ 
-//for unweighted graph applications
 
 }
 
-template<class vertex>
-void Compute(intT start, wghGraph<vertex> GA) { 
-//for weighted graph applications
-
-}
 ```
 
 For weighted graph applications, add "#define WEIGHTED 1" before

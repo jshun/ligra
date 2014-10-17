@@ -47,7 +47,7 @@ struct BFS_F {
 };
 
 template <class vertex>
-void Compute(intT r, graph<vertex> GA) {
+void Compute(graph<vertex> GA, intT r) {
   intT n = GA.n;
   //creates Parents array, initialized to all -1, except for start
   intT* Parents = newA(intT,GA.n);

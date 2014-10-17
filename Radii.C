@@ -71,7 +71,7 @@ struct Radii_Vertex_F {
 };
 
 template <class vertex>
-void Compute(intT r, graph<vertex> GA) {
+void Compute(graph<vertex> GA, intT r) {
   intT n = GA.n;
   intT* radii = newA(intT,n);
   long* Visited = newA(long,n);

@@ -160,7 +160,6 @@ void remDuplicates(intT* indices, intT* flags, intT m, intT n) {
 }
 
 //*****EDGE FUNCTIONS*****
-
 template <class F, class vertex>
   bool* edgeMapDense(graph<vertex> GA, bool* vertexSubset, F f, bool parallel = 0) {
   intT numVertices = GA.n;
@@ -173,13 +172,23 @@ template <class F, class vertex>
       if(!parallel || d < 1000) {
 	for(intT j=0; j<d; j++){
 	  intT ngh = G[i].getInNeighbor(j);
-	  if (vertexSubset[ngh] && f.update(ngh,i)) next[i] = 1;
+#ifndef WEIGHTED
+	  if (vertexSubset[ngh] && f.update(ngh,i))
+#else
+	  if (vertexSubset[ngh] && f.update(ngh,i,G[i].getInWeight(j)))
+#endif
+	    next[i] = 1;
 	  if(!f.cond(i)) break;
 	}
       } else {
 	{parallel_for(intT j=0; j<d; j++){
 	  intT ngh = G[i].getInNeighbor(j);
-	  if (vertexSubset[ngh] && f.updateAtomic(ngh,i)) next[i] = 1;
+#ifndef WEIGHTED
+	  if (vertexSubset[ngh] && f.update(ngh,i))
+#else
+	  if (vertexSubset[ngh] && f.update(ngh,i,G[i].getInWeight(j)))
+#endif
+	    next[i] = 1;
 	  }}
       }
     }
@@ -199,13 +208,23 @@ bool* edgeMapDenseForward(graph<vertex> GA, bool* vertexSubset, F f) {
       if(d < 1000) {
 	for(intT j=0; j<d; j++){
 	  uintT ngh = G[i].getOutNeighbor(j);
-	  if (f.cond(ngh) && f.updateAtomic(i,ngh)) next[ngh] = 1;
+#ifndef WEIGHTED
+	  if (f.cond(ngh) && f.updateAtomic(i,ngh))
+#else 
+	  if (f.cond(ngh) && f.updateAtomic(i,ngh,G[i].getOutWeight(j))) 
+#endif
+	    next[ngh] = 1;
 	}
       }
       else {
 	{parallel_for(intT j=0; j<d; j++){
 	  uintT ngh = G[i].getOutNeighbor(j);
-	  if (f.cond(ngh) && f.updateAtomic(i,ngh)) next[ngh] = 1;
+#ifndef WEIGHTED
+	  if (f.cond(ngh) && f.updateAtomic(i,ngh)) 
+#else
+	    if (f.cond(ngh) && f.updateAtomic(i,ngh,G[i].getOutWeight(j)))
+#endif
+	  next[ngh] = 1;
 	  }}
       }
     }
@@ -217,7 +236,6 @@ template <class F, class vertex>
 pair<uintT,intT*> edgeMapSparse(vertex* frontierVertices, intT* indices, 
 				uintT* degrees, uintT m, F f, 
 				intT remDups=0, intT* flags=NULL) {
-
   uintT* offsets = degrees;
   uintT outEdgeCount = sequence::plusScan(offsets, degrees, m);
 
@@ -230,14 +248,22 @@ pair<uintT,intT*> edgeMapSparse(vertex* frontierVertices, intT* indices,
     if(d < 1000) {
       for (intT j=0; j < d; j++) {
 	intT ngh = vert.getOutNeighbor(j);
-	if (f.cond(ngh) && f.updateAtomic(v,ngh)) 
+#ifndef WEIGHTED
+	if(f.cond(ngh) && f.updateAtomic(v,ngh)) 
+#else
+	if(f.cond(ngh) && f.updateAtomic(v,ngh,vert.getOutWeight(j)))
+#endif
 	  outEdges[o+j] = ngh;
 	else outEdges[o+j] = -1;
       } 
     } else {
       {parallel_for (intT j=0; j < d; j++) {
 	intT ngh = vert.getOutNeighbor(j);
-	if (f.cond(ngh) && f.updateAtomic(v,ngh)) 
+#ifndef WEIGHTED
+	if(f.cond(ngh) && f.updateAtomic(v,ngh)) 
+#else
+	if(f.cond(ngh) && f.updateAtomic(v,ngh,vert.getOutWeight(j)))
+#endif
 	  outEdges[o+j] = ngh;
 	else outEdges[o+j] = -1;
 	}} 
@@ -268,7 +294,6 @@ vertexSubset edgeMap(graph<vertex> GA, vertexSubset &V, F f, intT threshold = -1
     cout << "edgeMap: Sizes Don't match" << endl;
     abort();
   }
-
   // used to generate nonzero indices to get degrees
   uintT* degrees = newA(uintT, m);
   vertex* frontierVertices;
@@ -336,168 +361,11 @@ vertexSubset vertexFilter(vertexSubset V, F filter) {
   return vertexSubset(n,d_out);
 }
 
-//*****WEIGHTED EDGE FUNCTIONS*****
-
-template <class F, class vertex>
-  bool* edgeMapDense(wghGraph<vertex> GA, bool* vertexSubset, F f, bool parallel = 0) {
-  intT numVertices = GA.n;
-  vertex *G = GA.V;
-  bool* next = newA(bool,numVertices);
-  {parallel_for (long i=0; i<numVertices; i++){
-    next[i] = 0;
-    if (f.cond(i)) {
-      intT d = G[i].getInDegree();
-      if(!parallel || d < 1000) {
-	for(intT j=0; j<d; j++){
-	  intT ngh = G[i].getInNeighbor(j);
-	  if(vertexSubset[ngh]){
-	    intT edgeLen = G[i].getInWeight(j);
-	    if (vertexSubset[ngh] && f.update(ngh,i,edgeLen)) next[i] = 1;
-	  }
-	  if (!f.cond(i)) break;
-	}
-      }
-      else {
-	{parallel_for(intT j=0; j<d; j++){
-	  intT ngh = G[i].getInNeighbor(j);
-	  if(vertexSubset[ngh]){
-	    intT edgeLen = G[i].getInWeight(j);
-	    if (vertexSubset[ngh] && f.updateAtomic(ngh,i,edgeLen)) next[i] = 1;
-	  }
-	  }}
-      }
-    }
-    }
-  }
-  return next;
-}
-
-template <class F, class vertex>
-bool* edgeMapDenseForward(wghGraph<vertex> GA, bool* vertexSubset, F f) {
-  intT numVertices = GA.n;
-  vertex *G = GA.V;
-  bool* next = newA(bool,numVertices);
-  {parallel_for(long i=0;i<numVertices;i++) next[i] = 0;}
-  {parallel_for (long i=0; i<numVertices; i++){
-    if (vertexSubset[i]) {
-      intT d = G[i].getOutDegree();
-      if(d < 1000) {
-	for(intT j=0; j<d; j++){
-	  intT ngh = G[i].getOutNeighbor(j);
-	  intT edgeLen = G[i].getOutWeight(j);
-	  if (f.cond(ngh) && f.updateAtomic(i,ngh,edgeLen)) next[ngh] = 1;
-	}
-      }
-      else{
-	parallel_for(intT j=0; j<d; j++){
-	  intT ngh = G[i].getOutNeighbor(j);
-	  intT edgeLen = G[i].getOutWeight(j);
-	  if (f.cond(ngh) && f.updateAtomic(i,ngh,edgeLen)) next[ngh] = 1;
-	}
-      }
-    }
-  }}
-  return next;
-}
-
-template <class F, class vertex>
-  pair<uintT,intT*> edgeMapSparseW(vertex* frontierVertices, intT* indices, 
-				   uintT* degrees, uintT m, F f, 
-				   intT remDups=0, intT* flags=NULL) {
-  uintT* offsets = degrees;
-  uintT outEdgeCount = sequence::plusScan(offsets, degrees, m);
-
-  intT* outEdges = newA(intT,outEdgeCount);
-
-  {parallel_for (long i = 0; i < m; i++) {
-    intT v = indices[i];
-    uintT o = offsets[i];
-    vertex vert = frontierVertices[i];
-    intT d = vert.getOutDegree();
-    if(d < 1000) {
-      for (intT j=0; j < d; j++) {
-	intT ngh = vert.getOutNeighbor(j);
-	intT edgeLen = vert.getOutWeight(j);
-	if (f.cond(ngh) && f.updateAtomic(v,ngh,edgeLen)) 
-	  outEdges[o+j] = ngh;
-	else outEdges[o+j] = -1;
-      }
-    }
-    else {
-      {parallel_for (intT j=0; j < d; j++) {
-	intT ngh = vert.getOutNeighbor(j);
-	intT edgeLen = vert.getOutWeight(j);
-	if (f.cond(ngh) && f.updateAtomic(v,ngh,edgeLen)) 
-	  outEdges[o+j] = ngh;
-	else outEdges[o+j] = -1;
-	
-	}}
-    }
-    }}
-
-  intT* nextIndices = newA(intT, outEdgeCount);
-  if(remDups) remDuplicates(outEdges,flags,outEdgeCount,remDups);
-
-  // Filter out the empty slots (marked with -1)
-  uintT nextM = sequence::filter(outEdges,nextIndices,outEdgeCount,nonNegF());
-  free(outEdges);
-  return pair<uintT,intT*>(nextM, nextIndices);
-}
-
-// decides on sparse or dense base on number of nonzeros in the active vertexSubset
-template <class F, class vertex>
-  vertexSubset edgeMap(wghGraph<vertex> GA, vertexSubset V, F f, intT threshold = -1, char option=DENSE, bool remDups=false) {
-  intT numVertices = GA.n;
-  uintT numEdges = GA.m;
-  if(threshold == -1) threshold = numEdges/20; //default threshold
-  vertex *G = GA.V;
-  intT m = V.numNonzeros();
-  if (numVertices != V.numRows()) {
-    cout << "edgeMap: Sizes Don't match" << endl;
-    abort();
-  }
-
-  // used to generate nonzero indices to get degrees
-  uintT* degrees = newA(uintT, m);
-  vertex* frontierVertices;
-  V.toSparse();
-  frontierVertices = newA(vertex,m);
-
-  {parallel_for (long i=0; i < m; i++){
-    vertex v = G[V.s[i]];
-    degrees[i] = v.getOutDegree();
-    frontierVertices[i] = v;
-    }}
-  uintT outDegrees = sequence::plusReduce(degrees, m);    
-  if (outDegrees == 0) return vertexSubset(numVertices);
-  if (m + outDegrees > threshold) { 
-    V.toDense();
-    free(degrees);
-    free(frontierVertices);
-    bool* R = option == DENSE_FORWARD ? 
-      edgeMapDenseForward(GA,V.d,f) : 
-      edgeMapDense(GA, V.d, f,option);
-    vertexSubset v1 = vertexSubset(numVertices, R);
-    //cout << "size (D) = " << v1.m << endl;
-    return  v1;
-  } else { 
-    pair<uintT,intT*> R = 
-      remDups ? 
-      edgeMapSparseW(frontierVertices, V.s, degrees, V.numNonzeros(), f, 
-		    numVertices, GA.flags) :
-      edgeMapSparseW(frontierVertices, V.s, degrees, V.numNonzeros(), f);
-    //cout << "size (S) = " << R.first << endl;
-    free(degrees);
-    free(frontierVertices);
-    return vertexSubset(numVertices, R.first, R.second);
-  }
-}
-
+//cond function that always returns true
 inline bool cond_true (intT d) { return 1; }
 
-#ifndef WEIGHTED
 template<class vertex>
-void Compute(intT start, graph<vertex> GA);
+void Compute(graph<vertex>, intT);
 
 //driver
 int parallel_main(int argc, char* argv[]) {  
@@ -510,57 +378,22 @@ int parallel_main(int argc, char* argv[]) {
   if(symmetric) {
     graph<symmetricVertex> G = 
       readGraph<symmetricVertex>(iFile,symmetric,binary); //symmetric graph
-    Compute((intT)start,G);
+    Compute(G, (intT) start);
     for(int r=0;r<rounds;r++) {
       startTime();
-      Compute((intT)start,G);
+      Compute(G,(intT)start);
       nextTime("Running time");
     }
     G.del(); 
   } else {
     graph<asymmetricVertex> G = 
       readGraph<asymmetricVertex>(iFile,symmetric,binary); //asymmetric graph
-    Compute((intT)start,G);
+    Compute(G,(intT)start);
     for(int r=0;r<rounds;r++) {
       startTime();
-      Compute((intT)start,G);
+      Compute(G,(intT)start);
       nextTime("Running time");
     }
     G.del();
   }
 }
-
-#else
-template<class vertex>
-void Compute(intT start, wghGraph<vertex> GA);
-
-int parallel_main(int argc, char* argv[]) {  
-  commandLine P(argc,argv," [-s] <inFile>");
-  char* iFile = P.getArgument(0);
-  bool symmetric = P.getOptionValue("-s");
-  bool binary = P.getOptionValue("-b");
-  long start = P.getOptionLongValue("-r",0);
-  long rounds = P.getOptionLongValue("-rounds",3);
-  if(symmetric) {
-    wghGraph<symmetricWghVertex> WG = 
-      readWghGraph<symmetricWghVertex>(iFile,symmetric,binary);
-    Compute((intT)start,WG);
-    for(int r = 0; r < rounds; r++){
-      startTime();
-      Compute((intT)start,WG);
-      nextTime("Running time");
-    }
-    WG.del(); 
-  } else {
-    wghGraph<asymmetricWghVertex> WG = 
-      readWghGraph<asymmetricWghVertex>(iFile,symmetric,binary);
-    Compute((intT)start,WG);
-    for(int r = 0; r < rounds; r++){
-      startTime();
-      Compute((intT)start,WG);
-      nextTime("Running time");
-    }
-    WG.del();
-  }
-}
-#endif
