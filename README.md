@@ -181,7 +181,6 @@ vertexSubset containing all vertices *v* in *V* such that *F(v)*
 returns true.
 
 ```
-//resets p
 struct F {
   inline bool operator () (intT i) {
   //fill in
