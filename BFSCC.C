@@ -21,15 +21,12 @@
 // LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#include "ligra.h"
-#include "parallel.h"
-#include "parseCommandLine.h"
-using namespace std;
 
 //This implementation uses BFS's to find connected components until
 //all vertices have been visited. This implementation will work well
 //for dense low-diameter graphs. Do not use it on very high-diameter
 //graphs or graphs with very many components.
+#include "ligra.h"
 
 struct BFS_F {
   intT* Parents;

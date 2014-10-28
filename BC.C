@@ -23,8 +23,6 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "ligra.h"
 #include <vector>
-#include "math.h"
-using namespace std;
 
 typedef double fType;
 
