@@ -70,7 +70,6 @@ void Compute(graph<vertex> GA, intT start) {
 
   intT round = 0;
   while(!Frontier.isEmpty()){
-    round++;
     if(round == n) {
       //negative weight cycle
       {parallel_for(intT i=0;i<n;i++) ShortestPathLen[i] = -(INT_MAX/2);}
@@ -80,6 +79,7 @@ void Compute(graph<vertex> GA, intT start) {
     vertexMap(output,BF_Vertex_F(Visited));
     Frontier.del();
     Frontier = output;
+    round++;
   } 
   Frontier.del();
   free(Visited);
