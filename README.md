@@ -60,6 +60,12 @@ with times reported for the last three runs. This can be changed by
 passing the flag "-rounds" followed by an integer indicating the
 number of timed runs.
 
+On NUMA machines, adding the command "numactl -i all " when running
+the program may improve performance for large graphs. For example:
+
+```
+$ numactl -i all ./BFS -s <input file>
+```
 
 Input Format
 -----------
