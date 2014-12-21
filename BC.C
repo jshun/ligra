@@ -110,7 +110,6 @@ void Compute(graph<vertex> GA, intT start) {
   Levels.push_back(Frontier);
 
   intT round = 0;
-  timer t1,t2;
   while(!Frontier.isEmpty()){ //first phase
     round++;
     vertexSubset output = edgeMap(GA, Frontier, BC_F(NumPaths,Visited),threshold);
