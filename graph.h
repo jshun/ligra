@@ -66,10 +66,11 @@ struct graph {
   intE* allocatedInplace;
   intE* inEdges;
   intT* flags;
+  bool transposed;
   graph(vertex* VV, long nn, long mm) 
-  : V(VV), n(nn), m(mm), allocatedInplace(NULL), flags(NULL) {}
+  : V(VV), n(nn), m(mm), allocatedInplace(NULL), flags(NULL), transposed(false) {}
 graph(vertex* VV, long nn, long mm, intE* ai, intE* _inEdges = NULL) 
-: V(VV), n(nn), m(mm), allocatedInplace(ai), inEdges(_inEdges), flags(NULL) {}
+: V(VV), n(nn), m(mm), allocatedInplace(ai), inEdges(_inEdges), flags(NULL), transposed(false) {}
   void del() {
     if (flags != NULL) free(flags);
     if (allocatedInplace == NULL) 
@@ -83,6 +84,7 @@ graph(vertex* VV, long nn, long mm, intE* ai, intE* _inEdges = NULL)
       parallel_for(intT i=0;i<n;i++) {
 	V[i].flipEdges();
       }
+      transposed = !transposed;
     } 
   }
 };
