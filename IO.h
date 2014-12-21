@@ -343,11 +343,18 @@ graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
 #endif
       }}
     free(tOffsets);
+#ifndef WEIGHTED
     return graph<vertex>(v,n,m,(intE*)edges, (intE*)inEdges);
+#else
+    return graph<vertex>(v,n,m,(intE*)edgesAndWeights, (intE*)inEdges);
+#endif
   }
   free(offsets);
-  
+#ifndef WEIGHTED  
   return graph<vertex>(v,n,m,(intE*)edges);
+#else
+  return graph<vertex>(v,n,m,(intE*)edgesAndWeights);
+#endif
 }
 
 template <class vertex>

@@ -75,7 +75,7 @@ void Compute(graph<vertex> GA, intT start) {
       {parallel_for(intT i=0;i<n;i++) ShortestPathLen[i] = -(INT_MAX/2);}
       break;
     }
-    vertexSubset output = edgeMap(GA, Frontier, BF_F(ShortestPathLen,Visited), GA.m/20,DENSE_FORWARD);
+    vertexSubset output = edgeMap(GA, Frontier, BF_F(ShortestPathLen,Visited), GA.m/20, DENSE_FORWARD);
     vertexMap(output,BF_Vertex_F(Visited));
     Frontier.del();
     Frontier = output;
