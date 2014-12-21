@@ -154,4 +154,5 @@ void Compute(graph<vertex> GA, intT start) {
   free(inverseNumPaths);
   free(Visited);
   free(Dependencies);
+  GA.transpose(); //transpose graph back to original
 }
