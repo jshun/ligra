@@ -82,7 +82,7 @@ struct PR_Vertex_Reset {
 };
 
 template <class vertex>
-void Compute(graph<vertex> GA, intT r) {
+void Compute(graph<vertex>& GA, intT r) {
   const intT n = GA.n;
   const double damping = 0.85;
   const double epsilon = 0.0000001;

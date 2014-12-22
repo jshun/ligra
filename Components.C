@@ -57,7 +57,7 @@ struct CC_Vertex_F {
 };
 
 template <class vertex>
-void Compute(graph<vertex> GA, intT r) {
+void Compute(graph<vertex>& GA, intT r) {
   intT n = GA.n;
   intT* IDs = newA(intT,n);
   intT* prevIDs = newA(intT,n);

@@ -209,7 +209,7 @@ starting vertex for algorithms that require one.
 
 ```
 template<class vertex>
-void Compute(graph<vertex> GA, intT start){ 
+void Compute(graph<vertex>& GA, intT start){ 
 
 }
 ```

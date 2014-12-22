@@ -365,7 +365,7 @@ vertexSubset vertexFilter(vertexSubset V, F filter) {
 inline bool cond_true (intT d) { return 1; }
 
 template<class vertex>
-void Compute(graph<vertex>, intT);
+void Compute(graph<vertex>&, intT);
 
 //driver
 int parallel_main(int argc, char* argv[]) {  
@@ -389,12 +389,12 @@ int parallel_main(int argc, char* argv[]) {
     graph<asymmetricVertex> G = 
       readGraph<asymmetricVertex>(iFile,symmetric,binary); //asymmetric graph
     Compute(G,(intT)start);
-    if(G.transposed); G.transpose();
+    if(G.transposed) G.transpose();
     for(int r=0;r<rounds;r++) {
       startTime();
       Compute(G,(intT)start);
       nextTime("Running time");
-      if(G.transposed); G.transpose();
+      if(G.transposed) G.transpose();
     }
     G.del();
   }
