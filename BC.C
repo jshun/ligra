@@ -93,7 +93,7 @@ struct BC_Back_Vertex_F {
 };
 
 template <class vertex>
-void Compute(graph<vertex>& GA, intT start) {
+void Compute(graph<vertex>& GA, long start) {
   intT n = GA.n;
   intT threshold = GA.m/20;
 
