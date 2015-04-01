@@ -46,7 +46,6 @@ struct addF { E operator() (const E& a, const E& b) const {return a+b;}};
 template <class E>
 struct minF { E operator() (const E& a, const E& b) const {return (a < b) ? a : b;}};
 
-#define _BSIZE 2048
 #define _SCAN_LOG_BSIZE 10
 #define _SCAN_BSIZE (1 << _SCAN_LOG_BSIZE)
 
