@@ -3,6 +3,14 @@ Ligra
 A Lightweight Graph Processing Framework for Shared Memory
 ======================
 
+Organization
+--------
+
+The code for the Ligra framework and auxiliary files are located in
+the ligra/ directory, the applications are located in the apps/
+directory, and example inputs are located in the inputs/
+directory. Compilation is done in the apps/ directory.
+
 Compilation
 --------
 
@@ -34,22 +42,23 @@ After the appropriate environment variables are set, to compile,
 simply run
 
 ```
+$ cd apps/
 $ make -j 16 
 ```
 
-This is to compile and build with 16 threads in parallel. You can use the
-number of your choice.
+This is to compile and build with 16 threads in parallel (you can
+change the number of threads as you like).
 
 Run Examples
 -------
 Example of running the code: An example unweighted graph
-rMatGraph_J_5_100 and weighted graph rMatGraph_WJ_5_100 are
-provided. Symmetric graphs should be called with the "-s"
-flag for better performance. For example:
+rMatGraph_J_5_100 and weighted graph rMatGraph_WJ_5_100 are provided
+in the inputs/ directory. Symmetric graphs should be called with the
+"-s" flag for better performance. For example:
 
 ```
-$ ./BFS -s rMatGraph_J_5_100
-$ ./BellmanFord -s rMatGraph_WJ_5_100
+$ ./BFS -s inputs/rMatGraph_J_5_100
+$ ./BellmanFord -s inputs/rMatGraph_WJ_5_100
 ``` 
 
 For BFS, BC and BellmanFord, one can also pass the "-r" flag followed
@@ -119,8 +128,8 @@ EDGELONG defined.
 
 Ligra Graph Applications
 ---------
-Currently, Ligra comes with 8 implementation files: BFS.C
-(breadth-first search), BC.C (betweenness centrality), Radii.C (graph
+Currently, Ligra comes with 8 implementation files in the apps/ directory: 
+BFS.C (breadth-first search), BC.C (betweenness centrality), Radii.C (graph
 radii estimation), Components.C (connected components), BellmanFord.C
 (Bellman-Ford shortest paths), PageRank.C, PageRankDelta.C and
 BFSCC.C (connected components based on BFS).
@@ -204,12 +213,13 @@ To develop a new implementation, simply include "ligra.h" in the
 implementation files. When finished, one may add it to the ALL
 variable in Makefile. The function that is passed to the Ligra driver
 is the following Compute function, which is filled in by the user. The
-first argument is the graph, and second argument specifies the
-starting vertex for algorithms that require one.
+first argument is the graph, and second argument is a structure
+containing the command line arguments, which can be extracted using
+routines in parseCommandLine.h, or manually from P.argv and P.argc.
 
 ```
 template<class vertex>
-void Compute(graph<vertex>& GA, long start){ 
+void Compute(graph<vertex>& GA, commandLine P){ 
 
 }
 ```

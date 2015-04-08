@@ -30,16 +30,15 @@ struct PR_F {
   vertex* V;
   PR_F(double* _p_curr, double* _p_next, vertex* _V) : 
     p_curr(_p_curr), p_next(_p_next), V(_V) {}
-  inline bool update(intT s, intT d){ //update function applies PageRank equation
+  inline bool update(uintE s, uintE d){ //update function applies PageRank equation
     p_next[d] += p_curr[s]/V[s].getOutDegree();
     return 1;
   }
-  inline bool updateAtomic (intT s, intT d) { //atomic Update
+  inline bool updateAtomic (uintE s, uintE d) { //atomic Update
     writeAdd(&p_next[d],p_curr[s]/V[s].getOutDegree());
     return 1;
   }
-  inline bool cond (intT d) { return cond_true(d); } //does nothing
-};
+  inline bool cond (intT d) { return cond_true(d); }};
 
 //vertex map function to update its p value according to PageRank equation
 struct PR_Vertex_F {
@@ -47,10 +46,10 @@ struct PR_Vertex_F {
   double addedConstant;
   double* p_curr;
   double* p_next;
-  PR_Vertex_F(double* _p_curr, double* _p_next, double _damping, intT n) :
+  PR_Vertex_F(double* _p_curr, double* _p_next, double _damping, intE n) :
     p_curr(_p_curr), p_next(_p_next), 
     damping(_damping), addedConstant((1-_damping)*(1/(double)n)){}
-  inline bool operator () (intT i) {
+  inline bool operator () (uintE i) {
     p_next[i] = damping*p_next[i] + addedConstant;
     return 1;
   }
@@ -61,34 +60,33 @@ struct PR_Vertex_Reset {
   double* p_curr;
   PR_Vertex_Reset(double* _p_curr) :
     p_curr(_p_curr) {}
-  inline bool operator () (intT i) {
+  inline bool operator () (uintE i) {
     p_curr[i] = 0.0;
     return 1;
   }
 };
 
 template <class vertex>
-void Compute(graph<vertex>& GA, long r) {
-  const intT n = GA.n;
-  const double damping = 0.85;
-  const double epsilon = 0.0000001;
+void Compute(graph<vertex>& GA, commandLine P) {
+  const intE n = GA.n;
+  const double damping = 0.85, epsilon = 0.0000001;
   
   double one_over_n = 1/(double)n;
   double* p_curr = newA(double,n);
-  {parallel_for(intT i=0;i<n;i++) p_curr[i] = one_over_n;}
+  {parallel_for(long i=0;i<n;i++) p_curr[i] = one_over_n;}
   double* p_next = newA(double,n);
-  {parallel_for(intT i=0;i<n;i++) p_next[i] = 0;} //0 if unchanged
+  {parallel_for(long i=0;i<n;i++) p_next[i] = 0;} //0 if unchanged
   bool* frontier = newA(bool,n);
-  {parallel_for(intT i=0;i<n;i++) frontier[i] = 1;}
+  {parallel_for(long i=0;i<n;i++) frontier[i] = 1;}
 
   vertexSubset Frontier(n,n,frontier);
   
   while(1){
     vertexSubset output = edgeMap(GA, Frontier, PR_F<vertex>(p_curr,p_next,GA.V),GA.m/20);
     vertexMap(Frontier,PR_Vertex_F(p_curr,p_next,damping,n));
-
+    break;
     //compute L1-norm between p_curr and p_next
-    {parallel_for(intT i=0;i<n;i++) {
+    {parallel_for(long i=0;i<n;i++) {
       p_curr[i] = fabs(p_curr[i]-p_next[i]);
       }}
     double L1_norm = sequence::plusReduce(p_curr,n);
@@ -99,7 +97,5 @@ void Compute(graph<vertex>& GA, long r) {
     Frontier.del(); 
     Frontier = output;
   }
-  Frontier.del();
-  free(p_curr); free(p_next); 
+  Frontier.del(); free(p_curr); free(p_next); 
 }
-

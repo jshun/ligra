@@ -32,13 +32,13 @@ inline void writeOr(ET *a, ET b) {
 }
 
 struct Radii_F {
-  intT round;
-  intT* radii;
+  intE round;
+  intE* radii;
   long* Visited, *NextVisited;
-  Radii_F(long* _Visited, long* _NextVisited, intT* _radii, intT _round) : 
+  Radii_F(long* _Visited, long* _NextVisited, intE* _radii, intE _round) : 
     Visited(_Visited), NextVisited(_NextVisited), radii(_radii), round(_round) 
   {}
-  inline bool update (intT s, intT d){ //Update function does a bitwise-or
+  inline bool update (uintE s, uintE d){ //Update function does a bitwise-or
     long toWrite = Visited[d] | Visited[s];
     if(Visited[d] != toWrite){
       NextVisited[d] |= toWrite;
@@ -46,41 +46,39 @@ struct Radii_F {
     }
     return 0;
   }
-  inline bool updateAtomic (intT s, intT d){ //atomic Update
+  inline bool updateAtomic (uintE s, uintE d){ //atomic Update
     long toWrite = Visited[d] | Visited[s];
     if(Visited[d] != toWrite){
       writeOr(&NextVisited[d],toWrite);
-      intT oldRadii = radii[d];
+      intE oldRadii = radii[d];
       if(radii[d] != round) return CAS(&radii[d],oldRadii,round);
     }
     return 0;
   }
-  inline bool cond (intT d) { return cond_true(d); } //does nothing
-};
+  inline bool cond (uintE d) { return cond_true(d); }};
 
 //function passed to vertex map to sync NextVisited and Visited
 struct Radii_Vertex_F {
   long* Visited, *NextVisited;
   Radii_Vertex_F(long* _Visited, long* _NextVisited) :
     Visited(_Visited), NextVisited(_NextVisited) {}
-  inline bool operator() (intT i) {
+  inline bool operator() (uintE i) {
     NextVisited[i] = Visited[i];
     return 1;
   }
 };
 
 template <class vertex>
-void Compute(graph<vertex>& GA, long r) {
-  intT n = GA.n;
-  intT* radii = newA(intT,n);
-  long* Visited = newA(long,n);
-  long* NextVisited = newA(long,n);
-  {parallel_for(intT i=0;i<n;i++) {
+void Compute(graph<vertex>& GA, commandLine P) {
+  long n = GA.n;
+  intE* radii = newA(intT,n);
+  long* Visited = newA(long,n), *NextVisited = newA(long,n);
+  {parallel_for(long i=0;i<n;i++) {
     radii[i] = -1;
     Visited[i] = NextVisited[i] = 0;
     }}
-  intT sampleSize = min<intT>(n,64);
-  intT* starts = newA(intT,sampleSize);
+  long sampleSize = min(n,(long)64);
+  uintE* starts = newA(uintE,sampleSize);
   
   {parallel_for(ulong i=0;i<sampleSize;i++) { //initial set of vertices
       uintE v = hash(i) % n;
@@ -91,7 +89,7 @@ void Compute(graph<vertex>& GA, long r) {
 
   vertexSubset Frontier(n,sampleSize,starts); //initial frontier of size 64
 
-  intT round = 0;
+  intE round = 0;
   while(!Frontier.isEmpty()){
     round++;
     vertexMap(Frontier, Radii_Vertex_F(Visited,NextVisited));
@@ -100,7 +98,5 @@ void Compute(graph<vertex>& GA, long r) {
     Frontier.del();
     Frontier = output;
   }
-  free(Visited); free(NextVisited);  
-  Frontier.del();
-  free(radii); 
+  free(Visited); free(NextVisited); Frontier.del(); free(radii); 
 }

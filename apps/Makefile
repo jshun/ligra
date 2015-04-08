@@ -34,7 +34,14 @@ all: $(ALL)
 % : %.C $(COMMON)
 	$(PCC) $(PCFLAGS) -o $@ $< 
 
+$(COMMON):
+	ln -s ../ligra/$@ .
+
 .PHONY : clean
 
 clean :
 	rm -f *.o $(ALL)
+
+cleansrc :
+	make -s clean
+	rm $(COMMON)

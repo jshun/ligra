@@ -25,11 +25,11 @@
 #include "ligra.h"
 
 struct BF_F {
-  int* ShortestPathLen;
+  intE* ShortestPathLen;
   int* Visited;
-  BF_F(int* _ShortestPathLen, int* _Visited) : 
+  BF_F(intE* _ShortestPathLen, int* _Visited) : 
     ShortestPathLen(_ShortestPathLen), Visited(_Visited) {}
-  inline bool update (intT s, intT d, intE edgeLen) { //Update ShortestPathLen if found a shorter path
+  inline bool update (uintE s, uintE d, intE edgeLen) { //Update ShortestPathLen if found a shorter path
     intE newDist = ShortestPathLen[s] + edgeLen;
     if(ShortestPathLen[d] > newDist) {
       ShortestPathLen[d] = newDist;
@@ -37,42 +37,42 @@ struct BF_F {
     }
     return 0;
   }
-  inline bool updateAtomic (intT s, intT d, intE edgeLen){ //atomic Update
+  inline bool updateAtomic (uintE s, uintE d, intE edgeLen){ //atomic Update
     intE newDist = ShortestPathLen[s] + edgeLen;
     return (writeMin(&ShortestPathLen[d],newDist) &&
 	    CAS(&Visited[d],0,1));
   }
-  inline bool cond (intT d) { return cond_true(d); } //does nothing
-};
+  inline bool cond (uintE d) { return cond_true(d); }};
 
 //reset visited vertices
 struct BF_Vertex_F {
   int* Visited;
   BF_Vertex_F(int* _Visited) : Visited(_Visited) {}
-  inline bool operator() (intT i){
+  inline bool operator() (uintE i){
     Visited[i] = 0;
     return 1;
   }
 };
 
 template <class vertex>
-void Compute(graph<vertex>& GA, long start) {
-  intT n = GA.n;
+void Compute(graph<vertex>& GA, commandLine P) {
+  long start = P.getOptionLongValue("-r",0);
+  long n = GA.n;
   //initialize ShortestPathLen to "infinity"
-  int* ShortestPathLen = newA(int,n);
-  {parallel_for(intT i=0;i<n;i++) ShortestPathLen[i] = INT_MAX/2;}
+  intE* ShortestPathLen = newA(intE,n);
+  {parallel_for(long i=0;i<n;i++) ShortestPathLen[i] = INT_MAX/2;}
   ShortestPathLen[start] = 0;
 
   int* Visited = newA(int,n);
-  {parallel_for(intT i=0;i<n;i++) Visited[i] = 0;}
+  {parallel_for(long i=0;i<n;i++) Visited[i] = 0;}
 
   vertexSubset Frontier(n,start); //initial frontier
 
-  intT round = 0;
+  long round = 0;
   while(!Frontier.isEmpty()){
     if(round == n) {
       //negative weight cycle
-      {parallel_for(intT i=0;i<n;i++) ShortestPathLen[i] = -(INT_MAX/2);}
+      {parallel_for(long i=0;i<n;i++) ShortestPathLen[i] = -(INT_E_MAX/2);}
       break;
     }
     vertexSubset output = edgeMap(GA, Frontier, BF_F(ShortestPathLen,Visited), GA.m/20, DENSE_FORWARD);
@@ -81,7 +81,6 @@ void Compute(graph<vertex>& GA, long start) {
     Frontier = output;
     round++;
   } 
-  Frontier.del();
-  free(Visited);
+  Frontier.del(); free(Visited);
   free(ShortestPathLen);
 }
