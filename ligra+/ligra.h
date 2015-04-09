@@ -25,12 +25,22 @@
 #define LIGRA_H
 
 //include the code for the desired compression scheme
+#ifndef PD 
 #ifdef BYTE
 #include "byte.h"
 #elif defined NIBBLE
 #include "nibble.h"
 #else
 #include "byteRLE.h"
+#endif
+#else //decode in parallel
+#ifdef BYTE
+#include "byte-pd.h"
+#elif defined NIBBLE
+#include "nibble-pd.h"
+#else
+#include "byteRLE-pd.h"
+#endif
 #endif
 
 #include <iostream>

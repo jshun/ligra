@@ -56,7 +56,9 @@ implemented that can be used---byte codes, byte codes with run-length
 encoding and nibble codes. By default, the code is compiled for byte
 codes with run-length encoding. To use byte codes instead, define the
 environment variable BYTE, and to use nibble codes instead, define the
-environment variable NIBBLE.
+environment variable NIBBLE. Parallel decoding within a vertex can be
+enabled by defining the environment variable PD (by default, a
+vertex's edge list is decoded sequentially).
 
 After the appropriate environment variables are set, to compile,
 simply run
@@ -118,6 +120,10 @@ manner as in Ligra. For example:
 $ ./BFS -s ../inputs/rMatGraph_J_5_100.compressed
 $ ./BellmanFord -s ../inputs/rMatGraph_WJ_5_100.compressed
 ``` 
+
+Make sure that the compression method used for compilation of the
+applications is consistent with the method used to compress the graph
+with the encoder program.
 
 Input Format for Ligra applications and the Ligra+ encoder
 -----------

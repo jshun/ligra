@@ -36,6 +36,8 @@ typedef unsigned char uchar;
 #include <stdio.h>
 #include <string.h>
 
+#define PARALLEL_DEGREE 1000
+
 #define LAST_BIT_SET(b) (b & (0x8))
 #define EDGE_SIZE_PER_BYTE 3
 
@@ -106,46 +108,82 @@ inline uintE decode_next_edge(uchar* &start, long* location) {
   coded. 
 */
 template <class T, class F>
-  inline void decode(T t, F f, uchar* edgeArr, const uintE &source, const uintT &degree) {
-  uintE edgesRead = 0;
-  long location = 0;
+  inline void decode(T t, F f, uchar* edgeStart, const uintE &source, const uintT &degree) {  
   if (degree > 0) {
-    uintE startEdge = decode_first_edge(edgeArr, &location, source);
-    uintE prevEdge = startEdge;
-    if (!t.srcTarg(f, source,startEdge,edgesRead)) {
-      return;
-    }
+    long numChunks = 1+(degree-1)/PARALLEL_DEGREE;
+    uintE* pOffsets = (uintE*) edgeStart; //use beginning of edgeArray for offsets into edge list
+    uchar* start = edgeStart + (numChunks-1)*sizeof(uintE);
+    //do first chunk
+    long end = min<long>(PARALLEL_DEGREE,degree);
+    long location = 0;
+    // Eat first edge, which is compressed specially 
 
-    for (edgesRead = 1; edgesRead < degree; edgesRead++) {
-      uintE edgeRead = decode_next_edge(edgeArr, &location);
-      uintE edge = edgeRead + prevEdge;
-      prevEdge = edge;
-      if (!t.srcTarg(f, source, edge, edgesRead)) {
-        break; 
-      }
+    uintE startEdge = decode_first_edge(start,&location,source);
+
+    if(!t.srcTarg(f, source,startEdge,0)) return;
+    for (uintE edgeID = 1; edgeID < end; edgeID++) {
+      // Eat the next 'edge', which is a difference, and reconstruct edge.
+      uintE edgeRead = decode_next_edge(start,&location);
+      uintE edge = startEdge + edgeRead;
+      startEdge = edge;
+      if(!t.srcTarg(f, source,startEdge,edgeID)) return;
     }
+    //do remaining chunks in parallel
+    parallel_for(long i=1;i<numChunks;i++) {
+      long o = i*PARALLEL_DEGREE;
+      long end = min<long>(o+PARALLEL_DEGREE,degree);
+      // Eat first edge, which is compressed specially 
+      long location = pOffsets[i-1];
+      uintE startEdge = decode_first_edge(edgeStart,&location,source);
+      if(!t.srcTarg(f, source,startEdge,o)) end = 0;
+      for (uintE edgeID = o+1; edgeID < end; edgeID++) {
+	// Eat the next 'edge', which is a difference, and reconstruct edge.
+	uintE edgeRead = decode_next_edge(edgeStart,&location);
+	uintE edge = startEdge + edgeRead;
+	startEdge = edge;
+	if(!t.srcTarg(f, source,startEdge,edgeID)) break;
+      }
+    }   
   }
 }
 
 //decode edges for weighted graph
 template <class T, class F>
   inline void decodeWgh(T t, F f, uchar* edgeStart, const uintE &source,const uintT &degree) {
-  uintT edgesRead = 0;
-  long location = 0;
-  if (degree > 0) {
+  if(degree > 0){
+    long numChunks = 1+(degree-1)/PARALLEL_DEGREE;
+    uintE* pOffsets = (uintE*) edgeStart; //use beginning of edgeArray for offsets into edge list
+    uchar* start = edgeStart + (numChunks-1)*sizeof(uintE);
+    //do first chunk
+    long end = min<long>(PARALLEL_DEGREE,degree);
+    long location = 0;
     // Eat first edge, which is compressed specially 
-    uintE startEdge = decode_first_edge(edgeStart,&location,source);
-    intE weight = decode_first_edge(edgeStart,&location,0);
-    if (!t.srcTarg(f, source,startEdge, weight, edgesRead)) {
-      return;
-    }
-    for (edgesRead = 1; edgesRead < degree; edgesRead++) {
-      uintE edgeRead = decode_next_edge(edgeStart, &location);
+    uintE startEdge = decode_first_edge(start,&location,source);
+    intE weight = decode_first_edge(start,&location,0);
+    if(!t.srcTarg(f, source,startEdge,weight,0)) return;
+    for (uintE edgeID = 1; edgeID < end; edgeID++) {
+      // Eat the next 'edge', which is a difference, and reconstruct edge.
+      uintE edgeRead = decode_next_edge(start,&location);
       uintE edge = startEdge + edgeRead;
       startEdge = edge;
+      intE weight = decode_first_edge(start,&location,0);
+      if(!t.srcTarg(f, source,startEdge,weight,edgeID)) return;
+    }
+    //do remaining chunks in parallel
+    parallel_for(long i=1;i<numChunks;i++) {
+      long o = i*PARALLEL_DEGREE;
+      long end = min<long>(o+PARALLEL_DEGREE,degree);
+      long location = pOffsets[i-1];
+      // Eat first edge, which is compressed specially 
+      uintE startEdge = decode_first_edge(edgeStart,&location,source);
       intE weight = decode_first_edge(edgeStart,&location,0);
-      if (!t.srcTarg(f, source, edge, weight, edgesRead)) {
-        break; 
+      if(!t.srcTarg(f, source,startEdge, weight, o)) end = 0;
+      for (uintE edgeID = o+1; edgeID < end; edgeID++) {
+	uintE edgeRead = decode_next_edge(edgeStart,&location);
+	uintE edge = startEdge + edgeRead;
+	startEdge = edge;
+	intE weight = decode_first_edge(edgeStart,&location,0);
+	if(!t.srcTarg(f, source, edge, weight, edgeID)) break;
       }
     }
   }
@@ -164,31 +202,34 @@ template <class T, class F>
 long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degree, 
                                 uintE vertexNum, uintE *savedEdges) {
   if (degree > 0) {
-    // Compress the first edge whole, which is signed difference coded
-    long preCompress = (long) savedEdges[0] - vertexNum;
-    long toCompress = labs(preCompress);
-    intE sign = 1;
-    if (preCompress < 0) {
-      sign = 0;
-    }
-    toCompress = (toCompress << 1) | sign;
-    long temp = currentOffset;
-
-    currentOffset = encode_nibbleval(edgeArray, currentOffset, toCompress);
-    long val;
-    //for debugging only
-    decode_val_nibblecode(edgeArray,&temp,val);
-    if(val != toCompress) {cout << "decoding error! got "<<val<<" but should've been "<<(savedEdges[0])<<" " <<vertexNum<<" "<<preCompress<<" " << labs(preCompress)<<" " << toCompress<<" " << (val >> 1)<<endl; exit(0);}
-    for (uintT edgeI=1; edgeI < degree; edgeI++) {
-      // Store difference between cur and prev edge. 
-      uintE difference = savedEdges[edgeI] - 
-                         savedEdges[edgeI - 1];
-      temp = currentOffset;
-      currentOffset = encode_nibbleval(edgeArray, currentOffset, difference);
-      //for debugging only
-      decode_val_nibblecode(edgeArray,&temp,val);
-    if(val != difference) {cout << "decoding error! got "<<val<<" but should've been "<<(savedEdges[0])<<" " <<vertexNum<<" "<<difference<<endl; exit(0);}
-
+    long startOffset = currentOffset;
+    long numChunks = 1+(degree-1)/PARALLEL_DEGREE;
+    uintE* pOffsets = (uintE*) edgeArray; //use beginning of edgeArray for offsets into edge list
+    currentOffset += 2*(numChunks-1)*sizeof(uintE);      
+    for(long i=0;i<numChunks;i++) {
+      long o = i*PARALLEL_DEGREE;
+      long end = min<long>(PARALLEL_DEGREE,degree-o);
+      uintE* myEdges = savedEdges + o;
+      if(i>0) pOffsets[i-1] = currentOffset - startOffset;
+      // Compress the first edge whole, which is signed difference coded
+      long preCompress = (long) myEdges[0] - vertexNum;
+      long toCompress = labs(preCompress);
+      intE sign = 1;
+      if (preCompress < 0) {
+	sign = 0;
+      }
+      toCompress = (toCompress << 1) | sign;
+      long temp = currentOffset;
+      currentOffset = encode_nibbleval(edgeArray, currentOffset, toCompress);
+      long val;
+      for (uintT edgeI=1; edgeI < end; edgeI++) {
+	// Store difference between cur and prev edge. 
+	uintE difference = myEdges[edgeI] - 
+	  myEdges[edgeI - 1];
+	temp = currentOffset;
+	currentOffset = encode_nibbleval(edgeArray, currentOffset, difference);
+	//for debugging only
+      }
     }
   }
   return currentOffset;
@@ -222,7 +263,6 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
       charsUsed = (charsUsed+1) / 2;
       charsUsedArr[i] = charsUsed; 
   }}
-
   long totalSpace = sequence::plusScan(charsUsedArr, compressionStarts, n);
   compressionStarts[n] = totalSpace; // in bytes
   free(degrees);
@@ -264,39 +304,49 @@ long sequentialCompressWeightedEdgeSet
 (uchar *edgeArray, long currentOffset, uintT degree, 
  uintE vertexNum, intEPair *savedEdges) {
   if (degree > 0) {
-    // Compress the first edge whole, which is signed difference coded
-    //target ID
-    intE preCompress = savedEdges[0].first - vertexNum;
-    intE toCompress = abs(preCompress);
-    intE sign = 1;
-    if (preCompress < 0) {
-      sign = 0;
-    }
-    toCompress = (toCompress<<1)|sign;
-    currentOffset = encode_nibbleval(edgeArray, currentOffset, toCompress);
-
-    //weight
-    intE weight = savedEdges[0].second;
-    if (weight < 0) sign = 0; else sign = 1; 
-    toCompress = (abs(weight)<<1)|sign;
-    currentOffset = encode_nibbleval(edgeArray, currentOffset, toCompress);
-
-    for (uintT edgeI=1; edgeI < degree; edgeI++) {
-      // Store difference between cur and prev edge. 
-      uintE difference = savedEdges[edgeI].first - 
-                        savedEdges[edgeI - 1].first;
+    long startOffset = currentOffset;
+    long numChunks = 1+(degree-1)/PARALLEL_DEGREE;
+    uintE* pOffsets = (uintE*) edgeArray; //use beginning of edgeArray for offsets into edge list
+    currentOffset += 2*(numChunks-1)*sizeof(uintE);      
+    for(long i=0;i<numChunks;i++) {
+      long o = i*PARALLEL_DEGREE;
+      long end = min<long>(PARALLEL_DEGREE,degree-o);
+      intEPair* myEdges = savedEdges + o;
+      if(i>0) pOffsets[i-1] = currentOffset - startOffset;
       
-      //compress difference
-      currentOffset = encode_nibbleval(edgeArray, currentOffset, difference);
-      
-      //compress weight
+      // Compress the first edge whole, which is signed difference coded
+      //target ID
+      intE preCompress = myEdges[0].first - vertexNum;
+      intE toCompress = abs(preCompress);
+      intE sign = 1;
+      if (preCompress < 0) {
+	sign = 0;
+      }
+      toCompress = (toCompress<<1)|sign;
+      currentOffset = encode_nibbleval(edgeArray, currentOffset, toCompress);
 
-      weight = savedEdges[edgeI].second;
+      //weight
+      intE weight = myEdges[0].second;
       if (weight < 0) sign = 0; else sign = 1; 
       toCompress = (abs(weight)<<1)|sign;
       currentOffset = encode_nibbleval(edgeArray, currentOffset, toCompress);
+
+      for (uintT edgeI=1; edgeI < end; edgeI++) {
+	// Store difference between cur and prev edge. 
+	uintE difference = myEdges[edgeI].first - 
+	  myEdges[edgeI - 1].first;
+      
+	//compress difference
+	currentOffset = encode_nibbleval(edgeArray, currentOffset, difference);
+      
+	//compress weight
+
+	weight = myEdges[edgeI].second;
+	if (weight < 0) sign = 0; else sign = 1; 
+	toCompress = (abs(weight)<<1)|sign;
+	currentOffset = encode_nibbleval(edgeArray, currentOffset, toCompress);
+      }
     }
-    // Increment nWritten after all of vertex n's neighbors are written
   }
   return currentOffset;
 }

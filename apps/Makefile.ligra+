@@ -6,6 +6,10 @@ ifdef EDGELONG
 INTE = -DEDGELONG
 endif
 
+ifdef PD
+PD = -DPD
+endif
+
 ifdef BYTE
 CODE = -DBYTE
 else ifdef NIBBLE
@@ -16,23 +20,23 @@ endif
 
 ifdef CILK
 PCC = g++
-PCFLAGS = -fcilkplus -lcilkrts -O2 -DCILK $(INTT) $(INTE) $(CODE)
+PCFLAGS = -fcilkplus -lcilkrts -O2 -DCILK $(INTT) $(INTE) $(CODE) $(PD)
 PLFLAGS = -fcilkplus -lcilkrts
 
 else ifdef MKLROOT
 PCC = icpc
-PCFLAGS = -O3 -DCILKP $(INTT) $(INTE) $(CODE)
+PCFLAGS = -O3 -DCILKP $(INTT) $(INTE) $(CODE) $(PD)
 
 else ifdef OPENMP
 PCC = g++
-PCFLAGS = -fopenmp -O3 -DOPENMP $(INTT) $(INTE) $(CODE)
+PCFLAGS = -fopenmp -O3 -DOPENMP $(INTT) $(INTE) $(CODE) $(PD)
 
 else
 PCC = g++
-PCFLAGS = -O2 $(INTT) $(INTE) $(CODE)
+PCFLAGS = -O2 $(INTT) $(INTE) $(CODE) $(PD)
 endif
 
-COMMON= ligra.h graph.h utils.h IO.h parallel.h gettime.h quickSort.h byte.h byteRLE.h nibble.h parseCommandLine.h encoder.C
+COMMON= ligra.h graph.h utils.h IO.h parallel.h gettime.h quickSort.h byte.h byteRLE.h nibble.h byte-pd.h byteRLE-pd.h nibble-pd.h parseCommandLine.h encoder.C
 
 ALL= encoder BFS BC Components Radii PageRank PageRankDelta BellmanFord BFSCC 
 

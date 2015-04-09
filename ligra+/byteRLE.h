@@ -24,6 +24,8 @@
 #ifndef BYTECODE_H
 #define BYTECODE_H
 
+typedef unsigned char uchar;
+
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
@@ -36,9 +38,6 @@
 #define LAST_BIT_SET(b) (b & (0x80))
 #define EDGE_SIZE_PER_BYTE 7
 
-#define PARALLEL_DEGREE 1000
-
-typedef unsigned char uchar;
 
 /* Reads the first edge of an out-edge list, which is the signed
    difference between the target and source. 
@@ -108,30 +107,24 @@ inline uintE eatEdge(uchar* &start) {
 */
 template <class T, class F>
   inline void decode(T t, F f, uchar* edgeStart, const uintE &source, const uintT &degree) {
+  uintE edgesRead = 0;
   if (degree > 0) {
-    uintE edgesRead = 0;
-    long numChunks = 1+(degree-1)/PARALLEL_DEGREE;
-    uintE* pOffsets = (uintE*) edgeStart;
-    uchar* start = edgeStart + (numChunks-1)*sizeof(uintE);
-    long end = min<long>(PARALLEL_DEGREE,degree);
-    //do first chunk
     // Eat first edge, which is compressed specially 
-    uintE startEdge = eatFirstEdge(start,source);
-    //cout << startEdge << endl;
+    uintE startEdge = eatFirstEdge(edgeStart,source);
     if (!t.srcTarg(f, source,startEdge,edgesRead)) {
       return;
     }
     uintT i = 0;
     edgesRead = 1;
     while(1) {
-      if(edgesRead == end) break;
-      uchar header = start[i++];
+      if(edgesRead == degree) return;
+      uchar header = edgeStart[i++];
       uint numbytes = 1 + (header & 0x3);
       uint runlength = 1 + (header >> 2);
       switch(numbytes) {
       case 1:
 	for(uint j = 0; j < runlength; j++) {
-	  uintE edge = (uintE) start[i++] + startEdge;
+	  uintE edge = (uintE) edgeStart[i++] + startEdge;
 	  startEdge = edge;
 	  if (!t.srcTarg(f, source, edge, edgesRead++)) {
 	    return;
@@ -140,7 +133,7 @@ template <class T, class F>
 	break;
       case 2:
 	for(uint j = 0; j < runlength; j++) {
-	  uintE edge = (uintE) start[i] + (((uintE) start[i+1]) << 8) + startEdge;
+	  uintE edge = (uintE) edgeStart[i] + (((uintE) edgeStart[i+1]) << 8) + startEdge;
 	  i += 2;
 	  startEdge = edge;
 	  if (!t.srcTarg(f, source, edge, edgesRead++)) {
@@ -150,7 +143,7 @@ template <class T, class F>
 	break;
       case 3:
 	for(uint j = 0; j < runlength; j++) {
-	  uintE edge = (uintE) start[i] + (((uintE) start[i+1]) << 8) + (((uintE) start[i+2]) << 16) + startEdge;
+	  uintE edge = (uintE) edgeStart[i] + (((uintE) edgeStart[i+1]) << 8) + (((uintE) edgeStart[i+2]) << 16) + startEdge;
 	  i += 3;
 	  startEdge = edge;
 	  if (!t.srcTarg(f, source, edge, edgesRead++)) {
@@ -160,7 +153,7 @@ template <class T, class F>
 	break;
       default:
 	for(uint j = 0; j < runlength; j++) {
-	  uintE edge = (uintE) start[i] + (((uintE) start[i+1]) << 8) + (((uintE) start[i+2]) << 16) + (((uintE) start[i+3]) << 24) + startEdge;
+	  uintE edge = (uintE) edgeStart[i] + (((uintE) edgeStart[i+1]) << 8) + (((uintE) edgeStart[i+2]) << 16) + (((uintE) edgeStart[i+3]) << 24) + startEdge;
 	  i+=4;
 	  startEdge = edge;
 	  if (!t.srcTarg(f, source, edge, edgesRead++)) {
@@ -168,67 +161,6 @@ template <class T, class F>
 	  }
 	}
       }
-    }
-
-    //do remaining chunks in parallel
-    {parallel_for(long k=1;k<numChunks;k++) {
-      long o = k*PARALLEL_DEGREE;
-      long end = o+min<long>(PARALLEL_DEGREE,degree-o);
-
-      uchar* myStart = edgeStart + pOffsets[k-1];
-      uintE startEdge = eatFirstEdge(myStart,source);
-      if (!t.srcTarg(f, source,startEdge,o)) {
-	end = 0;
-      }
-      uintT i = 0;
-      uintE edgeID = o+1;
-      while(1) {
-	if(edgeID >= end) break;
-	uchar header = myStart[i++];
-	uint numbytes = 1 + (header & 0x3);
-	uint runlength = 1 + (header >> 2);
-	switch(numbytes) {
-	case 1:
-	  for(uint j = 0; j < runlength; j++) {
-	    uintE edge = (uintE) myStart[i++] + startEdge;
-	    startEdge = edge;
-	    if (!t.srcTarg(f, source, edge, edgeID++)) {
-	      end = 0;
-	    }
-	  }
-	  break;
-	case 2:
-	  for(uint j = 0; j < runlength; j++) {
-	    uintE edge = (uintE) myStart[i] + (((uintE) myStart[i+1]) << 8) + startEdge;
-	    i += 2;
-	    startEdge = edge;
-	    if (!t.srcTarg(f, source, edge, edgeID++)) {
-	      end = 0;
-	    }
-	  }
-	  break;
-	case 3:
-	  for(uint j = 0; j < runlength; j++) {
-	    uintE edge = (uintE) myStart[i] + (((uintE) myStart[i+1]) << 8) + (((uintE) myStart[i+2]) << 16) + startEdge;
-	    i += 3;
-	    startEdge = edge;
-	    if (!t.srcTarg(f, source, edge, edgeID++)) {
-	      end = 0;
-	    }
-	  }
-	  break;
-	default:
-	  for(uint j = 0; j < runlength; j++) {
-	    uintE edge = (uintE) myStart[i] + (((uintE) myStart[i+1]) << 8) + (((uintE) myStart[i+2]) << 16) + (((uintE) myStart[i+3]) << 24) + startEdge;
-	    i+=4;
-	    startEdge = edge;
-	    if (!t.srcTarg(f, source, edge, edgeID++)) {
-	      end = 0;
-	    }
-	  }
-	}
-      }
-      }    
     }
   }
 }
@@ -304,6 +236,7 @@ long compressEdges(uchar *start, long curOffset, uintE* savedEdges, uintE edgeI,
 #define TWO_BYTES_SIGNED_MIN -32767
 #define THREE_BYTES_SIGNED_MAX 8388608
 #define THREE_BYTES_SIGNED_MIN -8388607
+
 /*
   Takes: 
     1. The edge array of chars to write into
@@ -316,76 +249,66 @@ long compressEdges(uchar *start, long curOffset, uintE* savedEdges, uintE edgeI,
 */
 long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degree, uintE vertexNum, uintE *savedEdges) {
   if (degree > 0) {
-    long startOffset = currentOffset;
-    long numChunks = 1 + (degree-1)/PARALLEL_DEGREE;
-    uintE* pOffsets = (uintE*) edgeArray;
-    currentOffset += (numChunks-1)*sizeof(uintE);
-    
-    for(long i=0;i<numChunks;i++) {
-      long o = i*PARALLEL_DEGREE;
-      long numEdges = min<long>(PARALLEL_DEGREE,degree-o); 
-      uintE* myEdges = savedEdges + o;
-      if(i > 0) pOffsets[i-1] = currentOffset-startOffset;
-      // Compress the first edge whole, which is signed difference coded
-
-      currentOffset = compressFirstEdge(edgeArray, currentOffset, 
-					vertexNum, myEdges[0]);
-      
-      if (numEdges == 1) continue; //return currentOffset;
-      uintE edgeI = 1;
-      uintT runlength = 0;
-      int numBytes = 0;
-      while(1) {
-	uintE difference = myEdges[edgeI+runlength] - 
-	  myEdges[edgeI+runlength - 1];
-	if(difference < ONE_BYTE) { 
-	  if(!numBytes) {numBytes = 1; runlength++;}
-	  else if(numBytes == 1) runlength++;
-	  else {
-	    //encode
-	    currentOffset = compressEdges(edgeArray, currentOffset, myEdges, edgeI, numBytes, runlength);
-	    edgeI += runlength;
-	    runlength = numBytes = 0;
-	  }
-	  
-	} else if(difference < TWO_BYTES) {
-	  if(!numBytes) {numBytes = 2; runlength++;}
-	  else if(numBytes == 2) runlength++;
-	  else {
-	    //encode
-	    currentOffset = compressEdges(edgeArray, currentOffset, myEdges, edgeI, numBytes, runlength);
-	    edgeI += runlength;
-	    runlength = numBytes = 0;
-	  }
-	} else if(difference < THREE_BYTES) {
-	  if(!numBytes) {numBytes = 3; runlength++;}
-	  else if(numBytes == 3) runlength++;
-	  else {
-	    //encode
-	    currentOffset = compressEdges(edgeArray, currentOffset, myEdges, edgeI, numBytes, runlength);
-	    edgeI += runlength;
-	    runlength = numBytes = 0;
-	  }
-	} else {
-	  if(!numBytes) {numBytes = 4; runlength++;}
-	  else if(numBytes == 4) runlength++;
-	  else {
-	    //encode
-	    currentOffset = compressEdges(edgeArray, currentOffset, myEdges, edgeI, numBytes, runlength);
-	    edgeI += runlength;
-	    runlength = numBytes = 0;
-	  }
-	}
-	if(runlength == 64) {
-	  currentOffset = compressEdges(edgeArray, currentOffset, myEdges, edgeI, numBytes, runlength);
+    // Compress the first edge whole, which is signed difference coded
+    currentOffset = compressFirstEdge(edgeArray, currentOffset, 
+                                       vertexNum, savedEdges[0]);
+    if (degree == 1) return currentOffset;
+    uintE edgeI = 1;
+    uintT runlength = 0;
+    int numBytes = 0;
+    while(1) {
+      uintE difference = savedEdges[edgeI+runlength] - 
+	savedEdges[edgeI+runlength - 1];
+      if(difference < ONE_BYTE) { 
+	if(!numBytes) {numBytes = 1; runlength++;}
+	else if(numBytes == 1) runlength++;
+	else {
+	  //encode
+	  currentOffset = compressEdges(edgeArray, currentOffset, savedEdges, edgeI, numBytes, runlength);
+	  edgeI += runlength;
+	  runlength = numBytes = 0;
+	}	  
+      } else if(difference < TWO_BYTES) {
+	if(!numBytes) {numBytes = 2; runlength++;}
+	else if(numBytes == 2) runlength++;
+	else {
+	  //encode
+	  currentOffset = compressEdges(edgeArray, currentOffset, savedEdges, edgeI, numBytes, runlength);
 	  edgeI += runlength;
 	  runlength = numBytes = 0;
 	}
-	if(runlength + edgeI == numEdges) {
-	  currentOffset = compressEdges(edgeArray, currentOffset, myEdges, edgeI, numBytes, runlength);
-	  break;
+      } else if(difference < THREE_BYTES) {
+	if(!numBytes) {numBytes = 3; runlength++;}
+	else if(numBytes == 3) runlength++;
+	else {
+	  //encode
+	  currentOffset = compressEdges(edgeArray, currentOffset, savedEdges, edgeI, numBytes, runlength);
+	  edgeI += runlength;
+	  runlength = numBytes = 0;
 	}
-      }      
+      } else {
+	if(!numBytes) {numBytes = 4; runlength++;}
+	else if(numBytes == 4) runlength++;
+	else {
+	  //encode
+	  currentOffset = compressEdges(edgeArray, currentOffset, savedEdges, edgeI, numBytes, runlength);
+	  edgeI += runlength;
+	  runlength = numBytes = 0;
+	}
+      }
+	
+      if(runlength == 64) {
+	currentOffset = compressEdges(edgeArray, currentOffset, savedEdges, edgeI, numBytes, runlength);
+	edgeI += runlength;
+	runlength = numBytes = 0;
+      }
+
+      if(runlength + edgeI == degree) {
+	currentOffset = compressEdges(edgeArray, currentOffset, savedEdges, edgeI, numBytes, runlength);
+	break;
+      }
+
+      
     }
   }
   return currentOffset;
@@ -467,33 +390,29 @@ int numBytesSigned (intE x) {
 
 template <class T, class F>
   inline void decodeWgh(T t, F f, uchar* edgeStart, const uintE &source, const uintT &degree) {
+  uintE edgesRead = 0;
   if (degree > 0) {
-    uintE edgesRead = 0;
-    long numChunks = 1+(degree-1)/PARALLEL_DEGREE;
-    uintE* pOffsets = (uintE*) edgeStart;
-    uchar* start = edgeStart+(numChunks-1)*sizeof(uintE);
-    long end = min<long>(PARALLEL_DEGREE,degree);
-
     // Eat first edge, which is compressed specially 
-    uintE startEdge = eatFirstEdge(start,source);
-    intE weight = eatWeight(start);
+    uintE startEdge = eatFirstEdge(edgeStart,source);
+    intE weight = eatWeight(edgeStart);
     if (!t.srcTarg(f, source,startEdge, weight, edgesRead)) {
       return;
     }
+
     uintT i = 0;
     edgesRead = 1;
     while(1) {
-      if(edgesRead == end) break;
-      uchar header = start[i++];
+      if(edgesRead == degree) return;
+      uchar header = edgeStart[i++];
       uint info = header & 0x7; //3 bits for info
       uint runlength = 1 + (header >> 3);
       switch(info) {
       case 0:
 	for(uint j = 0; j < runlength; j++) {
-	  uintE edge = (uintE) start[i] + startEdge;
+	  uintE edge = (uintE) edgeStart[i] + startEdge;
 	  startEdge = edge;
-	  uintE w = start[i+1]; //highest bit is sign bit
-	  intE weight = (w & 0x80) ? -(w & 0x7f) : (w & 0x7f);	  
+	  uintE w = edgeStart[i+1]; //highest bit is sign bit
+	  intE weight = (w & 0x80) ? -(w & 0x7f) : (w & 0x7f);
 	  i+=2;
 	  if (!t.srcTarg(f, source, edge, weight, edgesRead++)) {
 	    return;
@@ -502,9 +421,9 @@ template <class T, class F>
 	break;
       case 1:
 	for(uint j = 0; j < runlength; j++) {
-	  uintE edge = (uintE) start[i] + (((uintE) start[i+1]) << 8) + startEdge;
+	  uintE edge = (uintE) edgeStart[i] + (((uintE) edgeStart[i+1]) << 8) + startEdge;
 	  startEdge = edge;
-	  uintE w = start[i+2]; //highest bit is sign bit
+	  uintE w = edgeStart[i+2]; //highest bit is sign bit
 	  intE weight = (w & 0x80) ? -(w & 0x7f) : (w & 0x7f);
 	  i += 3;
 	  if (!t.srcTarg(f, source, edge, weight, edgesRead++)) {
@@ -514,9 +433,9 @@ template <class T, class F>
 	break;
       case 2:
 	for(uint j = 0; j < runlength; j++) {
-	  uintE edge = (uintE) start[i] + (((uintE) start[i+1]) << 8) + (((uintE) start[i+2]) << 16) + startEdge;
+	  uintE edge = (uintE) edgeStart[i] + (((uintE) edgeStart[i+1]) << 8) + (((uintE) edgeStart[i+2]) << 16) + startEdge;
 	  startEdge = edge;
-	  uintE w = start[i+3]; //highest bit is sign bit
+	  uintE w = edgeStart[i+3]; //highest bit is sign bit
 	  intE weight = (w & 0x80) ? -(w & 0x7f) : (w & 0x7f);
 	  i+=4;
 	  if (!t.srcTarg(f, source, edge, weight, edgesRead++)) {
@@ -526,9 +445,9 @@ template <class T, class F>
 	break;
       case 3:
 	for(uint j = 0; j < runlength; j++) {
-	  uintE edge = (uintE) start[i] + (((uintE) start[i+1]) << 8) + (((uintE) start[i+2]) << 16) + (((uintE) start[i+3]) << 24) + startEdge;
+	  uintE edge = (uintE) edgeStart[i] + (((uintE) edgeStart[i+1]) << 8) + (((uintE) edgeStart[i+2]) << 16) + (((uintE) edgeStart[i+3]) << 24) + startEdge;
 	  startEdge = edge;
-	  uintE w = start[i+4]; //highest bit is sign bit
+	  uintE w = edgeStart[i+4]; //highest bit is sign bit
 	  intE weight = (w & 0x80) ? -(w & 0x7f) : (w & 0x7f);
 	  i+=5;
 	  if (!t.srcTarg(f, source, edge, weight, edgesRead++)) {
@@ -538,10 +457,10 @@ template <class T, class F>
 	break;
       case 4:
 	for(uint j = 0; j < runlength; j++) {
-	  uintE edge = (uintE) start[i] + startEdge;
+	  uintE edge = (uintE) edgeStart[i] + startEdge;
 	  startEdge = edge;
-	  uintE w = start[i+1]; //highest bit is sign bit
-	  intE weight = (w & 0x7f) + (((uintE) start[i+2]) << 7) + (((uintE) start[i+3]) << 15)  + (((uintE) start[i+4]) << 23);
+	  uintE w = edgeStart[i+1]; //highest bit is sign bit
+	  intE weight = (w & 0x7f) + (((uintE) edgeStart[i+2]) << 7) + (((uintE) edgeStart[i+3]) << 15)  + (((uintE) edgeStart[i+4]) << 23);
 	  if(w & 0x80) weight = -weight;
 	  i+=5;
 	  if (!t.srcTarg(f, source, edge, weight, edgesRead++)) {
@@ -551,10 +470,10 @@ template <class T, class F>
 	break;
       case 5:
 	for(uint j = 0; j < runlength; j++) {
-	  uintE edge = (uintE) start[i] + (((uintE) start[i+1]) << 8) + startEdge;
+	  uintE edge = (uintE) edgeStart[i] + (((uintE) edgeStart[i+1]) << 8) + startEdge;
 	  startEdge = edge;
-	  uintE w = start[i+2]; //highest bit is sign bit
-	  intE weight = (w & 0x7f) + (((uintE) start[i+3]) << 7) + (((uintE) start[i+4]) << 15)  + (((uintE) start[i+5]) << 23);
+	  uintE w = edgeStart[i+2]; //highest bit is sign bit
+	  intE weight = (w & 0x7f) + (((uintE) edgeStart[i+3]) << 7) + (((uintE) edgeStart[i+4]) << 15)  + (((uintE) edgeStart[i+5]) << 23);
 	  if(w & 0x80) weight = -weight;
 	  i+=6;
 	  if (!t.srcTarg(f, source, edge, weight, edgesRead++)) {
@@ -564,10 +483,10 @@ template <class T, class F>
 	break;
       case 6:
 	for(uint j = 0; j < runlength; j++) {
-	  uintE edge = (uintE) start[i] + (((uintE) start[i+1]) << 8) + (((uintE) start[i+2]) << 16) + startEdge;
+	  uintE edge = (uintE) edgeStart[i] + (((uintE) edgeStart[i+1]) << 8) + (((uintE) edgeStart[i+2]) << 16) + startEdge;
 	  startEdge = edge;
-	  uintE w = start[i+3]; //highest bit is sign bit
-	  intE weight = (w & 0x7f) + (((uintE) start[i+4]) << 7) + (((uintE) start[i+5]) << 15)  + (((uintE) start[i+6]) << 23);
+	  uintE w = edgeStart[i+3]; //highest bit is sign bit
+	  intE weight = (w & 0x7f) + (((uintE) edgeStart[i+4]) << 7) + (((uintE) edgeStart[i+5]) << 15)  + (((uintE) edgeStart[i+6]) << 23);
 	  if(w & 0x80) weight = -weight;
 	  i+=7;
 	  if (!t.srcTarg(f, source, edge, weight, edgesRead++)) {
@@ -576,10 +495,10 @@ template <class T, class F>
 	}
       default:
 	for(uint j = 0; j < runlength; j++) {
-	  uintE edge = (uintE) start[i] + (((uintE) start[i+1]) << 8) + (((uintE) start[i+2]) << 16) + (((uintE) start[i+3]) << 24) + startEdge;
+	  uintE edge = (uintE) edgeStart[i] + (((uintE) edgeStart[i+1]) << 8) + (((uintE) edgeStart[i+2]) << 16) + (((uintE) edgeStart[i+3]) << 24) + startEdge;
 	  startEdge = edge;
-	  uintE w = start[i+4]; //highest bit is sign bit
-	  intE weight = (w & 0x7f) + (((uintE) start[i+5]) << 7) + (((uintE) start[i+6]) << 15)  + (((uintE) start[i+7]) << 23);
+	  uintE w = edgeStart[i+4]; //highest bit is sign bit
+	  intE weight = (w & 0x7f) + (((uintE) edgeStart[i+5]) << 7) + (((uintE) edgeStart[i+6]) << 15)  + (((uintE) edgeStart[i+7]) << 23);
 	  if(w & 0x80) weight = -weight;
 	  i+=8;
 	  if (!t.srcTarg(f, source, edge, weight, edgesRead++)) {
@@ -588,140 +507,20 @@ template <class T, class F>
 	}
       }
     }
-
-    {parallel_for(long k=1;k<numChunks;k++) {
-      long o = k*PARALLEL_DEGREE;
-      long end = o+min<long>(PARALLEL_DEGREE,degree-o);
-      uchar* myStart = edgeStart + pOffsets[k-1];
-      uintE startEdge = eatFirstEdge(myStart,source);    
-      intE weight = eatWeight(myStart);
-      if (!t.srcTarg(f, source,startEdge, weight, o)) {
-	end = 0;
-      }
-
-      uintT i = 0;
-      uintE edgeID = o+1;
-      while(1) {
-	if(edgeID >= end) break;
-	uchar header = myStart[i++];
-	uint info = header & 0x7; //3 bits for info
-	uint runlength = 1 + (header >> 3);
-	switch(info) {
-	case 0:
-	  for(uint j = 0; j < runlength; j++) {
-	    uintE edge = (uintE) myStart[i] + startEdge;
-	    startEdge = edge;
-	    uintE w = myStart[i+1]; //highest bit is sign bit
-	    intE weight = (w & 0x80) ? -(w & 0x7f) : (w & 0x7f);	  
-	    i+=2;
-	    if (!t.srcTarg(f, source, edge, weight, edgeID++)) {
-	      end = 0;
-	    }
-	  }
-	  break;
-	case 1:
-	  for(uint j = 0; j < runlength; j++) {
-	    uintE edge = (uintE) myStart[i] + (((uintE) myStart[i+1]) << 8) + startEdge;
-	    startEdge = edge;
-	    uintE w = myStart[i+2]; //highest bit is sign bit
-	    intE weight = (w & 0x80) ? -(w & 0x7f) : (w & 0x7f);
-	    i += 3;
-	    if (!t.srcTarg(f, source, edge, weight, edgeID++)) {
-	      end = 0;
-	    }
-	  }
-	  break;
-	case 2:
-	  for(uint j = 0; j < runlength; j++) {
-	    uintE edge = (uintE) myStart[i] + (((uintE) myStart[i+1]) << 8) + (((uintE) myStart[i+2]) << 16) + startEdge;
-	    startEdge = edge;
-	    uintE w = myStart[i+3]; //highest bit is sign bit
-	    intE weight = (w & 0x80) ? -(w & 0x7f) : (w & 0x7f);
-	    i+=4;
-	    if (!t.srcTarg(f, source, edge, weight, edgeID++)) {
-	      end = 0;
-	    }
-	  }
-	  break;
-	case 3:
-	  for(uint j = 0; j < runlength; j++) {
-	    uintE edge = (uintE) myStart[i] + (((uintE) myStart[i+1]) << 8) + (((uintE) myStart[i+2]) << 16) + (((uintE) myStart[i+3]) << 24) + startEdge;
-	    startEdge = edge;
-	    uintE w = myStart[i+4]; //highest bit is sign bit
-	    intE weight = (w & 0x80) ? -(w & 0x7f) : (w & 0x7f);
-	    i+=5;
-	    if (!t.srcTarg(f, source, edge, weight, edgeID++)) {
-	      end = 0;
-	    }
-	  }
-	  break;
-	case 4:
-	  for(uint j = 0; j < runlength; j++) {
-	    uintE edge = (uintE) myStart[i] + startEdge;
-	    startEdge = edge;
-	    uintE w = myStart[i+1]; //highest bit is sign bit
-	    intE weight = (w & 0x7f) + (((uintE) myStart[i+2]) << 7) + (((uintE) myStart[i+3]) << 15)  + (((uintE) myStart[i+4]) << 23);
-	    if(w & 0x80) weight = -weight;
-	    i+=5;
-	    if (!t.srcTarg(f, source, edge, weight, edgeID++)) {
-	      end = 0;
-	    }
-	  }
-	  break;
-	case 5:
-	  for(uint j = 0; j < runlength; j++) {
-	    uintE edge = (uintE) myStart[i] + (((uintE) myStart[i+1]) << 8) + startEdge;
-	    startEdge = edge;
-	    uintE w = myStart[i+2]; //highest bit is sign bit
-	    intE weight = (w & 0x7f) + (((uintE) myStart[i+3]) << 7) + (((uintE) myStart[i+4]) << 15)  + (((uintE) myStart[i+5]) << 23);
-	    if(w & 0x80) weight = -weight;
-	    i+=6;
-	    if (!t.srcTarg(f, source, edge, weight, edgeID++)) {
-	      end = 0;
-	    }
-	  }
-	  break;
-	case 6:
-	  for(uint j = 0; j < runlength; j++) {
-	    uintE edge = (uintE) myStart[i] + (((uintE) myStart[i+1]) << 8) + (((uintE) myStart[i+2]) << 16) + startEdge;
-	    startEdge = edge;
-	    uintE w = myStart[i+3]; //highest bit is sign bit
-	    intE weight = (w & 0x7f) + (((uintE) myStart[i+4]) << 7) + (((uintE) myStart[i+5]) << 15)  + (((uintE) myStart[i+6]) << 23);
-	    if(w & 0x80) weight = -weight;
-	    i+=7;
-	    if (!t.srcTarg(f, source, edge, weight, edgeID++)) {
-	      end = 0;
-	    }
-	  }
-	default:
-	  for(uint j = 0; j < runlength; j++) {
-	    uintE edge = (uintE) myStart[i] + (((uintE) myStart[i+1]) << 8) + (((uintE) myStart[i+2]) << 16) + (((uintE) myStart[i+3]) << 24) + startEdge;
-	    startEdge = edge;
-	    uintE w = myStart[i+4]; //highest bit is sign bit
-	    intE weight = (w & 0x7f) + (((uintE) myStart[i+5]) << 7) + (((uintE) myStart[i+6]) << 15)  + (((uintE) myStart[i+7]) << 23);
-	    if(w & 0x80) weight = -weight;
-	    i+=8;
-	    if (!t.srcTarg(f, source, edge, weight, edgeID++)) {
-	      end = 0;
-	    }
-	  }
-	}
-      }
-      }
-    }
   }
 }
 
 long compressWeightedEdges(uchar *start, long curOffset, intEPair* savedEdges, uintE edgeI, int numBytes, int numBytesWeight, uintT runlength) {
   //header
+  //use 3 bits for info on bytes needed 
   uchar header = numBytes - 1;
-  if(numBytesWeight == 4) header |= 4; //use 3 bits for info on bytes needed 
+  if(numBytesWeight == 4) header |= 4; 
   header |= ((runlength-1) << 3);  //use 5 bits for run length
   start[curOffset++] = header;
+  int bytesUsed = 0;
 
   for(int i=0;i<runlength;i++) {
     uintE e = savedEdges[edgeI+i].first - savedEdges[edgeI+i-1].first;
-    int bytesUsed = 0;
     for(int j=0; j<numBytes; j++) {
       uchar curByte = e & 0xff;
       e = e >> 8;
@@ -731,6 +530,7 @@ long compressWeightedEdges(uchar *start, long curOffset, intEPair* savedEdges, u
     intE w = savedEdges[edgeI+i].second;
     uintE wMag = abs(w);
     uchar curByte = wMag & 0x7f;
+
     wMag = wMag >> 7;
     if(w < 0) start[curOffset++] = curByte | 0x80; 
     else start[curOffset++] = curByte;
@@ -747,121 +547,110 @@ long compressWeightedEdges(uchar *start, long curOffset, intEPair* savedEdges, u
 
 long sequentialCompressWeightedEdgeSet(uchar *edgeArray, long currentOffset, uintT degree, uintE vertexNum, intEPair *savedEdges) {
   if (degree > 0) {
-    long startOffset = currentOffset;
-    long numChunks = 1+(degree-1)/PARALLEL_DEGREE;
-    uintE* pOffsets = (uintE*) edgeArray;
-    currentOffset += (numChunks-1)*sizeof(uintE);
-    for(long i=0;i<numChunks;i++) {
-      long o = i*PARALLEL_DEGREE;
-      long numEdges = min<long>(PARALLEL_DEGREE,degree-o);
-      intEPair* myEdges = savedEdges + o;
-      if(i > 0) pOffsets[i-1] = currentOffset-startOffset;
-      currentOffset = compressFirstEdge(edgeArray, currentOffset, 
-					vertexNum, myEdges[0].first);
+    currentOffset = compressFirstEdge(edgeArray, currentOffset, 
+                                       vertexNum, savedEdges[0].first);
 
-      currentOffset = compressFirstEdge(edgeArray, currentOffset, 
-					0, myEdges[0].second);
+    currentOffset = compressFirstEdge(edgeArray, currentOffset, 
+                                       0, savedEdges[0].second);
+    if (degree == 1) return currentOffset;
 
-      if (numEdges == 1) continue;
-      uintE edgeI = 1;
-      uintT runlength = 0;
-      int numBytes = 0, numBytesWeight = 0;
-      while(1) {
-	uintE difference = myEdges[edgeI+runlength].first - 
-	  myEdges[edgeI+runlength - 1].first;
-	intE weight = myEdges[edgeI+runlength].second;
-	if(difference < ONE_BYTE && numBytesSigned(weight) == 1) { 
-	  if(!numBytes) {numBytes = 1; numBytesWeight = 1; runlength++;}
-	  else if(numBytes == 1 && numBytesWeight == 1) runlength++;
-	  else {
-	    //encode
-	    currentOffset = compressWeightedEdges(edgeArray, currentOffset, myEdges, edgeI, numBytes, numBytesWeight, runlength);
-	    edgeI += runlength;
-	    runlength = numBytes = 0;
-	  }	  
-	} 
-	else if(difference < ONE_BYTE && numBytesSigned(weight) == 4) { 
-	  if(!numBytes) {numBytes = 1; numBytesWeight = 4; runlength++;}
-	  else if(numBytes == 1 && numBytesWeight == 4) runlength++;
-	  else {
-	    //encode
-	    currentOffset = compressWeightedEdges(edgeArray, currentOffset, myEdges, edgeI, numBytes, numBytesWeight, runlength);
-	    edgeI += runlength;
-	    runlength = numBytes = 0;
-	  }	  
-	} 
-	else if(difference < TWO_BYTES && numBytesSigned(weight) == 1) { 
-	  if(!numBytes) {numBytes = 2; numBytesWeight = 1; runlength++;}
-	  else if(numBytes == 2 && numBytesWeight == 1) runlength++;
-	  else {
-	    //encode
-	    currentOffset = compressWeightedEdges(edgeArray, currentOffset, myEdges, edgeI, numBytes, numBytesWeight, runlength);
-	    edgeI += runlength;
-	    runlength = numBytes = 0;
-	  }	  
-	} 
-	else if(difference < TWO_BYTES && numBytesSigned(weight) == 4) { 
-	  if(!numBytes) {numBytes = 2; numBytesWeight = 4; runlength++;}
-	  else if(numBytes == 2 && numBytesWeight == 4) runlength++;
-	  else {
-	    //encode
-	    currentOffset = compressWeightedEdges(edgeArray, currentOffset, myEdges, edgeI, numBytes, numBytesWeight, runlength);
-	    edgeI += runlength;
-	    runlength = numBytes = 0;
-	  }	  
-	} 
-	else if(difference < THREE_BYTES && numBytesSigned(weight) == 1) { 
-	  if(!numBytes) {numBytes = 3; numBytesWeight = 1; runlength++;}
-	  else if(numBytes == 3 && numBytesWeight == 1) runlength++;
-	  else {
-	    //encode
-	    currentOffset = compressWeightedEdges(edgeArray, currentOffset, myEdges, edgeI, numBytes, numBytesWeight, runlength);
-	    edgeI += runlength;
-	    runlength = numBytes = 0;
-	  }	  
-	} 
-	else if(difference < THREE_BYTES && numBytesSigned(weight) == 4) { 
-	  if(!numBytes) {numBytes = 3; numBytesWeight = 4; runlength++;}
-	  else if(numBytes == 3 && numBytesWeight == 4) runlength++;
-	  else {
-	    //encode
-	    currentOffset = compressWeightedEdges(edgeArray, currentOffset, myEdges, edgeI, numBytes, numBytesWeight, runlength);
-	    edgeI += runlength;
-	    runlength = numBytes = 0;
-	  }	  
-	} 
-	else if(numBytesSigned(weight) == 1) { 
-	  if(!numBytes) {numBytes = 4; numBytesWeight = 1; runlength++;}
-	  else if(numBytes == 4 && numBytesWeight == 1) runlength++;
-	  else {
-	    //encode
-	    currentOffset = compressWeightedEdges(edgeArray, currentOffset, myEdges, edgeI, numBytes, numBytesWeight, runlength);
-	    edgeI += runlength;
-	    runlength = numBytes = 0;
-	  }	  
-	} 
+    uintE edgeI = 1;
+    uintT runlength = 0;
+    int numBytes = 0, numBytesWeight = 0;
+    while(1) {
+      uintE difference = savedEdges[edgeI+runlength].first - 
+	savedEdges[edgeI+runlength - 1].first;
+      intE weight = savedEdges[edgeI+runlength].second;
+      if(difference < ONE_BYTE && numBytesSigned(weight) == 1) { 
+	if(!numBytes) {numBytes = 1; numBytesWeight = 1; runlength++;}
+	else if(numBytes == 1 && numBytesWeight == 1) runlength++;
 	else {
-	  if(!numBytes) {numBytes = 4; numBytesWeight = 4; runlength++;}
-	  else if(numBytes == 4 && numBytesWeight == 4) runlength++;
-	  else {
-	    //encode
-	    currentOffset = compressWeightedEdges(edgeArray, currentOffset, myEdges, edgeI, numBytes, numBytesWeight, runlength);
-	    edgeI += runlength;
-	    runlength = numBytes = 0;
-	  }
-	}
-	
-	if(runlength == 32) {
-	  currentOffset = compressWeightedEdges(edgeArray, currentOffset, myEdges, edgeI, numBytes, numBytesWeight, runlength);
+	  //encode
+	  currentOffset = compressWeightedEdges(edgeArray, currentOffset, savedEdges, edgeI, numBytes, numBytesWeight, runlength);
+	  edgeI += runlength;
+	  runlength = numBytes = 0;
+	}	  
+      } 
+      else if(difference < ONE_BYTE && numBytesSigned(weight) == 4) { 
+	if(!numBytes) {numBytes = 1; numBytesWeight = 4; runlength++;}
+	else if(numBytes == 1 && numBytesWeight == 4) runlength++;
+	else {
+	  //encode
+	  currentOffset = compressWeightedEdges(edgeArray, currentOffset, savedEdges, edgeI, numBytes, numBytesWeight, runlength);
+	  edgeI += runlength;
+	  runlength = numBytes = 0;
+	}	  
+      } 
+      else if(difference < TWO_BYTES && numBytesSigned(weight) == 1) { 
+	if(!numBytes) {numBytes = 2; numBytesWeight = 1; runlength++;}
+	else if(numBytes == 2 && numBytesWeight == 1) runlength++;
+	else {
+	  //encode
+	  currentOffset = compressWeightedEdges(edgeArray, currentOffset, savedEdges, edgeI, numBytes, numBytesWeight, runlength);
+	  edgeI += runlength;
+	  runlength = numBytes = 0;
+	}	  
+      } 
+      else if(difference < TWO_BYTES && numBytesSigned(weight) == 4) { 
+	if(!numBytes) {numBytes = 2; numBytesWeight = 4; runlength++;}
+	else if(numBytes == 2 && numBytesWeight == 4) runlength++;
+	else {
+	  //encode
+	  currentOffset = compressWeightedEdges(edgeArray, currentOffset, savedEdges, edgeI, numBytes, numBytesWeight, runlength);
+	  edgeI += runlength;
+	  runlength = numBytes = 0;
+	}	  
+      } 
+      else if(difference < THREE_BYTES && numBytesSigned(weight) == 1) { 
+	if(!numBytes) {numBytes = 3; numBytesWeight = 1; runlength++;}
+	else if(numBytes == 3 && numBytesWeight == 1) runlength++;
+	else {
+	  //encode
+	  currentOffset = compressWeightedEdges(edgeArray, currentOffset, savedEdges, edgeI, numBytes, numBytesWeight, runlength);
+	  edgeI += runlength;
+	  runlength = numBytes = 0;
+	}	  
+      } 
+      else if(difference < THREE_BYTES && numBytesSigned(weight) == 4) { 
+	if(!numBytes) {numBytes = 3; numBytesWeight = 4; runlength++;}
+	else if(numBytes == 3 && numBytesWeight == 4) runlength++;
+	else {
+	  //encode
+	  currentOffset = compressWeightedEdges(edgeArray, currentOffset, savedEdges, edgeI, numBytes, numBytesWeight, runlength);
+	  edgeI += runlength;
+	  runlength = numBytes = 0;
+	}	  
+      } 
+      else if(numBytesSigned(weight) == 1) { 
+	if(!numBytes) {numBytes = 4; numBytesWeight = 1; runlength++;}
+	else if(numBytes == 4 && numBytesWeight == 1) runlength++;
+	else {
+	  //encode
+	  currentOffset = compressWeightedEdges(edgeArray, currentOffset, savedEdges, edgeI, numBytes, numBytesWeight, runlength);
+	  edgeI += runlength;
+	  runlength = numBytes = 0;
+	}	  
+      } 
+      else {
+	if(!numBytes) {numBytes = 4; numBytesWeight = 4; runlength++;}
+	else if(numBytes == 4 && numBytesWeight == 4) runlength++;
+	else {
+	  //encode
+	  currentOffset = compressWeightedEdges(edgeArray, currentOffset, savedEdges, edgeI, numBytes, numBytesWeight, runlength);
 	  edgeI += runlength;
 	  runlength = numBytes = 0;
 	}
-
-	if(runlength + edgeI == numEdges) {
-	  currentOffset = compressWeightedEdges(edgeArray, currentOffset, myEdges, edgeI, numBytes, numBytesWeight, runlength);
-	  break;
-	}
-      }      
+      }
+	
+      if(runlength == 32) {
+	currentOffset = compressWeightedEdges(edgeArray, currentOffset, savedEdges, edgeI, numBytes, numBytesWeight, runlength);
+	edgeI += runlength;
+	runlength = numBytes = 0;
+      }
+      if(runlength + edgeI == degree) {
+	currentOffset = compressWeightedEdges(edgeArray, currentOffset, savedEdges, edgeI, numBytes, numBytesWeight, runlength);
+	break;
+      }    
     }
   }
   return currentOffset;
@@ -906,6 +695,7 @@ uchar *parallelCompressWeightedEdges(intEPair *edges, uintT *offsets, long n, lo
     offsets[i] = o;
   }}
   offsets[n] = totalSpace;
+
   free(iEdges);
   free(edgePts);
   free(compressionStarts);

@@ -33,6 +33,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#define PARALLEL_DEGREE 1000
+
 #define LAST_BIT_SET(b) (b & (0x80))
 #define EDGE_SIZE_PER_BYTE 7
 
@@ -41,7 +43,6 @@ typedef unsigned char uchar;
 /* Reads the first edge of an out-edge list, which is the signed
    difference between the target and source. 
 */
-
 inline intE eatWeight(uchar* &start) {
   uchar fb = *start++;
   intE edgeRead = (fb & 0x3f);
@@ -86,8 +87,9 @@ inline uintE eatEdge(uchar* &start) {
   int shiftAmount = 0;
 
   while (1) {
-    uchar b = *start++;
+    uchar b = *start;
     edgeRead += ((b & 0x7f) << shiftAmount);
+    start++;
     if (LAST_BIT_SET(b))
       shiftAmount += EDGE_SIZE_PER_BYTE;
     else 
@@ -103,43 +105,79 @@ inline uintE eatEdge(uchar* &start) {
 */
 template <class T, class F>
   inline void decode(T t, F f, uchar* edgeStart, const uintE &source, const uintT &degree) {
-  uintE edgesRead = 0;
   if (degree > 0) {
+    long numChunks = 1+(degree-1)/PARALLEL_DEGREE;
+    uintE* pOffsets = (uintE*) edgeStart; //use beginning of edgeArray for offsets into edge list
+    uchar* start = edgeStart + (numChunks-1)*sizeof(uintE);
+    //do first chunk
+    long end = min<long>(PARALLEL_DEGREE,degree);
+      
     // Eat first edge, which is compressed specially 
-    uintE startEdge = eatFirstEdge(edgeStart,source);
-    if (!t.srcTarg(f, source,startEdge,edgesRead)) {
-      return;
-    }
-    for (edgesRead = 1; edgesRead < degree; edgesRead++) {
+    uintE startEdge = eatFirstEdge(start,source);
+    if(!t.srcTarg(f, source,startEdge,0)) return;
+    for (uintE edgeID = 1; edgeID < end; edgeID++) {
       // Eat the next 'edge', which is a difference, and reconstruct edge.
-      uintE edgeRead = eatEdge(edgeStart);
+      uintE edgeRead = eatEdge(start);
       uintE edge = startEdge + edgeRead;
       startEdge = edge;
-      if (!t.srcTarg(f, source, edge, edgesRead)) {
-        break; 
-      }
+      if(!t.srcTarg(f, source,startEdge,edgeID)) return;
     }
+    //do remaining chunks in parallel
+    parallel_for(long i=1;i<numChunks;i++) {
+      long o = i*PARALLEL_DEGREE;
+      long end = min<long>(o+PARALLEL_DEGREE,degree);
+      uchar* myStart = edgeStart + pOffsets[i-1];
+      // Eat first edge, which is compressed specially 
+      uintE startEdge = eatFirstEdge(myStart,source);
+      if(!t.srcTarg(f,source,startEdge,o)) end = 0;
+      for (uintE edgeID = o+1; edgeID < end; edgeID++) {
+	// Eat the next 'edge', which is a difference, and reconstruct edge.
+	uintE edgeRead = eatEdge(myStart);
+	uintE edge = startEdge + edgeRead;
+	startEdge = edge;
+	if(!t.srcTarg(f, source,startEdge,edgeID)) break;
+      }
+    }   
   }
 }
 
 //decode edges for weighted graph
 template <class T, class F>
-  inline void decodeWgh(T t, F f, uchar* edgeStart, const uintE &source, const uintT &degree) {
-  uintT edgesRead = 0;
+  inline void decodeWgh(T t, F f, uchar* edgeStart, const uintE &source,const uintT &degree) {
   if (degree > 0) {
+    long numChunks = 1+(degree-1)/PARALLEL_DEGREE;
+    uintE* pOffsets = (uintE*) edgeStart; //use beginning of edgeArray for offsets into edge list
+    uchar* start = edgeStart + (numChunks-1)*sizeof(uintE);
+    //do first chunk
+    long end = min<long>(PARALLEL_DEGREE,degree);
+
     // Eat first edge, which is compressed specially 
-    uintE startEdge = eatFirstEdge(edgeStart,source);
-    intE weight = eatWeight(edgeStart);
-    if (!t.srcTarg(f, source,startEdge, weight, edgesRead)) {
-      return;
-    }
-    for (edgesRead = 1; edgesRead < degree; edgesRead++) {
-      uintE edgeRead = eatEdge(edgeStart);
+    uintE startEdge = eatFirstEdge(start,source);
+    intE weight = eatWeight(start);
+    if(!t.srcTarg(f, source,startEdge,weight,0)) return;
+    for (uintE edgeID = 1; edgeID < end; edgeID++) {
+      // Eat the next 'edge', which is a difference, and reconstruct edge.
+      uintE edgeRead = eatEdge(start);
       uintE edge = startEdge + edgeRead;
       startEdge = edge;
-      intE weight = eatWeight(edgeStart);
-      if (!t.srcTarg(f, source, edge, weight, edgesRead)) {
-        break; 
+      intE weight = eatWeight(start);
+      if(!t.srcTarg(f, source,startEdge,weight,edgeID)) return;
+    }
+    //do remaining chunks in parallel
+    parallel_for(long i=1;i<numChunks;i++) {
+      long o = i*PARALLEL_DEGREE;
+      long end = min<long>(o+PARALLEL_DEGREE,degree);
+      uchar* myStart = edgeStart + pOffsets[i-1];
+      // Eat first edge, which is compressed specially 
+      uintE startEdge = eatFirstEdge(myStart,source);
+      intE weight = eatWeight(myStart);
+      if(!t.srcTarg(f, source,startEdge, weight, o)) end = 0;
+      for (uintE edgeID = o+1; edgeID < end; edgeID++) {
+	uintE edgeRead = eatEdge(myStart);
+	uintE edge = startEdge + edgeRead;
+	startEdge = edge;
+	intE weight = eatWeight(myStart);
+	if(!t.srcTarg(f, source, edge, weight, edgeID)) break;
       }
     }
   }
@@ -217,18 +255,26 @@ long compressEdge(uchar *start, long curOffset, uintE e) {
     The new offset into the edge array
 */
 long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degree, 
-                                uintE vertexNum, uintE *savedEdges) {
+			       uintE vertexNum, uintE *savedEdges) {
   if (degree > 0) {
-    // Compress the first edge whole, which is signed difference coded
-    currentOffset = compressFirstEdge(edgeArray, currentOffset, 
-                                       vertexNum, savedEdges[0]);
-    for (uintT edgeI=1; edgeI < degree; edgeI++) {
-      // Store difference between cur and prev edge. 
-      uintE difference = savedEdges[edgeI] - 
-                        savedEdges[edgeI - 1];
-      currentOffset = compressEdge(edgeArray, currentOffset, difference);
+    long startOffset = currentOffset;
+    long numChunks = 1+(degree-1)/PARALLEL_DEGREE;
+    uintE* pOffsets = (uintE*) edgeArray; //use beginning of edgeArray for offsets into edge list
+    currentOffset += (numChunks-1)*sizeof(uintE);      
+    for(long i=0;i<numChunks;i++) {
+      long o = i*PARALLEL_DEGREE;
+      long end = min<long>(PARALLEL_DEGREE,degree-o);
+      uintE* myEdges = savedEdges + o;
+      if(i > 0) pOffsets[i-1] = currentOffset-startOffset; //store offset for all chunks but the first
+      // Compress the first edge whole, which is signed difference coded
+      currentOffset = compressFirstEdge(edgeArray, currentOffset, 
+					vertexNum, myEdges[0]);
+      for (uintT edgeI=1; edgeI < end; edgeI++) {
+	// Store difference between cur and prev edge. 
+	uintE difference = myEdges[edgeI] - myEdges[edgeI - 1];
+	currentOffset = compressEdge(edgeArray, currentOffset, difference);
+      }
     }
-    // Increment nWritten after all of vertex n's neighbors are written
   }
   return currentOffset;
 }
@@ -301,26 +347,31 @@ long sequentialCompressWeightedEdgeSet
 (uchar *edgeArray, long currentOffset, uintT degree, 
  uintE vertexNum, intEPair *savedEdges) {
   if (degree > 0) {
-    // Compress the first edge whole, which is signed difference coded
-    //target ID
-    currentOffset = compressFirstEdge(edgeArray, currentOffset, 
-                                       vertexNum, savedEdges[0].first);
-    //weight
-    currentOffset = compressFirstEdge(edgeArray, currentOffset, 
-				      0,savedEdges[0].second);
-
-    for (uintT edgeI=1; edgeI < degree; edgeI++) {
-      // Store difference between cur and prev edge. 
-      uintE difference = savedEdges[edgeI].first - 
-                        savedEdges[edgeI - 1].first;
-
-      //compress difference
-      currentOffset = compressEdge(edgeArray, currentOffset, difference);
-
-      //compress weight
-      currentOffset = compressFirstEdge(edgeArray, currentOffset, 0, savedEdges[edgeI].second);      
+    long startOffset = currentOffset;
+    long numChunks = 1+(degree-1)/PARALLEL_DEGREE;
+    uintE* pOffsets = (uintE*) edgeArray; //use beginning of edgeArray for offsets into edge list
+    currentOffset += (numChunks-1)*sizeof(uintE);      
+    for(long i=0;i<numChunks;i++) {
+      long o = i*PARALLEL_DEGREE;
+      long end = min<long>(PARALLEL_DEGREE,degree-o);
+      intEPair* myEdges = savedEdges + o;
+      if(i > 0) pOffsets[i-1] = currentOffset-startOffset;
+      // Compress the first edge whole, which is signed difference coded
+      //target ID
+      currentOffset = compressFirstEdge(edgeArray, currentOffset, 
+					vertexNum, myEdges[0].first);
+      //weight
+      currentOffset = compressFirstEdge(edgeArray, currentOffset, 
+					0,myEdges[0].second);
+      for (uintT edgeI=1; edgeI < end; edgeI++) {
+	// Store difference between cur and prev edge. 
+	uintE difference = myEdges[edgeI].first - myEdges[edgeI - 1].first;
+	//compress difference
+	currentOffset = compressEdge(edgeArray, currentOffset, difference);
+	//compress weight
+	currentOffset = compressFirstEdge(edgeArray, currentOffset, 0, myEdges[edgeI].second);      
+      }
     }
-    // Increment nWritten after all of vertex n's neighbors are written
   }
   return currentOffset;
 }
