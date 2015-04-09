@@ -22,6 +22,9 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+#ifndef UTIL_H
+#define UTIL_H
+
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
@@ -45,6 +48,9 @@ struct addF { E operator() (const E& a, const E& b) const {return a+b;}};
 
 template <class E>
 struct minF { E operator() (const E& a, const E& b) const {return (a < b) ? a : b;}};
+
+template <class E>
+struct maxF { E operator() (const E& a, const E& b) const {return (a>b) ? a : b;}};
 
 #define _SCAN_LOG_BSIZE 10
 #define _SCAN_BSIZE (1 << _SCAN_LOG_BSIZE)
@@ -71,6 +77,14 @@ namespace sequence {
     ET* A;
     getA(ET* AA) : A(AA) {}
     ET operator() (intT i) {return A[i];}
+  };
+
+  template <class IT, class OT, class intT, class F>
+  struct getAF {
+    IT* A;
+    F f;
+    getAF(IT* AA, F ff) : A(AA), f(ff) {}
+    OT operator () (intT i) {return f(A[i]);}
   };
 
 #define nblocks(_n,_bsize) (1 + ((_n)-1)/(_bsize))
@@ -114,6 +128,14 @@ namespace sequence {
   template <class OT, class intT> 
   OT plusReduce(OT* A, intT n) {
     return reduce<OT>((intT)0,n,addF<OT>(),getA<OT,intT>(A));
+  }
+
+  // g is the map function (applied to each element)
+  // f is the reduce function
+  // need to specify OT since it is not an argument
+  template <class OT, class IT, class intT, class F, class G>
+  OT mapReduce(IT* A, intT n, F f, G g) {
+    return reduce<OT>((intT) 0,n,f,getAF<IT,OT,intT,G>(A,g));
   }
 
   template <class intT> 
@@ -250,8 +272,6 @@ namespace sequence {
   }
 }
 
-// The conditional should be removed by the compiler
-// this should work with pointer types, or pairs of integers
 template <class ET>
 inline bool CAS(ET *ptr, ET oldv, ET newv) {
   if (sizeof(ET) == 4) {
@@ -280,7 +300,7 @@ inline void writeAdd(ET *a, ET b) {
   while (!CAS(a, oldV, newV));
 }
 
-inline unsigned int hash(unsigned int a) {
+inline uint hash(uint a) {
    a = (a+0x7ed55d16) + (a<<12);
    a = (a^0xc761c23c) ^ (a>>19);
    a = (a+0x165667b1) + (a<<5);
@@ -299,3 +319,5 @@ inline ulong hash(ulong a) {
    a = (a^0xb55a4f090dd4a67b) ^ (a>>32);
    return a;
 }
+
+#endif
