@@ -1,5 +1,4 @@
-News: The code for Ligra+, which supports graph compression, has been
-added!  
+News: The code for Ligra+, which supports graph compression, has been added!  
 --------
 
 Ligra (and Ligra+)
@@ -76,8 +75,8 @@ change the number of threads as you like).
 
 The following commands cleans the directory:
 ```
-$ make clean //remove all executables
-$ make cleansrc //remove all executables and linked files from the ligra/ or ligra+/ directory
+$ make clean //removes all executables
+$ make cleansrc //removes all executables and linked files from the ligra/ or ligra+/ directory
 ```
 
 Running code in Ligra

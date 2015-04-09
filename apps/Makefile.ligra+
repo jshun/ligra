@@ -32,9 +32,9 @@ PCC = g++
 PCFLAGS = -O2 $(INTT) $(INTE) $(CODE)
 endif
 
-COMMON= ligra.h graph.h utils.h IO.h parallel.h gettime.h quickSort.h byte.h byteRLE.h nibble.h graphTesting.h parseCommandLine.h encoder.C decoder.C
+COMMON= ligra.h graph.h utils.h IO.h parallel.h gettime.h quickSort.h byte.h byteRLE.h nibble.h parseCommandLine.h encoder.C
 
-ALL= encoder decoder BFS BC Components Radii PageRank PageRankDelta BellmanFord BFSCC 
+ALL= encoder BFS BC Components Radii PageRank PageRankDelta BellmanFord BFSCC 
 
 all: $(ALL)
 
