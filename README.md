@@ -1,9 +1,7 @@
 News: The code for Ligra+, which supports graph compression, has been added!  
 --------
 
-Ligra (and Ligra+)
-===========================
-A Lightweight Graph Processing Framework for Shared Memory
+Ligra (and Ligra+): A Lightweight Graph Processing Framework for Shared Memory
 ======================
 
 Organization
@@ -25,11 +23,8 @@ and one for Ligra+. The file for the desired backend should be
 linked/copied into a file named "Makefile". For example:
 
 ```
-$ ln -s Makefile.ligra Makefile
-```
-or
-```
-$ ln -s Makefile.ligra+ Makefile
+$ ln -s Makefile.ligra Makefile #if using Ligra
+$ ln -s Makefile.ligra+ Makefile #if using Ligra+
 ```
 
 Recommended environment
@@ -67,16 +62,13 @@ After the appropriate environment variables are set, to compile,
 simply run
 
 ```
-$ make -j 16 
+$ make -j 16  #compiles with 16 threads (thread count can be changed)
 ```
-
-This is to compile and build with 16 threads in parallel (you can
-change the number of threads as you like).
 
 The following commands cleans the directory:
 ```
-$ make clean //removes all executables
-$ make cleansrc //removes all executables and linked files from the ligra/ or ligra+/ directory
+$ make clean #removes all executables
+$ make cleansrc #removes all executables and linked files from the ligra/ or ligra+/ directory
 ```
 
 Running code in Ligra
