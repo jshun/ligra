@@ -24,49 +24,39 @@
 #include "ligra.h"
 
 struct CC_F {
-  intT* IDs;
-  intT* prevIDs;
-  CC_F(intT* _IDs, intT* _prevIDs) : 
+  uintE* IDs, *prevIDs;
+  CC_F(uintE* _IDs, uintE* _prevIDs) : 
     IDs(_IDs), prevIDs(_prevIDs) {}
-  inline bool update(intT s, intT d){ //Update function writes min ID
-    intT origID = IDs[d];
+  inline bool update(uintE s, uintE d){ //Update function writes min ID
+    uintE origID = IDs[d];
     if(IDs[s] < origID) {
       IDs[d] = min(origID,IDs[s]);
       if(origID == prevIDs[d]) return 1;
-    }
-    return 0;
+    } return 0; }
+  inline bool updateAtomic (uintE s, uintE d) { //atomic Update
+    uintE origID = IDs[d];
+    return (writeMin(&IDs[d],IDs[s]) && origID == prevIDs[d]);
   }
-  inline bool updateAtomic (intT s, intT d) { //atomic Update
-    intT origID = IDs[d];
-    return (writeMin(&IDs[d],IDs[s]) 
-	    && origID == prevIDs[d]);
-  }
-  inline bool cond (intT d) { return cond_true(d); } //does nothing
+  inline bool cond (uintE d) { return cond_true(d); } //does nothing
 };
 
 //function used by vertex map to sync prevIDs with IDs
 struct CC_Vertex_F {
-  intT* IDs;
-  intT* prevIDs;
-  CC_Vertex_F(intT* _IDs, intT* _prevIDs) :
+  uintE* IDs, *prevIDs;
+  CC_Vertex_F(uintE* _IDs, uintE* _prevIDs) :
     IDs(_IDs), prevIDs(_prevIDs) {}
-  inline bool operator () (intT i) {
+  inline bool operator () (uintE i) {
     prevIDs[i] = IDs[i];
-    return 1;
-  }
-};
+    return 1; }};
 
 template <class vertex>
-void Compute(graph<vertex>& GA, long r) {
-  intT n = GA.n;
-  intT* IDs = newA(intT,n);
-  intT* prevIDs = newA(intT,n);
-
-  {parallel_for(intT i=0;i<n;i++) IDs[i] = i;} //initialize unique IDs
+void Compute(graph<vertex>& GA, commandLine P) {
+  long n = GA.n;
+  uintE* IDs = newA(uintE,n), *prevIDs = newA(uintE,n);
+  {parallel_for(long i=0;i<n;i++) IDs[i] = i;} //initialize unique IDs
 
   bool* frontier = newA(bool,n);
-  {parallel_for(intT i=0;i<n;i++) frontier[i] = 1;} 
-
+  {parallel_for(long i=0;i<n;i++) frontier[i] = 1;} 
   vertexSubset Frontier(n,n,frontier); //initial frontier contains all vertices
  
   while(!Frontier.isEmpty()){ //iterate until IDS converge
@@ -75,7 +65,5 @@ void Compute(graph<vertex>& GA, long r) {
     Frontier.del();
     Frontier = output;
   }
-  Frontier.del();
-  free(IDs); free(prevIDs);
+  Frontier.del(); free(IDs); free(prevIDs);
 }
-

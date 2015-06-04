@@ -30,16 +30,15 @@ struct PR_F {
   double* Delta, *nghSum;
   PR_F(vertex* _V, double* _Delta, double* _nghSum) : 
     V(_V), Delta(_Delta), nghSum(_nghSum) {}
-  inline bool update(intT s, intT d){
+  inline bool update(uintE s, uintE d){
     nghSum[d] += Delta[s]/V[s].getOutDegree();
     return 1;
   }
-  inline bool updateAtomic (intT s, intT d) {
+  inline bool updateAtomic (uintE s, uintE d) {
     writeAdd(&nghSum[d],Delta[s]/V[s].getOutDegree());
     return 1;
   }
-  inline bool cond (intT d) { return cond_true(d); }
-};
+  inline bool cond (uintE d) { return cond_true(d); }};
 
 struct PR_Vertex_F_FirstRound {
   double damping, addedConstant, one_over_n, epsilon2;
@@ -49,7 +48,7 @@ struct PR_Vertex_F_FirstRound {
     damping(_damping), Delta(_Delta), nghSum(_nghSum), one_over_n(_one_over_n),
     addedConstant((1-_damping)*_one_over_n),
     epsilon2(_epsilon2) {}
-  inline bool operator () (intT i) {
+  inline bool operator () (uintE i) {
     Delta[i] = damping*(p[i]+nghSum[i])+addedConstant-p[i];
     p[i] += Delta[i];
     Delta[i]-=one_over_n; //subtract off delta from initialization
@@ -64,10 +63,10 @@ struct PR_Vertex_F {
     p(_p),
     damping(_damping), Delta(_Delta), nghSum(_nghSum), 
     epsilon2(_epsilon2) {}
-  inline bool operator () (intT i) {
+  inline bool operator () (uintE i) {
     Delta[i] = nghSum[i]*damping;
-    p[i]+=Delta[i];
-    return (fabs(Delta[i]) > epsilon2*p[i]);
+    if (fabs(Delta[i]) > epsilon2*p[i]) { p[i]+=Delta[i]; return 1;}
+    else return 0;
   }
 };
 
@@ -75,36 +74,36 @@ struct PR_Vertex_Reset {
   double* nghSum;
   PR_Vertex_Reset(double* _nghSum) :
     nghSum(_nghSum) {}
-  inline bool operator () (intT i) {
+  inline bool operator () (uintE i) {
     nghSum[i] = 0.0;
     return 1;
   }
 };
 
 template <class vertex>
-void Compute(graph<vertex>& GA, long r) {
-  const intT n = GA.n;
+void Compute(graph<vertex>& GA, commandLine P) {
+  const long n = GA.n;
   const double damping = 0.85;
   const double epsilon = 0.0000001;
   const double epsilon2 = 0.01;
 
   double one_over_n = 1/(double)n;
-  double* p = newA(double,n);
-  {parallel_for(intT i=0;i<n;i++) p[i] = 0.0;}//one_over_n;
-  double* Delta = newA(double,n);
-  {parallel_for(intT i=0;i<n;i++) Delta[i] = one_over_n;} //initial delta propagation from each vertex
-  double* nghSum = newA(double,n);
-  {parallel_for(intT i=0;i<n;i++) nghSum[i] = 0.0;}
+  double* p = newA(double,n), *Delta = newA(double,n), 
+    *nghSum = newA(double,n);
   bool* frontier = newA(bool,n);
-  {parallel_for(intT i=0;i<n;i++) frontier[i] = 1;}
+  parallel_for(long i=0;i<n;i++) {
+    p[i] = 0.0;//one_over_n;
+    Delta[i] = one_over_n; //initial delta propagation from each vertex
+    nghSum[i] = 0.0;
+    frontier[i] = 1;
+  }
 
   vertexSubset Frontier(n,n,frontier);
   bool* all = newA(bool,n);
-  {parallel_for(intT i=0;i<n;i++) all[i] = 1;}
+  {parallel_for(long i=0;i<n;i++) all[i] = 1;}
+  vertexSubset All(n,n,all); //all vertices
 
-  vertexSubset All(n,n,all);
-
-  intT round = 0;
+  long round = 0;
   while(1){
     round++;
     vertexSubset output = edgeMap(GA, Frontier, PR_F<vertex>(GA.V,Delta,nghSum),GA.m/20,DENSE_FORWARD);
@@ -114,9 +113,8 @@ void Compute(graph<vertex>& GA, long r) {
       vertexFilter(All,PR_Vertex_F_FirstRound(p,Delta,nghSum,damping,one_over_n,epsilon2)) :
       vertexFilter(All,PR_Vertex_F(p,Delta,nghSum,damping,epsilon2));
     //compute L1-norm (use nghSum as temp array)
-    {parallel_for(intT i=0;i<n;i++) {
-      nghSum[i] = fabs(Delta[i]);
-      }}
+    {parallel_for(long i=0;i<n;i++) {
+      nghSum[i] = fabs(Delta[i]); }}
     double L1_norm = sequence::plusReduce(nghSum,n);
     if(L1_norm < epsilon) break;
     //reset
@@ -124,7 +122,5 @@ void Compute(graph<vertex>& GA, long r) {
     Frontier.del();
     Frontier = active;
   }
-  Frontier.del();
-  free(p); free(Delta); free(nghSum);
-  All.del();
+  Frontier.del(); free(p); free(Delta); free(nghSum); All.del();
 }

@@ -21,37 +21,53 @@
 // LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+//This implementation uses BFS's to find connected components until
+//all vertices have been visited. This implementation will work well
+//for dense low-diameter graphs. Do not use it on very high-diameter
+//graphs or graphs with very many components.
 #include "ligra.h"
 
 struct BFS_F {
-  intT* Parents;
-  BFS_F(intT* _Parents) : Parents(_Parents) {}
-  inline bool update (intT s, intT d) { //Update
-    if(Parents[d] == -1) { Parents[d] = s; return 1; }
+  uintE* Parents;
+  uintE label;
+  BFS_F(uintE* _Parents, uintE _label) : Parents(_Parents), label(_label) {}
+  inline bool update (uintE s, uintE d) { //Update
+    if(Parents[d] == UINT_E_MAX) { Parents[d] = label; return 1; }
     else return 0;
   }
-  inline bool updateAtomic (intT s, intT d){ //atomic version of Update
-    return (CAS(&Parents[d],(intT)-1,s));
+  inline bool updateAtomic (uintE s, uintE d){ //atomic version of Update
+    return (CAS(&Parents[d],UINT_E_MAX,label));
   }
   //cond function checks if vertex has been visited yet
-  inline bool cond (intT d) { return (Parents[d] == -1); } 
+  inline bool cond (uintE d) { return (Parents[d] == UINT_E_MAX); } 
 };
 
 template <class vertex>
-void Compute(graph<vertex>& GA, long start) {
-  intT n = GA.n;
+void Compute(graph<vertex>& GA, commandLine P) {
+  long n = GA.n;
   //creates Parents array, initialized to all -1, except for start
-  intT* Parents = newA(intT,GA.n);
-  parallel_for(intT i=0;i<GA.n;i++) Parents[i] = -1;
-  Parents[start] = start;
+  uintE* Parents = newA(uintE,GA.n);
+  parallel_for(long i=0;i<GA.n;i++) Parents[i] = UINT_E_MAX;
+  long numVisited = 0;
 
-  vertexSubset Frontier(n,start); //creates initial frontier
-
-  while(!Frontier.isEmpty()){ //loop until frontier is empty
-    vertexSubset output = edgeMap(GA, Frontier, BFS_F(Parents),GA.m/20);    
-    Frontier.del();
-    Frontier = output; //set new frontier
-  } 
-  Frontier.del();
+  for(long i=0;i<n;i++) {
+    uintE start = i;
+    if(Parents[start] == UINT_E_MAX) {
+      Parents[start] = start;
+      vertexSubset Frontier(n,start); //creates initial frontier
+      long round = 0;
+      while(!Frontier.isEmpty()){ //loop until frontier is empty
+	round++;
+	numVisited+=Frontier.numNonzeros();
+	//apply edgemap
+	vertexSubset output = edgeMap(GA, Frontier, BFS_F(Parents,start),GA.m/20);    
+	Frontier.del();
+	Frontier = output; //set new frontier
+      } 
+      Frontier.del();
+      if(numVisited == n) break;
+    }
+  }
   free(Parents); 
 }

@@ -34,7 +34,7 @@ typedef pair<uintE, pair<uintE,intE> > intTriple;
 
 template <class E>
 struct pairFirstCmp {
-  bool operator() (pair<intE,E> a, pair<intE,E> b) {
+  bool operator() (pair<uintE,E> a, pair<uintE,E> b) {
     return a.first < b.first; }
 };
 
@@ -125,9 +125,9 @@ graph<vertex> readGraphFromFile(char* fname, bool isSymmetric) {
     abort();
   }
 
-  intT* offsets = newA(intT,n);
+  uintT* offsets = newA(uintT,n);
 #ifndef WEIGHTED
-  intE* edges = newA(intE,m);
+  uintE* edges = newA(uintE,m);
 #else
   intE* edges = newA(intE,2*m);
 #endif
@@ -157,18 +157,18 @@ graph<vertex> readGraphFromFile(char* fname, bool isSymmetric) {
     }}
 
   if(!isSymmetric) {
-    intT* tOffsets = newA(intT,n);
-    {parallel_for(intT i=0;i<n;i++) tOffsets[i] = INT_T_MAX;}
+    uintT* tOffsets = newA(uintT,n);
+    {parallel_for(long i=0;i<n;i++) tOffsets[i] = INT_T_MAX;}
 #ifndef WEIGHTED
-    intE* inEdges = newA(intE,m);
+    uintE* inEdges = newA(uintE,m);
     intPair* temp = newA(intPair,m);
 #else
     intE* inEdges = newA(intE,2*m);
     intTriple* temp = newA(intTriple,m);
 #endif
-    {parallel_for(intT i=0;i<n;i++){
+    {parallel_for(long i=0;i<n;i++){
       uintT o = offsets[i];
-      for(intT j=0;j<v[i].getOutDegree();j++){	  
+      for(uintT j=0;j<v[i].getOutDegree();j++){	  
 #ifndef WEIGHTED
 	temp[o+j] = make_pair(v[i].getOutNeighbor(j),i);
 #else
@@ -179,7 +179,7 @@ graph<vertex> readGraphFromFile(char* fname, bool isSymmetric) {
     free(offsets);
 
 #ifndef WEIGHTED
-    quickSort(temp,m,pairFirstCmp<intE>());
+    quickSort(temp,m,pairFirstCmp<uintE>());
 #else
     quickSort(temp,m,pairFirstCmp<intPair>());
 #endif
@@ -191,7 +191,7 @@ graph<vertex> readGraphFromFile(char* fname, bool isSymmetric) {
     inEdges[0] = temp[0].second.first;
     inEdges[1] = temp[0].second.second;
 #endif
-    {parallel_for(intT i=1;i<m;i++) {
+    {parallel_for(long i=1;i<m;i++) {
 #ifndef WEIGHTED
       inEdges[i] = temp[i].second;
 #else
@@ -207,9 +207,9 @@ graph<vertex> readGraphFromFile(char* fname, bool isSymmetric) {
  
     //fill in offsets of degree 0 vertices by taking closest non-zero
     //offset to the right
-    sequence::scanIBack(tOffsets,tOffsets,n,minF<intT>(),(intT)m);
+    sequence::scanIBack(tOffsets,tOffsets,n,minF<uintT>(),(uintT)m);
 
-    {parallel_for(uintT i=0;i<n;i++){
+    {parallel_for(long i=0;i<n;i++){
       uintT o = tOffsets[i];
       uintT l = ((i == n-1) ? m : tOffsets[i+1])-tOffsets[i];
       v[i].setInDegree(l);
@@ -269,7 +269,7 @@ graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
   char* t = (char *) malloc(size);
   in3.read(t,size);
   in3.close();
-  intT* offsets = (intT*) t;
+  uintT* offsets = (uintT*) t;
 
   vertex* v = newA(vertex,n);
 #ifdef WEIGHTED
@@ -286,15 +286,15 @@ graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
     uintT l = ((i==n-1) ? m : offsets[i+1])-offsets[i];
       v[i].setOutDegree(l); 
 #ifndef WEIGHTED
-      v[i].setOutNeighbors((intE*)edges+o); 
+      v[i].setOutNeighbors((uintE*)edges+o); 
 #else
       v[i].setOutNeighbors(edgesAndWeights+2*o);
 #endif
     }}
 
   if(!isSymmetric) {
-    intT* tOffsets = newA(intT,n);
-    {parallel_for(intT i=0;i<n;i++) tOffsets[i] = INT_T_MAX;}
+    uintT* tOffsets = newA(uintT,n);
+    {parallel_for(long i=0;i<n;i++) tOffsets[i] = INT_T_MAX;}
 #ifndef WEIGHTED
     uintE* inEdges = newA(uintE,m);
 #else
@@ -303,19 +303,19 @@ graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
     intPair* temp = newA(intPair,m);
     {parallel_for(intT i=0;i<n;i++){
       uintT o = offsets[i];
-      for(intT j=0;j<v[i].getOutDegree();j++){
+      for(uintT j=0;j<v[i].getOutDegree();j++){
 	temp[o+j] = make_pair(v[i].getOutNeighbor(j),i);
       }
       }}
     free(offsets);
-    quickSort(temp,m,pairFirstCmp<intE>());
+    quickSort(temp,m,pairFirstCmp<uintE>());
 
     tOffsets[temp[0].first] = 0; 
     inEdges[0] = temp[0].second;
 #ifdef WEIGHTED
     inEdges[1] = 1;
 #endif
-    {parallel_for(intT i=1;i<m;i++) {
+    {parallel_for(long i=1;i<m;i++) {
 #ifndef WEIGHTED
       inEdges[i] = temp[i].second;
 #else
@@ -330,28 +330,28 @@ graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
 
     //fill in offsets of degree 0 vertices by taking closest non-zero
     //offset to the right
-    sequence::scanIBack(tOffsets,tOffsets,n,minF<intT>(),(intT)m);
+    sequence::scanIBack(tOffsets,tOffsets,n,minF<uintT>(),(uintT)m);
 
-    {parallel_for(uintT i=0;i<n;i++){
+    {parallel_for(long i=0;i<n;i++){
       uintT o = tOffsets[i];
       uintT l = ((i == n-1) ? m : tOffsets[i+1])-tOffsets[i];
       v[i].setInDegree(l);
 #ifndef WEIGHTED
-      v[i].setInNeighbors((intE*)inEdges+o);
+      v[i].setInNeighbors((uintE*)inEdges+o);
 #else
       v[i].setInNeighbors((intE*)(inEdges+2*o));
 #endif
       }}
     free(tOffsets);
 #ifndef WEIGHTED
-    return graph<vertex>(v,n,m,(intE*)edges, (intE*)inEdges);
+    return graph<vertex>(v,n,m,(uintE*)edges, (uintE*)inEdges);
 #else
     return graph<vertex>(v,n,m,(intE*)edgesAndWeights, (intE*)inEdges);
 #endif
   }
   free(offsets);
 #ifndef WEIGHTED  
-  return graph<vertex>(v,n,m,(intE*)edges);
+  return graph<vertex>(v,n,m,(uintE*)edges);
 #else
   return graph<vertex>(v,n,m,(intE*)edgesAndWeights);
 #endif

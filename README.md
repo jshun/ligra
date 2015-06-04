@@ -1,10 +1,31 @@
-Ligra
-===========================
-A Lightweight Graph Processing Framework for Shared Memory
+News: The code for Ligra+, which supports graph compression, has been added!  
+--------
+
+Ligra (and Ligra+): A Lightweight Graph Processing Framework for Shared Memory
 ======================
+
+Organization
+--------
+
+The code for the Ligra framework is located in the ligra/ directory,
+and the code for Ligra+ is located in the ligra+/ directory.  Code for
+the applications is in the apps/ directory, which is where compilation
+should be performed.  Example inputs are provided in the inputs/
+directory.
 
 Compilation
 --------
+
+Compilation is done from within the apps/ directory. The code can be
+compiled for either Ligra or Ligra+. There are two Makefiles provided
+in the directory (Makefile.ligra and Makefile.ligra+), one for Ligra
+and one for Ligra+. The file for the desired backend should be
+linked/copied into a file named "Makefile". For example:
+
+```
+$ ln -s Makefile.ligra Makefile #if using Ligra
+$ ln -s Makefile.ligra+ Makefile #if using Ligra+
+```
 
 Recommended environment
 
@@ -30,26 +51,37 @@ experience any errors, please send an email to [Julian
 Shun](mailto:jshun@cs.cmu.edu). A known issue is that OpenMP will not
 work correctly when using the experimental version of gcc 4.8.0.
 
+If Ligra+ is used, there are three compression schemes currently
+implemented that can be used---byte codes, byte codes with run-length
+encoding and nibble codes. By default, the code is compiled for byte
+codes with run-length encoding. To use byte codes instead, define the
+environment variable BYTE, and to use nibble codes instead, define the
+environment variable NIBBLE. Parallel decoding within a vertex can be
+enabled by defining the environment variable PD (by default, a
+vertex's edge list is decoded sequentially).
+
 After the appropriate environment variables are set, to compile,
 simply run
 
 ```
-$ make -j 16 
+$ make -j 16  #compiles with 16 threads (thread count can be changed)
 ```
 
-This is to compile and build with 16 threads in parallel. You can use the
-number of your choice.
+The following commands cleans the directory:
+```
+$ make clean #removes all executables
+$ make cleansrc #removes all executables and linked files from the ligra/ or ligra+/ directory
+```
 
-Run Examples
+Running code in Ligra
 -------
-Example of running the code: An example unweighted graph
-rMatGraph_J_5_100 and weighted graph rMatGraph_WJ_5_100 are
-provided. Symmetric graphs should be called with the "-s"
-flag for better performance. For example:
+The applications take the input graph as input as well as an optional
+flag "-s" to indicate a symmetric graph.  Symmetric graphs should be
+called with the "-s" flag for better performance. For example:
 
 ```
-$ ./BFS -s rMatGraph_J_5_100
-$ ./BellmanFord -s rMatGraph_WJ_5_100
+$ ./BFS -s ../inputs/rMatGraph_J_5_100
+$ ./BellmanFord -s ../inputs/rMatGraph_WJ_5_100
 ``` 
 
 For BFS, BC and BellmanFord, one can also pass the "-r" flag followed
@@ -67,10 +99,36 @@ the program may improve performance for large graphs. For example:
 $ numactl -i all ./BFS -s <input file>
 ```
 
-Input Format
+Running code in Ligra+ 
 -----------
-The input format of an unweighted graphs should be in one of two
-formats.
+When using Ligra+, graphs must first be compressed using the encoder
+program provided. The encoder program takes as input a file in the
+format described in the next section, as well as an output file
+name. For symmetric graphs, the flag "-s" should be passed before the
+filenames, and for weighted graphs, the flag "-w" should be passed
+before the filenames. For example:
+
+```
+$ ./encoder -s ../inputs/rMatGraph_J_5_100 inputs/rMatGraph_J_5_100.compressed
+$ ./encoder -s -w ../inputs/rMatGraph_WJ_5_100 inputs/rMatGraph_WJ_5_100.compressed
+```
+ 
+After compressing the graphs, the applications can be run in the same
+manner as in Ligra. For example:
+
+```
+$ ./BFS -s ../inputs/rMatGraph_J_5_100.compressed
+$ ./BellmanFord -s ../inputs/rMatGraph_WJ_5_100.compressed
+``` 
+
+Make sure that the compression method used for compilation of the
+applications is consistent with the method used to compress the graph
+with the encoder program.
+
+Input Format for Ligra applications and the Ligra+ encoder
+-----------
+The input format of unweighted graphs should be in one of two
+formats (the Ligra+ encoder currently only supports the first format).
 
 1) The adjacency graph format from the Problem Based Benchmark Suite
  (http://www.cs.cmu.edu/~pbbs/benchmarks/graphIO.html). The adjacency
@@ -117,10 +175,10 @@ and to represent them as 64-bit integers, compile with the variable
 EDGELONG defined.
 
 
-Ligra Graph Applications
+Graph Applications
 ---------
-Currently, Ligra comes with 8 implementation files: BFS.C
-(breadth-first search), BC.C (betweenness centrality), Radii.C (graph
+Currently, 8 implementation files are provided in the apps/ directory: 
+BFS.C (breadth-first search), BC.C (betweenness centrality), Radii.C (graph
 radii estimation), Components.C (connected components), BellmanFord.C
 (Bellman-Ford shortest paths), PageRank.C, PageRankDelta.C and
 BFSCC.C (connected components based on BFS).
@@ -202,14 +260,16 @@ can be easily modified to output the results to a file.
 
 To develop a new implementation, simply include "ligra.h" in the
 implementation files. When finished, one may add it to the ALL
-variable in Makefile. The function that is passed to the Ligra driver
-is the following Compute function, which is filled in by the user. The
-first argument is the graph, and second argument specifies the
-starting vertex for algorithms that require one.
+variable in Makefile. The function that is passed to the Ligra/Ligra+
+driver is the following Compute function, which is filled in by the
+user. The first argument is the graph, and second argument is a
+structure containing the command line arguments, which can be
+extracted using routines in parseCommandLine.h, or manually from
+P.argv and P.argc.
 
 ```
 template<class vertex>
-void Compute(graph<vertex>& GA, long start){ 
+void Compute(graph<vertex>& GA, commandLine P){ 
 
 }
 ```
@@ -223,8 +283,13 @@ construct in place of "for".
 Resources  
 -------- 
 
-Conference publication: Julian Shun and Guy Blelloch. [*Ligra: A
+Julian Shun and Guy Blelloch. [*Ligra: A
 Lightweight Graph Processing Framework for Shared
 Memory*](http://www.cs.cmu.edu/~jshun/ligra.pdf). Proceedings of the
 ACM SIGPLAN Symposium on Principles and Practice of Parallel
 Programming (PPoPP), pp. 135-146, 2013.
+
+Julian Shun, Laxman Dhulipala and Guy Blelloch. [*Smaller and Faster:
+Parallel Processing of Compressed Graphs with
+Ligra+*](http://www.cs.cmu.edu/~jshun/ligra+.pdf). Proceedings of the
+IEEE Data Compression Conference (DCC), pp. 403-412, 2015.

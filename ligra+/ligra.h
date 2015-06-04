@@ -1,7 +1,7 @@
-// This code is part of the project "Ligra: A Lightweight Graph Processing
-// Framework for Shared Memory", presented at Principles and Practice of 
-// Parallel Programming, 2013.
-// Copyright (c) 2013 Julian Shun and Guy Blelloch
+// This code is part of the project "Smaller and Faster: Parallel
+// Processing of Compressed Graphs with Ligra+", presented at the IEEE
+// Data Compression Conference, 2015.
+// Copyright (c) 2015 Julian Shun, Laxman Dhulipala and Guy Blelloch
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the
@@ -23,6 +23,26 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef LIGRA_H
 #define LIGRA_H
+
+//include the code for the desired compression scheme
+#ifndef PD 
+#ifdef BYTE
+#include "byte.h"
+#elif defined NIBBLE
+#include "nibble.h"
+#else
+#include "byteRLE.h"
+#endif
+#else //decode in parallel
+#ifdef BYTE
+#include "byte-pd.h"
+#elif defined NIBBLE
+#include "nibble-pd.h"
+#else
+#include "byteRLE-pd.h"
+#endif
+#endif
+
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
@@ -35,7 +55,6 @@
 #include "graph.h"
 #include "IO.h"
 #include "parseCommandLine.h"
-#include "gettime.h"
 using namespace std;
 
 //*****START FRAMEWORK*****
@@ -46,16 +65,15 @@ struct vertexSubset {
   uintE* s;
   bool* d;
   bool isDense;
-
   // make a singleton vertex in range of n
 vertexSubset(long _n, intE v) 
 : n(_n), m(1), d(NULL), isDense(0) {
   s = newA(uintE,1);
   s[0] = v;
-}
-  
+}  
   //empty vertex set
 vertexSubset(long _n) : n(_n), m(0), d(NULL), s(NULL), isDense(0) {}
+
   // make vertexSubset from array of vertex indices
   // n is range, and m is size of array
 vertexSubset(long _n, long _m, uintE* indices) 
@@ -86,7 +104,6 @@ vertexSubset(long _n, long _m, bool* bits)
     }
     isDense = true;
   }
-
   // converts to sparse but keeps dense representation if there
   void toSparse() {
     if (s == NULL) {
@@ -106,28 +123,27 @@ vertexSubset(long _n, long _m, bool* bits)
     bool* c = newA(bool,n);
     {parallel_for (long i=0; i<b.n; i++) 
 	c[i] = (d[i] != b.d[i]);}
-    bool equal = (sequence::sum(c,n) == 0);
+    bool equal = (0 == sequence::sum(c,n));
     free(c);
     return equal;
   }
-
   void print() {
     if (isDense) {
-      cout << "D:";
+      cout << "D: ";
       for (long i=0;i<n;i++) if (d[i]) cout << i << " ";
       cout << endl;
     } else {
-      cout << "S:";
+      cout << "S: ";
       for (long i=0; i<m; i++)	cout << s[i] << " ";
       cout << endl;
     }
   }
 };
 
-struct nonMaxF{bool operator() (uintE &a) {return (a != UINT_E_MAX);}};
+struct nonMaxF{bool operator() (const uintE &a) {return (a != UINT_E_MAX);}};
 
 //options to edgeMap for different versions of dense edgeMap (default is DENSE)
-enum options { DENSE, DENSE_FORWARD};
+enum options { DENSE, DENSE_FORWARD };
 
 //remove duplicate integers in [0,...,n-1]
 void remDuplicates(uintE* indices, uintE* flags, long m, long n) {
@@ -151,126 +167,124 @@ void remDuplicates(uintE* indices, uintE* flags, long m, long n) {
 }
 
 //*****EDGE FUNCTIONS*****
+
+template <class F>
+struct denseT {
+  bool* nextArr, *vertexArr;
+denseT(bool* np, bool* vp) : nextArr(np), vertexArr(vp) {}
+  inline bool srcTarg(F f, const uintE &src, const uintE &target, const uintT &edgeNumber) {
+    if (vertexArr[target] && f.update(target, src)) nextArr[src] = 1;
+    return f.cond(src);
+  }
+  inline bool srcTarg(F f, const uintE &src, const uintE &target, const intE &weight, const uintT &edgeNumber) {
+    if (vertexArr[target] && f.update(target, src, weight)) nextArr[src] = 1;
+    return f.cond(src);
+  }};
+
 template <class F, class vertex>
-  bool* edgeMapDense(graph<vertex> GA, bool* vertexSubset, F f, bool parallel = 0) {
+  bool* edgeMapDense(graph<vertex> GA, bool* vertexSubset, F f) {  
   long numVertices = GA.n;
   vertex *G = GA.V;
   bool* next = newA(bool,numVertices);
-  {parallel_for (long i=0; i<numVertices; i++){
+  parallel_for (long i=0; i<numVertices; i++){
     next[i] = 0;
     if (f.cond(i)) { 
-      uintE d = G[i].getInDegree();
-      if(!parallel || d < 1000) {
-	for(uintE j=0; j<d; j++){
-	  uintE ngh = G[i].getInNeighbor(j);
-#ifndef WEIGHTED
-	  if (vertexSubset[ngh] && f.update(ngh,i))
+//      intT d = G[i].getInDegree();
+      uchar *nghArr = G[i].getInNeighbors();
+#ifdef WEIGHTED
+      decodeWgh(denseT<F>(next, vertexSubset), f, nghArr, i, G[i].getInDegree());
 #else
-	  if (vertexSubset[ngh] && f.update(ngh,i,G[i].getInWeight(j)))
+      decode(denseT<F>(next, vertexSubset), f, nghArr, i, G[i].getInDegree());
 #endif
-	    next[i] = 1;
-	  if(!f.cond(i)) break;
-	}
-      } else {
-	{parallel_for(uintE j=0; j<d; j++){
-	  uintE ngh = G[i].getInNeighbor(j);
-#ifndef WEIGHTED
-	  if (vertexSubset[ngh] && f.update(ngh,i))
-#else
-	  if (vertexSubset[ngh] && f.update(ngh,i,G[i].getInWeight(j)))
-#endif
-	    next[i] = 1;
-	  }}
-      }
     }
-    }}
+  }
   return next;
 }
 
+template <class F>
+struct denseForwardT {
+  bool* nextArr, *vertexArr;
+denseForwardT(bool* np, bool* vp) : nextArr(np), vertexArr(vp) {}
+  inline bool srcTarg(F f, const uintE &src, const uintE &target, const uintT &edgeNumber) {
+    if (f.cond(target) && f.updateAtomic(src,target)) nextArr[target] = 1;
+    return true;
+  }
+  inline bool srcTarg(F f, const uintE &src, const uintE &target, const intE &weight, const uintT &edgeNumber) {
+    if (f.cond(target) && f.updateAtomic(src,target, weight)) nextArr[target] = 1;
+    return true;
+  }};
+
 template <class F, class vertex>
-bool* edgeMapDenseForward(graph<vertex> GA, bool* vertexSubset, F f) {
+  bool* edgeMapDenseForward(graph<vertex> GA, bool* vertexSubset, F f) {
   long numVertices = GA.n;
   vertex *G = GA.V;
   bool* next = newA(bool,numVertices);
   {parallel_for(long i=0;i<numVertices;i++) next[i] = 0;}
-  {parallel_for (long i=0; i<numVertices; i++){
-    if (vertexSubset[i]) {
-      uintE d = G[i].getOutDegree();
-      if(d < 1000) {
-	for(uintE j=0; j<d; j++){
-	  uintE ngh = G[i].getOutNeighbor(j);
-#ifndef WEIGHTED
-	  if (f.cond(ngh) && f.updateAtomic(i,ngh))
-#else 
-	  if (f.cond(ngh) && f.updateAtomic(i,ngh,G[i].getOutWeight(j))) 
-#endif
-	    next[ngh] = 1;
-	}
-      }
-      else {
-	{parallel_for(uintE j=0; j<d; j++){
-	  uintE ngh = G[i].getOutNeighbor(j);
-#ifndef WEIGHTED
-	  if (f.cond(ngh) && f.updateAtomic(i,ngh)) 
+  {parallel_for (long i=0; i<numVertices; i++) {
+//    intT d = G[i].getOutDegree();
+      if(vertexSubset[i]) {
+	uchar *nghArr = G[i].getOutNeighbors();
+#ifdef WEIGHTED
+	decodeWgh(denseForwardT<F>(next, vertexSubset), f, nghArr, i, G[i].getOutDegree());
 #else
-	    if (f.cond(ngh) && f.updateAtomic(i,ngh,G[i].getOutWeight(j)))
+	decode(denseForwardT<F>(next, vertexSubset), f, nghArr, i, G[i].getOutDegree());
 #endif
-	  next[ngh] = 1;
-	  }}
       }
-    }
-    }}
+  }}
   return next;
 }
 
+template <class F>
+struct sparseT {
+  uintT v, o;
+  uintE *outEdges;
+sparseT(uintT vP, uintT oP, uintE *outEdgesP) : v(vP), o(oP), outEdges(outEdgesP) {}
+  inline bool srcTarg(F f, const uintE &src, const uintE &target, const uintT &edgeNumber) {
+    if (f.cond(target) && f.updateAtomic(v, target))
+      outEdges[o + edgeNumber] = target;
+    else outEdges[o + edgeNumber] = UINT_E_MAX;
+    return true; }
+  inline bool srcTarg(F f, const uintE &src, const uintE &target, const intE &weight, const uintT &edgeNumber) {
+    if (f.cond(target) && f.updateAtomic(v, target, weight))
+      outEdges[o + edgeNumber] = target;
+    else outEdges[o + edgeNumber] = UINT_E_MAX;
+    return true; }};
+
+
+
 template <class F, class vertex>
 pair<long,uintE*> edgeMapSparse(vertex* frontierVertices, uintE* indices, 
-				uintT* degrees, uintT m, F f, 
+			       uintT* degrees, long m, F f,
 				long remDups=0, uintE* flags=NULL) {
   uintT* offsets = degrees;
   long outEdgeCount = sequence::plusScan(offsets, degrees, m);
   uintE* outEdges = newA(uintE,outEdgeCount);
-  {parallel_for (long i = 0; i < m; i++) {
-      uintT v = indices[i], o = offsets[i];
+  // In parallel, for each edge in frontier vertices, get out-degree and check
+  parallel_for (long i = 0; i < m; i++) {
+    uintT v = indices[i], o = offsets[i];
     vertex vert = frontierVertices[i]; 
-    uintE d = vert.getOutDegree();
-    if(d < 1000) {
-      for (uintE j=0; j < d; j++) {
-	uintE ngh = vert.getOutNeighbor(j);
-#ifndef WEIGHTED
-	if(f.cond(ngh) && f.updateAtomic(v,ngh)) 
+//    intT d = vert.getOutDegree();
+    uchar *nghArr = vert.getOutNeighbors();
+    // Decode, with src = v, and degree d, applying sparseT
+#ifdef WEIGHTED
+    decodeWgh(sparseT<F>(v, o, outEdges), f, nghArr, v, vert.getOutDegree());
 #else
-	if(f.cond(ngh) && f.updateAtomic(v,ngh,vert.getOutWeight(j)))
+    decode(sparseT<F>(v, o, outEdges), f, nghArr, v, vert.getOutDegree());
 #endif
-	  outEdges[o+j] = ngh;
-	else outEdges[o+j] = UINT_E_MAX;
-      } 
-    } else {
-      {parallel_for (uintE j=0; j < d; j++) {
-	uintE ngh = vert.getOutNeighbor(j);
-#ifndef WEIGHTED
-	if(f.cond(ngh) && f.updateAtomic(v,ngh)) 
-#else
-	if(f.cond(ngh) && f.updateAtomic(v,ngh,vert.getOutWeight(j)))
-#endif
-	  outEdges[o+j] = ngh;
-	else outEdges[o+j] = UINT_E_MAX;
-	}} 
-    }
-    }}
+  }
   uintE* nextIndices = newA(uintE, outEdgeCount);
   if(remDups) remDuplicates(outEdges,flags,outEdgeCount,remDups);
-  // Filter out the empty slots (marked with -1)
+  // Filter out the empty slots (marked with UINT_E_MAX)
   long nextM = sequence::filter(outEdges,nextIndices,outEdgeCount,nonMaxF());
   free(outEdges);
   return pair<long,uintE*>(nextM, nextIndices);
 }
 
-static int edgesTraversed = 0;
+static long edgesTraversed = 0;
 
 // decides on sparse or dense base on number of nonzeros in the active vertices
 template <class F, class vertex>
-vertexSubset edgeMap(graph<vertex> GA, vertexSubset &V, F f, intT threshold = -1, 
+  vertexSubset edgeMap(graph<vertex> GA, vertexSubset &V, F f, long threshold = -1, 
 		 char option=DENSE, bool remDups=false) {
   long numVertices = GA.n, numEdges = GA.m;
   if(threshold == -1) threshold = numEdges/20; //default threshold
@@ -299,15 +313,13 @@ vertexSubset edgeMap(graph<vertex> GA, vertexSubset &V, F f, intT threshold = -1
     free(frontierVertices);
     bool* R = (option == DENSE_FORWARD) ? 
       edgeMapDenseForward(GA,V.d,f) : 
-      edgeMapDense(GA, V.d, f, option);
+      edgeMapDense(GA, V.d, f);
     vertexSubset v1 = vertexSubset(numVertices, R);
-    //cout << "size (D) = " << v1.m << endl;
     return  v1;
   } else { 
     pair<long,uintE*> R = 
       remDups ? 
-      edgeMapSparse(frontierVertices, V.s, degrees, V.numNonzeros(), f, 
-		    numVertices, GA.flags) :
+      edgeMapSparse(frontierVertices, V.s, degrees, V.numNonzeros(), f,numVertices, GA.flags) :
       edgeMapSparse(frontierVertices, V.s, degrees, V.numNonzeros(), f);
     //cout << "size (S) = " << R.first << endl;
     free(degrees);
@@ -345,36 +357,36 @@ vertexSubset vertexFilter(vertexSubset V, F filter) {
   return vertexSubset(n,d_out);
 }
 
-//cond function that always returns true
-inline bool cond_true (intT d) { return 1; }
+//Cond function that always returns true
+inline bool cond_true (const uintE &d) { return 1;}
 
 template<class vertex>
 void Compute(graph<vertex>&, commandLine);
 
-int parallel_main(int argc, char* argv[]) {
+//driver
+int parallel_main(int argc, char* argv[]) {  
   commandLine P(argc,argv," [-s] <inFile>");
   char* iFile = P.getArgument(0);
   bool symmetric = P.getOptionValue("-s");
-  bool binary = P.getOptionValue("-b");
   long rounds = P.getOptionLongValue("-rounds",3);
   if(symmetric) {
-    graph<symmetricVertex> G =
-      readGraph<symmetricVertex>(iFile,symmetric,binary); //symmetric graph
-    Compute(G,P);
+    graph<symmetricVertex> G = 
+      readGraph<symmetricVertex>(iFile,symmetric); //symmetric graph
+    Compute(G, P);
     for(int r=0;r<rounds;r++) {
       startTime();
-      Compute(G,P);
+      Compute(G, P);
       nextTime("Running time");
     }
-    G.del();
+    G.del(); 
   } else {
-    graph<asymmetricVertex> G =
-      readGraph<asymmetricVertex>(iFile,symmetric,binary); //asymmetric graph
-    Compute(G,P);
+    graph<asymmetricVertex> G = 
+      readGraph<asymmetricVertex>(iFile,symmetric); //asymmetric graph
+    Compute(G, P);
     if(G.transposed) G.transpose();
     for(int r=0;r<rounds;r++) {
       startTime();
-      Compute(G,P);
+      Compute(G, P);
       nextTime("Running time");
       if(G.transposed) G.transpose();
     }
