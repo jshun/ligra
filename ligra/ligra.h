@@ -347,7 +347,6 @@ vertexSubset vertexFilter(vertexSubset V, F filter) {
 
 //cond function that always returns true
 inline bool cond_true (intT d) { return 1; }
-#endif
 
 template<class vertex>
 void Compute(graph<vertex>&, commandLine);
