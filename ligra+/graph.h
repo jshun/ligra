@@ -6,8 +6,6 @@
 #include <stdlib.h>
 #include "parallel.h"
 
-using namespace std;
-
 // **************************************************************
 //    ADJACENCY ARRAY REPRESENTATION
 // **************************************************************
@@ -76,6 +74,7 @@ graph(uintT* _inOffsets, uintT* _outOffsets, uchar* _inEdges, uchar* _outEdges, 
   void del() {
     free(s);
     free(V);
+    if(flags != NULL) free(flags);
   }
   void transpose() {
     if(sizeof(vertex) == sizeof(asymmetricVertex)) {
