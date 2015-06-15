@@ -71,7 +71,7 @@ struct Radii_Vertex_F {
 template <class vertex>
 void Compute(graph<vertex>& GA, commandLine P) {
   long n = GA.n;
-  intE* radii = newA(intT,n);
+  intE* radii = newA(intE,n);
   long* Visited = newA(long,n), *NextVisited = newA(long,n);
   {parallel_for(long i=0;i<n;i++) {
     radii[i] = -1;
