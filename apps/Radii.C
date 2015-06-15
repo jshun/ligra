@@ -63,7 +63,7 @@ struct Radii_Vertex_F {
   Radii_Vertex_F(long* _Visited, long* _NextVisited) :
     Visited(_Visited), NextVisited(_NextVisited) {}
   inline bool operator() (uintE i) {
-    NextVisited[i] = Visited[i];
+    Visited[i] = NextVisited[i];
     return 1;
   }
 };
@@ -84,7 +84,7 @@ void Compute(graph<vertex>& GA, commandLine P) {
       uintE v = hash(i) % n;
     radii[v] = 0;
     starts[i] = v;
-    Visited[v] = (long) 1<<i;
+    NextVisited[v] = (long) 1<<i;
     }}
 
   vertexSubset Frontier(n,sampleSize,starts); //initial frontier of size 64
@@ -94,7 +94,6 @@ void Compute(graph<vertex>& GA, commandLine P) {
     round++;
     vertexMap(Frontier, Radii_Vertex_F(Visited,NextVisited));
     vertexSubset output = edgeMap(GA, Frontier, Radii_F(Visited,NextVisited,radii,round),GA.m/20);
-    swap(NextVisited,Visited);
     Frontier.del();
     Frontier = output;
   }
