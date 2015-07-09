@@ -234,12 +234,13 @@ graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
   char* config = (char*) ".config";
   char* adj = (char*) ".adj";
   char* idx = (char*) ".idx";
-  char configFile[strlen(iFile)+7];
-  char adjFile[strlen(iFile)+4];
-  char idxFile[strlen(iFile)+4];
-  strcpy(configFile,iFile);
-  strcpy(adjFile,iFile);
-  strcpy(idxFile,iFile);
+  char configFile[strlen(iFile)+strlen(config)+1];
+  char adjFile[strlen(iFile)+strlen(adj)+1];
+  char idxFile[strlen(iFile)+strlen(idx)+1];
+  *configFile = *adjFile = *idxFile = '\0'; 
+  strcat(configFile,iFile);
+  strcat(adjFile,iFile);
+  strcat(idxFile,iFile);
   strcat(configFile,config);
   strcat(adjFile,adj);
   strcat(idxFile,idx);
@@ -254,12 +255,11 @@ graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
   long size = in2.tellg();
   in2.seekg(0);
   long m = size/sizeof(uint);
-
   char* s = (char *) malloc(size);
   in2.read(s,size);
   in2.close();
-  
   uintE* edges = (uintE*) s;
+
   ifstream in3(idxFile,ifstream::in | ios::binary); //stored as longs
   in3.seekg(0, ios::end);
   size = in3.tellg();
