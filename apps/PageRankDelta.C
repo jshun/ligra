@@ -82,6 +82,7 @@ struct PR_Vertex_Reset {
 
 template <class vertex>
 void Compute(graph<vertex>& GA, commandLine P) {
+  long maxIters = P.getOptionLongValue("-maxiters",100);
   const long n = GA.n;
   const double damping = 0.85;
   const double epsilon = 0.0000001;
@@ -104,8 +105,7 @@ void Compute(graph<vertex>& GA, commandLine P) {
   vertexSubset All(n,n,all); //all vertices
 
   long round = 0;
-  while(1){
-    round++;
+  while(round++ < maxIters){
     vertexSubset output = edgeMap(GA, Frontier, PR_F<vertex>(GA.V,Delta,nghSum),GA.m/20,DENSE_FORWARD);
     output.del();
     vertexSubset active 
