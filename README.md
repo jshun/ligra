@@ -1,4 +1,4 @@
-News: Code for eccentricity estimation from the paper *An Evaluation of Parallel Eccentricity Estimation Algorithms on Undirected Real-World Graphs* has been added. 
+News: Code for eccentricity estimation from the paper [*An Evaluation of Parallel Eccentricity Estimation Algorithms on Undirected Real-World Graphs*](http://www.cs.cmu.edu/~jshun/kdd-final.pdf) has been added. 
 --------
 
 Ligra (and Ligra+): A Lightweight Graph Processing Framework for Shared Memory
