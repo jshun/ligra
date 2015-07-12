@@ -27,7 +27,7 @@ using namespace benchIO;
 using namespace std;
 
 double hashDouble(intT i) {
-  return ((double) hash((uintT)i)/((double) ((unsigned) 1 << 31)));}
+  return ((double) (hash((uintT)i))/((double) ((long) 1 << 32) - 1));}
 
 template <class intT>
 struct rMat {
@@ -40,14 +40,13 @@ struct rMat {
     h = hash((uintT)_seed);
     if(abc > 1) { cout << "in rMat: a + b + c add to more than 1\n"; abort();}
     if((1 << log2Up(n)) != n) { cout << "in rMat: n not a power of 2"; abort(); } 
-    cout << "h = " << h << endl;
   }
 
   edge<intT> rMatRec(intT nn, intT randStart, intT randStride) {
     if (nn==1) return edge<intT>(0,0);
     else {
       edge<intT> x = rMatRec(nn/2, randStart + randStride, randStride);
-      double r = hashDouble(randStart);
+      double r = hashDouble(randStart); 
       if (r < a) return x;
       else if (r < ab) return edge<intT>(x.u,x.v+nn/2);
       else if (r < abc) return edge<intT>(x.u+nn/2, x.v);
@@ -73,10 +72,8 @@ edgeArray<intT> edgeRmat(intT n, intT m, intT seed,
   return edgeArray<intT>(E,nn,nn,m);
 }
 
-
 int parallel_main(int argc, char* argv[]) {
-  commandLine P(argc,argv,
-		"[-m <numedges>] [-s <intseed>] [-a <a>] [-b <b>] [-c <c>] n <outFile>");
+  commandLine P(argc,argv,"[-m <numedges>] [-s <intseed>] [-a <a>] [-b <b>] [-c <c>] n <outFile>");
   pair<intT,char*> in = P.sizeAndFileName();
   intT n = in.first;
   char* fname = in.second;
@@ -85,7 +82,6 @@ int parallel_main(int argc, char* argv[]) {
   double c = P.getOptionDoubleValue("-c", b);
   intT m = P.getOptionLongValue("-m", 10*n);
   intT seed = P.getOptionLongValue("-s", 1);
-
   edgeArray<intT> EA = edgeRmat(n, m, seed, a, b, c);
   graph<intT> G = graphFromEdges<intT>(EA, 1);
   EA.del();
