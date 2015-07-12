@@ -84,8 +84,6 @@ int parallel_main(int argc, char* argv[]) {
   double c = P.getOptionDoubleValue("-c", b);
   intT m = P.getOptionLongValue("-m", 10*n);
   intT seed = P.getOptionLongValue("-s", 1);
-  bool adjArray = P.getOption("-j");
-  bool ordered = P.getOption("-o");
 
   edgeArray<intT> EA = edgeRmat(n, m, seed, a, b, c);
   graph<intT> G = graphFromEdges<intT>(EA, 1);
