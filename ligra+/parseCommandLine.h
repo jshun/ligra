@@ -27,6 +27,7 @@
 #include <fstream>
 #include <string>
 #include <cstring>
+#include <stdlib.h>
 using namespace std;
 
 struct commandLine {

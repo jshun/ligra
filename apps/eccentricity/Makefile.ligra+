@@ -37,16 +37,19 @@ PCFLAGS = -O2 $(INTT) $(INTE) $(CODE) $(PD)
 endif
 
 COMMON= ligra.h graph.h utils.h IO.h parallel.h gettime.h quickSort.h byte.h byteRLE.h nibble.h byte-pd.h byteRLE-pd.h nibble-pd.h parseCommandLine.h encoder.C
-
+INTSORT= blockRadixSort.h transpose.h
 ALL= encoder kBFS-1Phase-Ecc kBFS-Ecc FM-Ecc LogLog-Ecc kBFS-Exact RV CLRSTV TK Simple-Approx-Ecc
 
 all: $(ALL)
 
-% : %.C $(COMMON)  blockRadixSort.h transpose.h CCBFS.h
+% : %.C $(COMMON) $(INTSORT) CCBFS.h
 	$(PCC) $(PCFLAGS) -o $@ $< 
 
 $(COMMON):
 	ln -s ../../ligra+/$@ .
+
+$(INTSORT):
+	ln -s ../../utils/$@ .
 
 .PHONY : clean
 
@@ -55,4 +58,4 @@ clean :
 
 cleansrc :
 	rm -f *.o $(ALL)
-	rm $(COMMON)
+	rm $(COMMON) $(INTSORT)
