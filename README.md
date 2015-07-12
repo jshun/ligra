@@ -1,4 +1,6 @@
-News: The code for Ligra+, which supports graph compression, has been added!  
+News: Code for eccentricity estimation from the paper *An Evaluation
+of Parallel Eccentricity Estimation Algorithms on Undirected
+Real-World Graphs* has been added. 
 --------
 
 Ligra (and Ligra+): A Lightweight Graph Processing Framework for Shared Memory
@@ -177,7 +179,7 @@ EDGELONG defined.
 
 Graph Applications
 ---------
-Currently, 8 implementation files are provided in the apps/ directory: 
+Implementation files are provided in the apps/ directory: 
 BFS.C (breadth-first search), BC.C (betweenness centrality), Radii.C (graph
 radii estimation), Components.C (connected components), BellmanFord.C
 (Bellman-Ford shortest paths), PageRank.C, PageRankDelta.C and
@@ -197,7 +199,7 @@ graph. Various constructors are given in ligra.h
 a graph *G*, vertexSubset *V*, struct *F*, threshold argument
 (optional, default threshold is *m*/20), an option in {DENSE,
 DENSE_FORWARD} (optional, default value is DENSE), and a boolean
-indiciating whether to remove duplicates (optional, default does not
+indicating whether to remove duplicates (optional, default does not
 remove duplicates). It returns as output a vertexSubset Out
 (see section 4 of paper for how Out is computed).
 
@@ -280,6 +282,36 @@ including ligra.h.
 To write a parallel for loop in your code, simply use the parallel_for
 construct in place of "for".
 
+
+Eccentricity Estimation 
+-------- 
+Code for eccentricity estimation from
+the paper *An Evaluation of Parallel Eccentricity Estimation
+Algorithms on Undirected Real-World Graphs* is available in the
+apps/eccentricity/ directory: kBFS-Ecc.C (2 passes of multiple BFS's),
+kBFS-1Phase-Ecc.C (1 pass of multiple BFS's), FM-Ecc.C (estimation
+using Flajolet-Martin counters; an implementation of HADI in TKDD
+'11), LogLog-Ecc.C (estimation using LogLog counters; an
+implementation of HyperANF in WWW '11), RV.C (a parallel
+implementation of the algorithm by Roditty and Vassilevska Williams in
+STOC '13), CLRSTV.C (a parallel implementation of a variant of the
+algorithm by Chechik, Larkin, Roditty, Schoenebeck, Tarjan, and
+Vassilevska Williams in SODA '14), kBFS-Exact.C (exact algorithm using
+multiple BFS's), TK.C (a parallel implementation of the exact
+algorithm by Takes and Kosters in Algorithms '13),
+Simple-Approx-Ecc.C (simple 2-approximation algorithm).  Follow the
+same instructions as above for compilation, but from the
+apps/eccentricity/ directory.
+
+For kBFS-Ecc.C, kBFS-1Phase-Ecc.C, FM-Ecc.C, LogLog-Ecc.C, and
+kBFS-Exact.C, the "-r" flag followed by an integer indicates the
+maximum number of words to associate with each vertex. For all
+implementations, the "-s" flag should be used as the current
+implementations are designed for undirected graphs.  To output the
+eccentricity estimates to a file, use the "-out" flag followed by the
+name of the output file. The file format is one integer per line, with
+the eccentricity estimate for vertex *i* on line *i*.
+
 Resources  
 -------- 
 
@@ -293,3 +325,10 @@ Julian Shun, Laxman Dhulipala and Guy Blelloch. [*Smaller and Faster:
 Parallel Processing of Compressed Graphs with
 Ligra+*](http://www.cs.cmu.edu/~jshun/ligra+.pdf). Proceedings of the
 IEEE Data Compression Conference (DCC), pp. 403-412, 2015.
+
+Julian Shun. [*An Evaluation of Parallel Eccentricity Estimation
+Algorithms on Undirected Real-World
+Graphs*](http://www.cs.cmu.edu/~jshun/kdd-final.pdf). Proceedings of
+the ACM SIGKDD Conference on Knowledge Discovery and Data Mining
+(KDD), 2015.
+
