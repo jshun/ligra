@@ -340,7 +340,7 @@ construct in place of "for".
 Graph Applications
 ---------
 Implementation files are provided in the apps/ directory: 
-**BFS.C** (breadth-first search), **BC.C** (betweenness centrality), **Radii.C** (graph
+**BFS.C** (breadth-first search), **BFS-Bitvector.C** (breadth-first search with a bitvector to mark visited vertices) **BC.C** (betweenness centrality), **Radii.C** (graph
 eccentricity estimation), **Components.C** (connected components), **BellmanFord.C**
 (Bellman-Ford shortest paths), **PageRank.C**, **PageRankDelta.C** and
 **BFSCC.C** (connected components based on BFS).
