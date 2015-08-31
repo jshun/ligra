@@ -149,7 +149,7 @@ wghGraph(wghVertex<intT>* VV, intT nn, uintT mm, intT* ai, intT* _weights)
 //    GRAPH UTILITIES
 // **************************************************************
 struct edgeCmp {
-  bool operator() (edge<intT> e1, edge<intT> e2) {
+  bool operator() (edge<uintT> e1, edge<uintT> e2) {
     return ((e1.u < e2.u) ? 1 : ((e1.u > e2.u) ? 0 : (e1.v < e2.v)));
   }
 };
@@ -422,20 +422,20 @@ namespace benchIO {
 
   template <class intT>
   int writeGraphToFile(graph<intT> G, char* fname) {
-    intT m = G.m;
-    intT n = G.n;
-    intT totalLen = 2 + n + m;
-    intT *Out = newA(intT, totalLen);
+    long m = G.m;
+    long n = G.n;
+    long totalLen = 2 + n + m;
+    intT *Out = newA(uintT, totalLen);
     Out[0] = n;
     Out[1] = m;
-    parallel_for (intT i=0; i < n; i++) {
+    parallel_for (long i=0; i < n; i++) {
       Out[i+2] = G.V[i].degree;
     }
-    intT total = sequence::scan(Out+2,Out+2,n,addF<intT>(),(intT)0);
-    for (intT i=0; i < n; i++) {
+    long total = sequence::scan(Out+2,Out+2,n,addF<intT>(),(intT)0);
+    for (long i=0; i < n; i++) {
       intT *O = Out + (2 + n + Out[i+2]);
       vertex<intT> v = G.V[i];
-      for (intT j = 0; j < v.degree; j++) 
+      for (long j = 0; j < v.degree; j++) 
 	O[j] = v.Neighbors[j];
     }
     int r = writeArrayToFile(AdjGraphHeader, Out, totalLen, fname);
@@ -445,20 +445,20 @@ namespace benchIO {
 
   template <class intT>
   int writeWghGraphToFile(wghGraph<intT> G, char* fname) {
-    intT m = G.m;
-    intT n = G.n;
-    intT totalLen = 2 + n + m*2;
+    long m = G.m;
+    long n = G.n;
+    long totalLen = 2 + n + m*2;
     intT *Out = newA(intT, totalLen);
     Out[0] = n;
     Out[1] = m;
-    parallel_for (intT i=0; i < n; i++) {
+    parallel_for (long i=0; i < n; i++) {
       Out[i+2] = G.V[i].degree;
     }
-    intT total = sequence::scan(Out+2,Out+2,n,addF<intT>(),(intT)0);
-    for (intT i=0; i < n; i++) {
+    long total = sequence::scan(Out+2,Out+2,n,addF<intT>(),(intT)0);
+    for (long i=0; i < n; i++) {
       intT *O = Out + (2 + n + Out[i+2]);
       wghVertex<intT> v = G.V[i];
-      for (intT j = 0; j < v.degree; j++) {
+      for (long j = 0; j < v.degree; j++) {
 	O[j] = v.Neighbors[j];
 	O[j+m] = v.nghWeights[j];
       }
@@ -491,13 +491,13 @@ namespace benchIO {
 		  atol(W.Strings[2*i + 1]));}
     W.del();
 
-    intT maxR = 0;
-    intT maxC = 0;
+    long maxR = 0;
+    long maxC = 0;
     for (long i=0; i < n; i++) {
       maxR = max<intT>(maxR, E[i].u);
       maxC = max<intT>(maxC, E[i].v);
     }
-    intT maxrc = max<intT>(maxR,maxC) + 1;
+    long maxrc = max<intT>(maxR,maxC) + 1;
     return edgeArray<intT>(E, maxrc, maxrc, n);
   }
 

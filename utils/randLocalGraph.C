@@ -61,13 +61,13 @@ edgeArray<intT> edgeRandomWithDimension(intT dim, intT degree, intT numRows) {
 int parallel_main(int argc, char* argv[]) {
   commandLine P(argc,argv,"[-m <numedges>] [-d <dims>] n <outFile>");
   pair<intT,char*> in = P.sizeAndFileName();
-  intT n = in.first;
+  long n = in.first;
   char* fname = in.second;
   int dim = P.getOptionIntValue("-d", 0);
-  intT m = P.getOptionLongValue("-m", 10*n);
-  edgeArray<intT> EA = edgeRandomWithDimension<intT>(dim, m/n, n);
-  graph<intT> G = graphFromEdges<intT>(EA, 1);
+  long m = P.getOptionLongValue("-m", 10*n);
+  edgeArray<uintT> EA = edgeRandomWithDimension<uintT>(dim, m/n, n);
+  graph<uintT> G = graphFromEdges<uintT>(EA, 1);
   EA.del();
-  writeGraphToFile<intT>(G, fname);
+  writeGraphToFile<uintT>(G, fname);
   G.del();
 }

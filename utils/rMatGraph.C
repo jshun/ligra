@@ -27,7 +27,7 @@ using namespace benchIO;
 using namespace std;
 
 double hashDouble(intT i) {
-  return ((double) (hash((uintT)i))/((double) ((long) 1 << 32) - 1));}
+  return ((double) (hash((uintT)i))/((double) UINT_T_MAX));}
 
 template <class intT>
 struct rMat {
@@ -75,16 +75,16 @@ edgeArray<intT> edgeRmat(intT n, intT m, intT seed,
 int parallel_main(int argc, char* argv[]) {
   commandLine P(argc,argv,"[-m <numedges>] [-s <intseed>] [-a <a>] [-b <b>] [-c <c>] n <outFile>");
   pair<intT,char*> in = P.sizeAndFileName();
-  intT n = in.first;
+  uintT n = in.first;
   char* fname = in.second;
   double a = P.getOptionDoubleValue("-a",.5);
   double b = P.getOptionDoubleValue("-b",.1);
   double c = P.getOptionDoubleValue("-c", b);
-  intT m = P.getOptionLongValue("-m", 10*n);
+  uintT m = P.getOptionLongValue("-m", 10*n);
   intT seed = P.getOptionLongValue("-s", 1);
-  edgeArray<intT> EA = edgeRmat(n, m, seed, a, b, c);
-  graph<intT> G = graphFromEdges<intT>(EA, 1);
+  edgeArray<uintT> EA = edgeRmat<uintT>(n, m, seed, a, b, c);
+  graph<uintT> G = graphFromEdges<uintT>(EA, 1);
   EA.del();
-  writeGraphToFile<intT>(G, fname);
+  writeGraphToFile<uintT>(G, fname);
   G.del();
 }

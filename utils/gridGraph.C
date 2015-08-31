@@ -72,18 +72,18 @@ edgeArray<intT> edge3DMesh(intT n) {
 int parallel_main(int argc, char* argv[]) {
   commandLine P(argc,argv,"[-d {2,3}] n <outFile>");
   pair<int,char*> in = P.sizeAndFileName();
-  intT n = in.first;
+  long n = in.first;
   char* fname = in.second;
   int dims = P.getOptionIntValue("-d", 2);
-  edgeArray<intT> EA;
+  edgeArray<uintT> EA;
   if (dims == 2) 
-    EA = edge2DMesh(n);
+    EA = edge2DMesh<uintT>(n);
   else if (dims == 3) 
-    EA = edge3DMesh(n);
+    EA = edge3DMesh<uintT>(n);
   else 
     P.badArgument();
-  graph<intT> G = graphFromEdges<intT>(EA, 1);
+  graph<uintT> G = graphFromEdges<uintT>(EA, 1);
   EA.del();
-  writeGraphToFile<intT>(G, fname);
+  writeGraphToFile<uintT>(G, fname);
   G.del();
 }
