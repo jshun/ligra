@@ -73,7 +73,7 @@ edgeArray<intT> edgeRmat(intT n, intT m, intT seed,
 }
 
 int parallel_main(int argc, char* argv[]) {
-  commandLine P(argc,argv,"[-m <numedges>] [-s <intseed>] [-a <a>] [-b <b>] [-c <c>] n <outFile>");
+  commandLine P(argc,argv,"[-s] [-m <numedges>] [-r <intseed>] [-a <a>] [-b <b>] [-c <c>] n <outFile>");
   pair<intT,char*> in = P.sizeAndFileName();
   uintT n = in.first;
   char* fname = in.second;
@@ -81,9 +81,10 @@ int parallel_main(int argc, char* argv[]) {
   double b = P.getOptionDoubleValue("-b",.1);
   double c = P.getOptionDoubleValue("-c", b);
   uintT m = P.getOptionLongValue("-m", 10*n);
-  intT seed = P.getOptionLongValue("-s", 1);
+  intT seed = P.getOptionLongValue("-r", 1);
+  bool sym = P.getOptionValue("-s");
   edgeArray<uintT> EA = edgeRmat<uintT>(n, m, seed, a, b, c);
-  graph<uintT> G = graphFromEdges<uintT>(EA, 1);
+  graph<uintT> G = graphFromEdges<uintT>(EA, sym);
   EA.del();
   writeGraphToFile<uintT>(G, fname);
   G.del();

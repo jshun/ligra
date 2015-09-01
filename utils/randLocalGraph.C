@@ -59,14 +59,15 @@ edgeArray<intT> edgeRandomWithDimension(intT dim, intT degree, intT numRows) {
 }
 
 int parallel_main(int argc, char* argv[]) {
-  commandLine P(argc,argv,"[-m <numedges>] [-d <dims>] n <outFile>");
+  commandLine P(argc,argv,"[-s] [-m <numedges>] [-d <dims>] n <outFile>");
   pair<intT,char*> in = P.sizeAndFileName();
   long n = in.first;
   char* fname = in.second;
   int dim = P.getOptionIntValue("-d", 0);
   long m = P.getOptionLongValue("-m", 10*n);
+  bool sym = P.getOptionValue("-s");
   edgeArray<uintT> EA = edgeRandomWithDimension<uintT>(dim, m/n, n);
-  graph<uintT> G = graphFromEdges<uintT>(EA, 1);
+  graph<uintT> G = graphFromEdges<uintT>(EA, sym);
   EA.del();
   writeGraphToFile<uintT>(G, fname);
   G.del();
