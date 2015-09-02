@@ -1,6 +1,3 @@
-News: Code for eccentricity estimation from the paper [*An Evaluation of Parallel Eccentricity Estimation Algorithms on Undirected Real-World Graphs*](http://www.cs.cmu.edu/~jshun/kdd-final.pdf) has been added. 
---------
-
 Ligra (and Ligra+): A Lightweight Graph Processing Framework for Shared Memory
 ======================
 
@@ -27,24 +24,19 @@ $ ln -s Makefile.ligra Makefile #if using Ligra
 $ ln -s Makefile.ligra+ Makefile #if using Ligra+
 ```
 
-Recommended environment
+Compilers
 
 * Intel icpc compiler
 * g++ &gt;= 4.8.0 with support for Cilk+, 
+* OpenMP
 
 To compile with g++ using Cilk, define the environment variable
 CILK. To compile with icpc, define the environment variable MKLROOT
-and make sure CILK is not defined. To compile with g++ with no
-parallel support, make sure CILK, MKLROOT and OPENMP are not
-defined. Using Cilk+ seems to give the best parallel performance in
-our experience.
- 
-
-Alternative
-* OpenMP
-
-To compile with OpenMP, define the environment variable OPENMP and
-make sure CILK and MKLROOT are not defined.
+and make sure CILK is not defined.  To compile with OpenMP, define the
+environment variable OPENMP and make sure CILK and MKLROOT are not
+defined.  Using Cilk+ seems to give the best parallel performance in
+our experience.  To compile with g++ with no parallel support, make
+sure CILK, MKLROOT and OPENMP are not defined.
 
 Note: OpenMP support in Ligra has not been thoroughly tested. If you
 experience any errors, please send an email to [Julian
