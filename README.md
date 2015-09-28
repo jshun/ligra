@@ -150,8 +150,8 @@ This file is represented as plain text.
 and NAME.idx, where NAME is chosen by the user. The .config file
 stores the number of vertices in the graph in text format. The .idx
 file stores in binary the offsets for the vertices in the CSR format
-(the <o>'s above). The .adj file stores in binary the edge targets in
-the CSR format (the <e>'s above).
+(the &lt;o>'s above). The .adj file stores in binary the edge targets in
+the CSR format (the &lt;e>'s above).
 
 Weighted graphs: For format (1), the weights are listed at the end of
 the file (after &lt;e(m-1)>). Currently for format (2), the weights
