@@ -31,12 +31,16 @@ struct PR_F {
   PR_F(vertex* _V, double* _Delta, double* _nghSum) : 
     V(_V), Delta(_Delta), nghSum(_nghSum) {}
   inline bool update(uintE s, uintE d){
+    double oldVal = nghSum[d];
     nghSum[d] += Delta[s]/V[s].getOutDegree();
-    return 1;
+    return oldVal == 0;
   }
   inline bool updateAtomic (uintE s, uintE d) {
-    writeAdd(&nghSum[d],Delta[s]/V[s].getOutDegree());
-    return 1;
+    volatile double oldV, newV; 
+    do { //basically a fetch-and-add
+      oldV = nghSum[d]; newV = oldV + Delta[s]/V[s].getOutDegree();
+    } while(!CAS(&nghSum[d],oldV,newV));
+    return oldV == 0.0;
   }
   inline bool cond (uintE d) { return cond_true(d); }};
 

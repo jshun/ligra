@@ -84,7 +84,7 @@ void Compute(graph<vertex>& GA, commandLine P) {
   
   long iter = 0;
   while(iter++ < maxIters){
-    vertexSubset output = edgeMap(GA, Frontier, PR_F<vertex>(p_curr,p_next,GA.V),GA.m/20);
+    vertexSubset output = edgeMap(GA, Frontier, PR_F<vertex>(p_curr,p_next,GA.V),0);
     vertexMap(Frontier,PR_Vertex_F(p_curr,p_next,damping,n));
     //compute L1-norm between p_curr and p_next
     {parallel_for(long i=0;i<n;i++) {
