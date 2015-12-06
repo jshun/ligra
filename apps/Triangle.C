@@ -23,9 +23,10 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Triangle counting code (assumes a symmetric graph, so pass the "-s"
-// flag). This is not optimized (no ordering heuristic is
-// used)--for optimized code, see "Multicore Triangle Computations
-// Without Tuning", ICDE 2015.
+// flag). This is not optimized (no ordering heuristic is used)--for
+// optimized code, see "Multicore Triangle Computations Without
+// Tuning", ICDE 2015. Currently only works with Ligra, and not
+// Ligra+.
 #include "ligra.h"
 
 //assumes sorted neighbor lists
