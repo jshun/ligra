@@ -1,3 +1,6 @@
+#ifndef GRAPH_H
+#define GRAPH_H
+
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
@@ -23,6 +26,8 @@ symmetricVertex(intE* n, uintT d)
 #endif
 : neighbors(n), degree(d) {}
 #ifndef WEIGHTED
+  uintE* getInNeighbors () { return neighbors; }
+  uintE* getOutNeighbors () { return neighbors; }
   uintE getInNeighbor(uintT j) { return neighbors[j]; }
   uintE getOutNeighbor(uintT j) { return neighbors[j]; }
   void setInNeighbors(uintE* _i) { neighbors = _i; }
@@ -30,6 +35,8 @@ symmetricVertex(intE* n, uintT d)
 #else
   //weights are stored in the entry after the neighbor ID
   //so size of neighbor list is twice the degree
+  intE* getInNeighbors () { return neighbors; }
+  intE* getOutNeighbors () { return neighbors; }
   intE getInNeighbor(intT j) { return neighbors[2*j]; }
   intE getOutNeighbor(intT j) { return neighbors[2*j]; }
   intE getInWeight(intT j) { return neighbors[2*j+1]; }
@@ -60,11 +67,15 @@ asymmetricVertex(intE* iN, intE* oN, uintT id, uintT od)
 #endif
 : inNeighbors(iN), outNeighbors(oN), inDegree(id), outDegree(od) {}
 #ifndef WEIGHTED
+  uintE* getInNeighbors () { return inNeighbors; }
+  uintE* getOutNeighbors () { return outNeighbors; }
   uintE getInNeighbor(uintT j) { return inNeighbors[j]; }
   uintE getOutNeighbor(uintT j) { return outNeighbors[j]; }
   void setInNeighbors(uintE* _i) { inNeighbors = _i; }
   void setOutNeighbors(uintE* _i) { outNeighbors = _i; }
 #else 
+  intE* getInNeighbors () { return inNeighbors; }
+  intE* getOutNeighbors () { return outNeighbors; }
   intE getInNeighbor(uintT j) { return inNeighbors[2*j]; }
   intE getOutNeighbor(uintT j) { return outNeighbors[2*j]; }
   intE getInWeight(uintT j) { return inNeighbors[2*j+1]; }
@@ -116,3 +127,4 @@ struct graph {
     } 
   }
 };
+#endif
