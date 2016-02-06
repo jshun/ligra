@@ -34,9 +34,20 @@ using namespace std;
 // Needed to make frequent large allocations efficient with standard
 // malloc implementation.  Otherwise they are allocated directly from
 // vm.
+
+#ifndef __APPLE__
 #include <malloc.h>
 static int __ii =  mallopt(M_MMAP_MAX,0);
 static int __jj =  mallopt(M_TRIM_THRESHOLD,-1);
+#endif
+
+#ifndef uint
+#define uint unsigned int
+#endif
+
+#ifndef ulong
+#define ulong unsigned long
+#endif
 
 #define newA(__E,__n) (__E*) malloc((__n)*sizeof(__E))
 
