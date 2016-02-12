@@ -191,7 +191,7 @@ void Compute(graph<vertex>& GA, commandLine P) {
 
       //pick random vertices (could have duplicates)
       {parallel_for(ulong i=0;i<sampleSize;i++) {
-	uintT index = hash(i+seed) % CCsize;
+	uintT index = hashInt(i+seed) % CCsize;
 	if(flags[index] == -1 && CAS(&flags[index],-1,(int)i)) {
 	  starts[i] = CCpairs[o+index].second;
 	  NextVisitedArray[CCpairs[o+index].second*myLength + i/64] = (long) 1<<(i%64);
@@ -203,7 +203,7 @@ void Compute(graph<vertex>& GA, commandLine P) {
 
       //reset flags
       parallel_for(ulong i=0;i<sampleSize;i++) {
-	uintT index = hash(i+seed) % CCsize;
+	uintT index = hashInt(i+seed) % CCsize;
 	if(flags[index] == i) flags[index] = -1;
       }
 

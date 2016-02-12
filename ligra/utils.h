@@ -311,7 +311,7 @@ inline void writeAdd(ET *a, ET b) {
   while (!CAS(a, oldV, newV));
 }
 
-inline uint hash(uint a) {
+inline uint hashInt(uint a) {
    a = (a+0x7ed55d16) + (a<<12);
    a = (a^0xc761c23c) ^ (a>>19);
    a = (a+0x165667b1) + (a<<5);
@@ -321,7 +321,7 @@ inline uint hash(uint a) {
    return a;
 }
 
-inline ulong hash(ulong a) {
+inline ulong hashInt(ulong a) {
    a = (a+0x7ed55d166bef7a1d) + (a<<12);
    a = (a^0xc761c23c510fa2dd) ^ (a>>9);
    a = (a+0x165667b183a9c0e1) + (a<<59);

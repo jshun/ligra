@@ -154,14 +154,14 @@ void Compute(graph<vertex>& GA, commandLine P) {
 
       {parallel_for(ulong i=0;i<CCsize;i++) {
 	  //pick with probability sampleSize/CCsize
-	  uintT index = hash(i+seed) % CCsize; 
+	  uintT index = hashInt(i+seed) % CCsize; 
 	  if(index < sampleSize) starts[i] = CCpairs[o+i].second;
 	  else starts[i] = UINT_E_MAX;
        	}}
       //pack down
       uintE numUnique = sequence::filter(starts,starts2,CCsize,nonMaxF());
       //sample cannot be empty!
-      if(numUnique == 0) { starts2[0] = CCpairs[o+(hash(seed)%CCsize)].second; numUnique++; }
+      if(numUnique == 0) { starts2[0] = CCpairs[o+(hashInt(seed)%CCsize)].second; numUnique++; }
       if(numUnique > maxSampleSize) numUnique = maxSampleSize;
       t2.stop();
       t3.start();

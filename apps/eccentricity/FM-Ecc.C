@@ -107,7 +107,7 @@ void Compute(graph<vertex>& GA, commandLine P) {
   intE* ecc = newA(intE,n);
 
   parallel_for(ulong i=0;i<n*length;i++)  { //initialize FM bit-vectors
-    intE rand = hash((uintE)i+seed);
+    intE rand = hashInt((uintE)i+seed);
     intE rightMostBit  = (rand == 0) ? 0 : log2(rand&-rand);
     NextVisitedArray[i] = (1 << rightMostBit);
   }

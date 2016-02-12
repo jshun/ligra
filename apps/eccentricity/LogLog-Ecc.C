@@ -133,7 +133,7 @@ void Compute(graph<vertex>& GA, commandLine P) {
     //initialize log-log counters (10 registers per counter)
     ulong counter = 0;
     for(ulong j=0;j<10;j++) {
-      ulong rand = hash(i*10+j+(ulong)seed*10);
+      ulong rand = hashInt(i*10+j+(ulong)seed*10);
       ulong rightMostBit  = (rand == 0) ? 0 : log2(rand&-rand);
       counter |= (rightMostBit << (6*j));
     }
