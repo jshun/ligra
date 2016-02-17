@@ -49,7 +49,7 @@ struct KCore_Vertex_F {
     if (numIn < k) {
       coreNumbers[i] = k-1;
       frontier[i] = 0;
-    } 
+    }
     return (numIn >= k); 
   }
 };
@@ -85,7 +85,7 @@ void Compute(graph<vertex>& GA, commandLine P) {
       break;
     }
   }
-  cout < <"largestCore was " << largestCore << endl;
+  cout << "largestCore was " << largestCore << endl;
   Frontier.del();
   free(coreNumbers);
 }
