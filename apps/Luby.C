@@ -27,19 +27,24 @@ template<class vertex>
 bool checkMis(graph<vertex>& G, bool* inMis) {
   const intE n = G.n;
   bool correct = true;
-  for (int i = 0; i < n; i++) {
+  parallel_for (int i = 0; i < n; i++) {
     intE outDeg = G.V[i].getOutDegree();
     int numConflict = 0;
-    bool iInMis = inMis[i];
+    int numInNgh = 0;
     for (int j = 0; j < outDeg; j++) {
       intE ngh = G.V[i].getOutNeighbor(j);
-      if (iInMis && inMis[ngh]) {
+      if (inMis[i] && inMis[ngh]) {
         numConflict++;
+      }
+      if (inMis[ngh]) {
+        numInNgh++;
       }
     }
     if (numConflict > 0) {
-      printf("numConflict is %d\n", numConflict);
-      correct = false;
+      (CAS(&correct,true,false));
+    } 
+    if ((inMis[i] == 0) && (numInNgh == 0)) {
+      (CAS(&correct,true,false));
     }
   }
   return correct;
