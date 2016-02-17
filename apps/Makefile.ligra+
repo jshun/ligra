@@ -38,7 +38,7 @@ endif
 
 COMMON= ligra.h graph.h utils.h IO.h parallel.h gettime.h quickSort.h byte.h byteRLE.h nibble.h byte-pd.h byteRLE-pd.h nibble-pd.h parseCommandLine.h encoder.C
 
-ALL= encoder BFS BC Components Radii PageRank PageRankDelta BellmanFord BFSCC BFS-Bitvector KCore
+ALL= encoder BFS BC Components Radii PageRank PageRankDelta BellmanFord BFSCC BFS-Bitvector
 
 all: $(ALL)
 

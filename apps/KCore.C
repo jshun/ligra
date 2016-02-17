@@ -21,6 +21,9 @@
 // LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+// Implementation of K-Core decomposition of a graph. Currently works
+// in Ligra, but not Ligra+.
 #include "ligra.h"
 
 template <class intT> 
@@ -39,7 +42,6 @@ struct KCore_Vertex_F {
   long k;
   KCore_Vertex_F(bool* _frontier, vertex* _V, long* _coreNumbers, long _k) : 
     frontier(_frontier), V(_V), k(_k), coreNumbers(_coreNumbers) {}
-
   inline bool operator () (uintE i) {
     // check if I has at least k neighbors that are in the current frontier
     uintE* nghs = V[i].getOutNeighbors();
@@ -66,10 +68,9 @@ void Compute(graph<vertex>& GA, commandLine P) {
   vertexSubset Frontier(n, n, active);
   long* coreNumbers = newA(long, n);
   {parallel_for(long i=0;i<n;i++) coreNumbers[i] = 0;}
-  long k;
   long numActive = n;
   long largestCore = -1;
-  for (k = 1; k <= n; k++) {
+  for (long k = 1; k <= n; k++) {
     long numRemoved = 0;
     while (true) {
       long prevActive = numActive;
