@@ -73,7 +73,9 @@ struct MIS_Update {
   int* flags;
   MIS_Update(int* _flags) : flags(_flags) {}
   inline bool update (uintE s, uintE d) {
+    //if neighbor is in MIS, then we are out
     if(flags[d] == IN) {if(flags[s] != OUT) flags[s] = OUT;}
+    //if neighbor has higher priority (lower ID) and is undecided, then so are we
     else if(d < s && flags[s] == CONDITIONALLY_IN && flags[d] < OUT)
       flags[s] = UNDECIDED;
     return 1;
