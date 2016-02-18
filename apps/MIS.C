@@ -21,8 +21,7 @@
 // LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#include "ligra.h"
-
+//
 // This is an implementation of the MIS algorithm from "Greedy
 // Sequential Maximal Independent Set and Matching are Parallel on
 // Average", Proceedings of the ACM Symposium on Parallelism in
@@ -31,11 +30,13 @@
 // implementation. For a more efficient implementation, see
 // http://www.cs.cmu.edu/~pbbs/benchmarks.html.
 
+#include "ligra.h"
+
 //For flags array to store status of each vertex
 enum {UNDECIDED,CONDITIONALLY_IN,OUT,IN};
 
-//uncomment the following line to enable checking for
-//correctness. currently the checker does not work with Ligra+
+//Uncomment the following line to enable checking for
+//correctness. Currently the checker does not work with Ligra+.
 
 //#define CHECK 1
 
