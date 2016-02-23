@@ -30,11 +30,11 @@ struct Update_Deg {
   intE* Degrees;
   Update_Deg(intE* _Degrees) : Degrees(_Degrees) {}
   inline bool update (uintE s, uintE d) { 
-    Degrees[d]--;
+    if(Degrees[d] > 0) Degrees[d]--;
     return 1;
   }
   inline bool updateAtomic (uintE s, uintE d){
-    writeAdd(&Degrees[d],-1);
+    if(Degrees[d] > 0) writeAdd(&Degrees[d],-1);
     return 1;
   }
   inline bool cond (uintE d) { return cond_true(d); }
@@ -49,7 +49,7 @@ struct Deg_LessThan_K {
   Deg_LessThan_K(vertex* _V, intE* _Degrees, uintE* _coreNumbers, uintE _k) : 
     V(_V), k(_k), Degrees(_Degrees), coreNumbers(_coreNumbers) {}
   inline bool operator () (uintE i) {
-    if(Degrees[i] < k) { coreNumbers[i] = k-1; return true; }
+    if(Degrees[i] < k) { coreNumbers[i] = k-1; Degrees[i] = 0; return true; }
     else return false;
   }
 };
