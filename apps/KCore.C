@@ -22,40 +22,51 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-// Implementation of K-Core decomposition of a graph. Currently works
-// in Ligra, but not Ligra+.
+// Parallel implementation of K-Core decomposition of a symmetric
+// graph.
 #include "ligra.h"
 
-template <class intT> 
-struct nghInFrontier {
-  bool* frontier;
-  uintE* nghs;
-  nghInFrontier(bool* _frontier, uintE* _nghs) : frontier(_frontier), nghs(_nghs) {}
-  intT operator() (intT i) { return (intT) frontier[nghs[i]];}
+struct Update_Deg {
+  intE* Degrees;
+  Update_Deg(intE* _Degrees) : Degrees(_Degrees) {}
+  inline bool update (uintE s, uintE d) { 
+    Degrees[d]--;
+    return 1;
+  }
+  inline bool updateAtomic (uintE s, uintE d){
+    writeAdd(&Degrees[d],-1);
+    return 1;
+  }
+  inline bool cond (uintE d) { return cond_true(d); }
 };
 
 template<class vertex>
-struct KCore_Vertex_F {
-  bool* frontier;
+struct Deg_LessThan_K {
   vertex* V;
-  long* coreNumbers;
-  long k;
-  KCore_Vertex_F(bool* _frontier, vertex* _V, long* _coreNumbers, long _k) : 
-    frontier(_frontier), V(_V), k(_k), coreNumbers(_coreNumbers) {}
+  uintE* coreNumbers;
+  intE* Degrees;
+  uintE k;
+  Deg_LessThan_K(vertex* _V, intE* _Degrees, uintE* _coreNumbers, uintE _k) : 
+    V(_V), k(_k), Degrees(_Degrees), coreNumbers(_coreNumbers) {}
   inline bool operator () (uintE i) {
-    // check if I has at least k neighbors that are in the current frontier
-    uintE* nghs = V[i].getOutNeighbors();
-    uintT outDeg = V[i].getOutDegree();
-    long numIn = sequence::reduce<intT>((intT) 0, (intT) outDeg, addF<intT>(), 
-                                        nghInFrontier<intT>(frontier, nghs));
-    if (numIn < k) {
-      coreNumbers[i] = k-1;
-      frontier[i] = 0;
-    }
-    return (numIn >= k); 
+    if(Degrees[i] < k) { coreNumbers[i] = k-1; return true; }
+    else return false;
   }
 };
 
+template<class vertex>
+struct Deg_AtLeast_K {
+  vertex* V;
+  intE *Degrees;
+  uintE k;
+  Deg_AtLeast_K(vertex* _V, intE* _Degrees, uintE _k) : 
+    V(_V), k(_k), Degrees(_Degrees) {}
+  inline bool operator () (uintE i) {
+    return Degrees[i] >= k;
+  }
+};
+
+//assumes symmetric graph
 // 1) iterate over all remaining active vertices
 // 2) for each active vertex, remove if induced degree < k. Any vertex removed has
 //    core-number (k-1) (part of (k-1)-core, but not k-core)
@@ -66,27 +77,31 @@ void Compute(graph<vertex>& GA, commandLine P) {
   bool* active = newA(bool,n);
   {parallel_for(long i=0;i<n;i++) active[i] = 1;}
   vertexSubset Frontier(n, n, active);
-  long* coreNumbers = newA(long, n);
-  {parallel_for(long i=0;i<n;i++) coreNumbers[i] = 0;}
-  long numActive = n;
+  uintE* coreNumbers = newA(uintE,n);
+  intE* Degrees = newA(intE,n);
+  {parallel_for(long i=0;i<n;i++) {
+      coreNumbers[i] = 0;
+      Degrees[i] = GA.V[i].getOutDegree();
+    }}
   long largestCore = -1;
   for (long k = 1; k <= n; k++) {
-    long numRemoved = 0;
     while (true) {
-      long prevActive = numActive;
-      vertexMap(Frontier, KCore_Vertex_F<vertex>(active, GA.V, coreNumbers, k));
-      numActive = sequence::sum(active,n);
-      if (numActive == prevActive) { // fixed point. found k-core
+      vertexSubset toRemove 
+	= vertexFilter(Frontier,Deg_LessThan_K<vertex>(GA.V,Degrees,coreNumbers,k));
+      vertexSubset remaining = vertexFilter(Frontier,Deg_AtLeast_K<vertex>(GA.V,Degrees,k));
+      Frontier.del();
+      Frontier = remaining;
+      if (0 == toRemove.numNonzeros()) { // fixed point. found k-core
+	toRemove.del();
         break;
       }
-      numRemoved += (prevActive - numActive);
+      else {
+	vertexSubset output = edgeMap(GA,toRemove,Update_Deg(Degrees));
+	toRemove.del(); output.del();
+      }
     }
-    if (numActive == 0) {
-      largestCore = k-1;
-      break;
-    }
+    if(Frontier.numNonzeros() == 0) { largestCore = k-1; break; }
   }
   cout << "largestCore was " << largestCore << endl;
-  Frontier.del();
-  free(coreNumbers);
+  Frontier.del(); free(coreNumbers); free(Degrees);
 }
