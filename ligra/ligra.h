@@ -32,6 +32,7 @@
 #include "parallel.h"
 #include "gettime.h"
 #include "utils.h"
+#include "vertexSubset.h"
 #include "graph.h"
 #include "IO.h"
 #include "parseCommandLine.h"
@@ -39,90 +40,6 @@
 using namespace std;
 
 //*****START FRAMEWORK*****
-
-//*****VERTEX OBJECT*****
-struct vertexSubset {
-  long n, m;
-  uintE* s;
-  bool* d;
-  bool isDense;
-
-  // make a singleton vertex in range of n
-vertexSubset(long _n, intE v) 
-: n(_n), m(1), d(NULL), isDense(0) {
-  s = newA(uintE,1);
-  s[0] = v;
-}
-  
-  //empty vertex set
-vertexSubset(long _n) : n(_n), m(0), d(NULL), s(NULL), isDense(0) {}
-  // make vertexSubset from array of vertex indices
-  // n is range, and m is size of array
-vertexSubset(long _n, long _m, uintE* indices) 
-: n(_n), m(_m), s(indices), d(NULL), isDense(0) {}
-  // make vertexSubset from boolean array, where n is range
-vertexSubset(long _n, bool* bits) 
-: n(_n), d(bits), s(NULL), isDense(1)  {
-  m = sequence::sum(bits,_n); }
-  // make vertexSubset from boolean array giving number of true values
-vertexSubset(long _n, long _m, bool* bits) 
-: n(_n), m(_m), s(NULL), d(bits), isDense(1)  {}
-
-  // delete the contents
-  void del(){
-    if (d != NULL) free(d);
-    if (s != NULL) free(s);
-  }
-  long numRows() { return n; }
-  long numNonzeros() { return m; }
-  bool isEmpty() { return m==0; }
-
-  // converts to dense but keeps sparse representation if there
-  void toDense() {
-    if (d == NULL) {
-      d = newA(bool,n);
-      {parallel_for(long i=0;i<n;i++) d[i] = 0;}
-      {parallel_for(long i=0;i<m;i++) d[s[i]] = 1;}
-    }
-    isDense = true;
-  }
-
-  // converts to sparse but keeps dense representation if there
-  void toSparse() {
-    if (s == NULL) {
-      _seq<uintE> R = sequence::packIndex<uintE>(d,n);
-      if (m != R.n) {
-	cout << "bad stored value of m" << endl; 
-	abort();
-      }
-      s = R.A;
-    }
-    isDense = false;
-  }
-  // check for equality
-  bool eq (vertexSubset& b) {
-    toDense();
-    b.toDense();
-    bool* c = newA(bool,n);
-    {parallel_for (long i=0; i<b.n; i++) 
-	c[i] = (d[i] != b.d[i]);}
-    bool equal = (sequence::sum(c,n) == 0);
-    free(c);
-    return equal;
-  }
-
-  void print() {
-    if (isDense) {
-      cout << "D:";
-      for (long i=0;i<n;i++) if (d[i]) cout << i << " ";
-      cout << endl;
-    } else {
-      cout << "S:";
-      for (long i=0; i<m; i++)	cout << s[i] << " ";
-      cout << endl;
-    }
-  }
-};
 
 struct nonMaxF{bool operator() (uintE &a) {return (a != UINT_E_MAX);}};
 
@@ -161,26 +78,26 @@ template <class F, class vertex>
     if (f.cond(i)) { 
       uintE d = G[i].getInDegree();
       if(!parallel || d < 1000) {
-	for(uintE j=0; j<d; j++){
-	  uintE ngh = G[i].getInNeighbor(j);
+  for(uintE j=0; j<d; j++){
+    uintE ngh = G[i].getInNeighbor(j);
 #ifndef WEIGHTED
-	  if (vertexSubset[ngh] && f.update(ngh,i))
+    if (vertexSubset[ngh] && f.update(ngh,i))
 #else
-	  if (vertexSubset[ngh] && f.update(ngh,i,G[i].getInWeight(j)))
+    if (vertexSubset[ngh] && f.update(ngh,i,G[i].getInWeight(j)))
 #endif
-	    next[i] = 1;
-	  if(!f.cond(i)) break;
-	}
+      next[i] = 1;
+    if(!f.cond(i)) break;
+  }
       } else {
-	{parallel_for(uintE j=0; j<d; j++){
-	  uintE ngh = G[i].getInNeighbor(j);
+  {parallel_for(uintE j=0; j<d; j++){
+    uintE ngh = G[i].getInNeighbor(j);
 #ifndef WEIGHTED
-	  if (vertexSubset[ngh] && f.update(ngh,i))
+    if (vertexSubset[ngh] && f.update(ngh,i))
 #else
-	  if (vertexSubset[ngh] && f.update(ngh,i,G[i].getInWeight(j)))
+    if (vertexSubset[ngh] && f.update(ngh,i,G[i].getInWeight(j)))
 #endif
-	    next[i] = 1;
-	  }}
+      next[i] = 1;
+    }}
       }
     }
     }}
@@ -197,26 +114,26 @@ bool* edgeMapDenseForward(graph<vertex> GA, bool* vertexSubset, F f) {
     if (vertexSubset[i]) {
       uintE d = G[i].getOutDegree();
       if(d < 1000) {
-	for(uintE j=0; j<d; j++){
-	  uintE ngh = G[i].getOutNeighbor(j);
+  for(uintE j=0; j<d; j++){
+    uintE ngh = G[i].getOutNeighbor(j);
 #ifndef WEIGHTED
-	  if (f.cond(ngh) && f.updateAtomic(i,ngh))
+    if (f.cond(ngh) && f.updateAtomic(i,ngh))
 #else 
-	  if (f.cond(ngh) && f.updateAtomic(i,ngh,G[i].getOutWeight(j))) 
+    if (f.cond(ngh) && f.updateAtomic(i,ngh,G[i].getOutWeight(j))) 
 #endif
-	    next[ngh] = 1;
-	}
+      next[ngh] = 1;
+  }
       }
       else {
-	{parallel_for(uintE j=0; j<d; j++){
-	  uintE ngh = G[i].getOutNeighbor(j);
+  {parallel_for(uintE j=0; j<d; j++){
+    uintE ngh = G[i].getOutNeighbor(j);
 #ifndef WEIGHTED
-	  if (f.cond(ngh) && f.updateAtomic(i,ngh)) 
+    if (f.cond(ngh) && f.updateAtomic(i,ngh)) 
 #else
-	    if (f.cond(ngh) && f.updateAtomic(i,ngh,G[i].getOutWeight(j)))
+      if (f.cond(ngh) && f.updateAtomic(i,ngh,G[i].getOutWeight(j)))
 #endif
-	  next[ngh] = 1;
-	  }}
+    next[ngh] = 1;
+    }}
       }
     }
     }}
@@ -225,8 +142,8 @@ bool* edgeMapDenseForward(graph<vertex> GA, bool* vertexSubset, F f) {
 
 template <class F, class vertex>
 pair<long,uintE*> edgeMapSparse(vertex* frontierVertices, uintE* indices, 
-				uintT* degrees, uintT m, F f, 
-				long remDups=0, uintE* flags=NULL) {
+        uintT* degrees, uintT m, F f, 
+        long remDups=0, uintE* flags=NULL) {
   uintT* offsets = degrees;
   long outEdgeCount = sequence::plusScan(offsets, degrees, m);
   uintE* outEdges = newA(uintE,outEdgeCount);
@@ -236,26 +153,26 @@ pair<long,uintE*> edgeMapSparse(vertex* frontierVertices, uintE* indices,
     uintE d = vert.getOutDegree();
     if(d < 1000) {
       for (uintE j=0; j < d; j++) {
-	uintE ngh = vert.getOutNeighbor(j);
+  uintE ngh = vert.getOutNeighbor(j);
 #ifndef WEIGHTED
-	if(f.cond(ngh) && f.updateAtomic(v,ngh)) 
+  if(f.cond(ngh) && f.updateAtomic(v,ngh)) 
 #else
-	if(f.cond(ngh) && f.updateAtomic(v,ngh,vert.getOutWeight(j)))
+  if(f.cond(ngh) && f.updateAtomic(v,ngh,vert.getOutWeight(j)))
 #endif
-	  outEdges[o+j] = ngh;
-	else outEdges[o+j] = UINT_E_MAX;
+    outEdges[o+j] = ngh;
+  else outEdges[o+j] = UINT_E_MAX;
       } 
     } else {
       {parallel_for (uintE j=0; j < d; j++) {
-	uintE ngh = vert.getOutNeighbor(j);
+  uintE ngh = vert.getOutNeighbor(j);
 #ifndef WEIGHTED
-	if(f.cond(ngh) && f.updateAtomic(v,ngh)) 
+  if(f.cond(ngh) && f.updateAtomic(v,ngh)) 
 #else
-	if(f.cond(ngh) && f.updateAtomic(v,ngh,vert.getOutWeight(j)))
+  if(f.cond(ngh) && f.updateAtomic(v,ngh,vert.getOutWeight(j)))
 #endif
-	  outEdges[o+j] = ngh;
-	else outEdges[o+j] = UINT_E_MAX;
-	}} 
+    outEdges[o+j] = ngh;
+  else outEdges[o+j] = UINT_E_MAX;
+  }} 
     }
     }}
   uintE* nextIndices = newA(uintE, outEdgeCount);
@@ -265,8 +182,6 @@ pair<long,uintE*> edgeMapSparse(vertex* frontierVertices, uintE* indices,
   free(outEdges);
   return pair<long,uintE*>(nextM, nextIndices);
 }
-
-static int edgesTraversed = 0;
 
 // decides on sparse or dense base on number of nonzeros in the active vertices
 template <class F, class vertex>
@@ -291,7 +206,6 @@ vertexSubset edgeMap(graph<vertex> GA, vertexSubset &V, F f, intT threshold = -1
     frontierVertices[i] = v;
     }}
   uintT outDegrees = sequence::plusReduce(degrees, m);
-  edgesTraversed += outDegrees;
   if (outDegrees == 0) return vertexSubset(numVertices);
   if (m + outDegrees > threshold) { 
     V.toDense();
