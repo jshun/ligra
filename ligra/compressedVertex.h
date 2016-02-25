@@ -31,6 +31,7 @@ struct compressedSymmetricVertex {
   void setInDegree(uintT _d) { degree = _d; }
   void setOutDegree(uintT _d) { degree = _d; }
   void flipEdges() {}
+  void del() {}
 };
 
 struct compressedAsymmetricVertex {
@@ -48,6 +49,7 @@ struct compressedAsymmetricVertex {
   void setOutDegree(uintT _d) { outDegree = _d; }
   void flipEdges() { swap(inNeighbors,outNeighbors); 
     swap(inDegree,outDegree); }
+  void del() {}
 };
 
 #endif
