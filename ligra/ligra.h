@@ -68,8 +68,18 @@ void remDuplicates(uintE* indices, uintE* flags, long m, long n) {
 }
 
 //*****EDGE FUNCTIONS*****
-template <class F, class vertex>
-  bool* edgeMapDense(graph<vertex> GA, bool* vertexSubset, F f, bool parallel = 0) {
+struct Edge_F {
+public:
+  virtual inline bool update (uintE s, uintE d) { //Update
+    return updateAtomic(s,d);
+  }
+  virtual inline bool updateAtomic (uintE s, uintE d) = 0; //atomic version of Update
+  //cond function checks if vertex has been visited yet
+  virtual inline bool cond (uintE d) { return 1; } 
+};
+
+template <class vertex>
+  bool* edgeMapDense(graph<vertex> GA, bool* vertexSubset, Edge_F &f, bool parallel = 0) {
   long numVertices = GA.n;
   vertex *G = GA.V;
   bool* next = newA(bool,numVertices);
@@ -104,8 +114,8 @@ template <class F, class vertex>
   return next;
 }
 
-template <class F, class vertex>
-bool* edgeMapDenseForward(graph<vertex> GA, bool* vertexSubset, F f) {
+template <class vertex>
+bool* edgeMapDenseForward(graph<vertex> GA, bool* vertexSubset, Edge_F &f) {
   long numVertices = GA.n;
   vertex *G = GA.V;
   bool* next = newA(bool,numVertices);
@@ -140,9 +150,9 @@ bool* edgeMapDenseForward(graph<vertex> GA, bool* vertexSubset, F f) {
   return next;
 }
 
-template <class F, class vertex>
+template <class vertex>
 pair<long,uintE*> edgeMapSparse(vertex* frontierVertices, uintE* indices, 
-        uintT* degrees, uintT m, F f, 
+        uintT* degrees, uintT m, Edge_F &f, 
         long remDups=0, uintE* flags=NULL) {
   uintT* offsets = degrees;
   long outEdgeCount = sequence::plusScan(offsets, degrees, m);
@@ -183,9 +193,11 @@ pair<long,uintE*> edgeMapSparse(vertex* frontierVertices, uintE* indices,
   return pair<long,uintE*>(nextM, nextIndices);
 }
 
+// TODO: specialize fns that edgemap calls
+
 // decides on sparse or dense base on number of nonzeros in the active vertices
-template <class F, class vertex>
-vertexSubset edgeMap(graph<vertex> GA, vertexSubset &V, F f, intT threshold = -1, 
+template <class vertex>
+vertexSubset edgeMap(graph<vertex> GA, vertexSubset &V, Edge_F &f, intT threshold = -1, 
 		 char option=DENSE, bool remDups=false) {
   long numVertices = GA.n, numEdges = GA.m;
   if(threshold == -1) threshold = numEdges/20; //default threshold
@@ -269,30 +281,57 @@ int parallel_main(int argc, char* argv[]) {
   commandLine P(argc,argv," [-s] <inFile>");
   char* iFile = P.getArgument(0);
   bool symmetric = P.getOptionValue("-s");
+  bool compressed = P.getOptionValue("-c");
   bool binary = P.getOptionValue("-b");
   long rounds = P.getOptionLongValue("-rounds",3);
-  if(symmetric) {
-    graph<symmetricVertex> G =
-      readGraph<symmetricVertex>(iFile,symmetric,binary); //symmetric graph
-    Compute(G,P);
-    for(int r=0;r<rounds;r++) {
-      startTime();
-      Compute(G,P);
-      nextTime("Running time");
-    }
-    G.del();
+  if (compressed) {
+//    if (symmetric) {
+//      graph<compressedSymmetricVertex> G =
+//        readCompressedGraph<compressedSymmetricVertex>(iFile,symmetric); //symmetric graph
+//      Compute(G,P);
+//      for(int r=0;r<rounds;r++) {
+//        startTime();
+//        Compute(G,P);
+//        nextTime("Running time");
+//      }
+//      G.del();
+//    } else {
+//      graph<compressedAsymmetricVertex> G =
+//        readCompressedGraph<compressedAsymmetricVertex>(iFile,symmetric); //asymmetric graph
+//      Compute(G,P);
+//      if(G.transposed) G.transpose();
+//      for(int r=0;r<rounds;r++) {
+//        startTime();
+//        Compute(G,P);
+//        nextTime("Running time");
+//        if(G.transposed) G.transpose();
+//      }
+//      G.del();
+//    }
   } else {
-    graph<asymmetricVertex> G =
-      readGraph<asymmetricVertex>(iFile,symmetric,binary); //asymmetric graph
-    Compute(G,P);
-    if(G.transposed) G.transpose();
-    for(int r=0;r<rounds;r++) {
-      startTime();
+    if (symmetric) {
+      graph<symmetricVertex> G =
+        readGraph<symmetricVertex>(iFile,compressed,symmetric,binary); //symmetric graph
       Compute(G,P);
-      nextTime("Running time");
+      for(int r=0;r<rounds;r++) {
+        startTime();
+        Compute(G,P);
+        nextTime("Running time");
+      }
+      G.del();
+    } else {
+      graph<asymmetricVertex> G =
+        readGraph<asymmetricVertex>(iFile,compressed,symmetric,binary); //asymmetric graph
+      Compute(G,P);
       if(G.transposed) G.transpose();
+      for(int r=0;r<rounds;r++) {
+        startTime();
+        Compute(G,P);
+        nextTime("Running time");
+        if(G.transposed) G.transpose();
+      }
+      G.del();
     }
-    G.del();
   }
 }
 #endif
