@@ -25,7 +25,8 @@
 #include "math.h"
 
 template <class vertex>
-struct PR_F {
+struct PR_F : public Edge_F {
+public:
   double* p_curr, *p_next;
   vertex* V;
   PR_F(double* _p_curr, double* _p_next, vertex* _V) : 
@@ -83,8 +84,9 @@ void Compute(graph<vertex>& GA, commandLine P) {
   vertexSubset Frontier(n,n,frontier);
   
   long iter = 0;
-  while(iter++ < maxIters){
-    vertexSubset output = edgeMap(GA, Frontier, PR_F<vertex>(p_curr,p_next,GA.V),0);
+  PR_F<vertex> f = PR_F<vertex>(p_curr,p_next,GA.V);
+  while(iter++ < maxIters) {
+    vertexSubset output = edgeMap(GA,Frontier,f,0);
     vertexMap(Frontier,PR_Vertex_F(p_curr,p_next,damping,n));
     //compute L1-norm between p_curr and p_next
     {parallel_for(long i=0;i<n;i++) {

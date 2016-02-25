@@ -26,7 +26,8 @@
 
 typedef double fType;
 
-struct BC_F {
+struct BC_F : public Edge_F {
+public:
   fType* NumPaths;
   bool* Visited;
 
@@ -47,7 +48,7 @@ struct BC_F {
   inline bool cond (uintE d) { return Visited[d] == 0; } //check if visited
 };
 
-struct BC_Back_F {
+struct BC_Back_F : public Edge_F {
   fType* Dependencies;
   bool* Visited;
   BC_Back_F(fType* _Dependencies, bool* _Visited) : 
@@ -108,9 +109,10 @@ void Compute(graph<vertex>& GA, commandLine P) {
   Levels.push_back(Frontier);
 
   long round = 0;
+  BC_F f = BC_F(NumPaths,Visited);
   while(!Frontier.isEmpty()){ //first phase
     round++;
-    vertexSubset output = edgeMap(GA, Frontier, BC_F(NumPaths,Visited),threshold);
+    vertexSubset output = edgeMap(GA, Frontier, f, threshold);
     vertexMap(output, BC_Vertex_F(Visited)); //mark visited
     Levels.push_back(output); //save frontier onto Levels
     Frontier = output;
@@ -131,10 +133,9 @@ void Compute(graph<vertex>& GA, commandLine P) {
 
   //tranpose graph
   GA.transpose();
- 
+  BC_Back_F bf = BC_Back_F(Dependencies,Visited);
   for(long r=round-2;r>=0;r--) { //backwards phase
-    vertexSubset output = edgeMap(GA, Frontier, 
-			      BC_Back_F(Dependencies,Visited),threshold);
+    vertexSubset output = edgeMap(GA, Frontier, bf ,threshold);
     output.del(); Frontier.del();
     Frontier = Levels[r]; //gets frontier from Levels array
     //vertex map to mark visited and update Dependencies scores

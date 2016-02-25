@@ -23,7 +23,8 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "ligra.h"
 
-struct BFS_F {
+struct BFS_F : public Edge_F {
+public:
   uintE* Parents;
   BFS_F(uintE* _Parents) : Parents(_Parents) {}
   inline bool update (uintE s, uintE d) { //Update
@@ -47,8 +48,9 @@ void Compute(graph<vertex>& GA, commandLine P) {
   Parents[start] = start;
   vertexSubset Frontier(n,start); //creates initial frontier
 
+  BFS_F f = BFS_F(Parents);
   while(!Frontier.isEmpty()){ //loop until frontier is empty
-    vertexSubset output = edgeMap(GA, Frontier, BFS_F(Parents),GA.m/20);    
+    vertexSubset output = edgeMap(GA, Frontier, f, GA.m/20);    
     Frontier.del();
     Frontier = output; //set new frontier
   } 

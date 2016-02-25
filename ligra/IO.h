@@ -121,7 +121,7 @@ public:
   void* allocatedInplace, * inEdges;
   uintE* flags;
 
-  Uncompressed_Mem(vertex* VV, long nn, long mm, uintE* ai, uintE* _inEdges = NULL) 
+  Uncompressed_Mem(vertex* VV, long nn, long mm, void* ai, void* _inEdges = NULL) 
   : V(VV), n(nn), m(mm), allocatedInplace(ai), inEdges(_inEdges),  flags(NULL) {}
 
   void del() {

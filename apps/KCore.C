@@ -26,7 +26,8 @@
 // graph.
 #include "ligra.h"
 
-struct Update_Deg {
+struct Update_Deg : public Edge_F {
+public:
   intE* Degrees;
   Update_Deg(intE* _Degrees) : Degrees(_Degrees) {}
   inline bool update (uintE s, uintE d) { 
@@ -84,6 +85,7 @@ void Compute(graph<vertex>& GA, commandLine P) {
       Degrees[i] = GA.V[i].getOutDegree();
     }}
   long largestCore = -1;
+  Update_Deg f = Update_Deg(Degrees);
   for (long k = 1; k <= n; k++) {
     while (true) {
       vertexSubset toRemove 
@@ -96,7 +98,7 @@ void Compute(graph<vertex>& GA, commandLine P) {
         break;
       }
       else {
-	vertexSubset output = edgeMap(GA,toRemove,Update_Deg(Degrees));
+	vertexSubset output = edgeMap(GA,toRemove,f);
 	toRemove.del(); output.del();
       }
     }
