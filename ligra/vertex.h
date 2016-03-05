@@ -1,6 +1,8 @@
 #ifndef VERTEX_H
 #define VERTEX_H
 
+#include "vertexSubset.h"
+
 using namespace std;
 
 struct symmetricVertex {
@@ -36,6 +38,88 @@ symmetricVertex(intE* n, uintT d)
   void setInNeighbors(intE* _i) { neighbors = _i; }
   void setOutNeighbors(intE* _i) { neighbors = _i; }
 #endif
+
+  template <class F>
+  void decodeInNghBreakEarly(long i, bool* vertexSubset, F &f, bool* next, bool parallel = 0) {
+    uintE d = getInDegree();
+    if (!parallel || d < 1000) {
+      for (uintE j=0; j<d; j++){
+        uintE ngh = getInNeighbor(j);
+#ifndef WEIGHTED
+        if (vertexSubset[ngh] && f.update(ngh,i))
+#else
+        if (vertexSubset[ngh] && f.update(ngh,i,getInWeight(j)))
+#endif
+          next[i] = 1;
+        if(!f.cond(i)) break;
+      }
+    } else {
+      parallel_for(uintE j=0; j<d; j++){
+        uintE ngh = getInNeighbor(j);
+#ifndef WEIGHTED
+        if (vertexSubset[ngh] && f.update(ngh,i))
+#else
+        if (vertexSubset[ngh] && f.update(ngh,i,getInWeight(j)))
+#endif
+          next[i] = 1;
+      }
+    }
+  }
+
+  template <class F>
+  void decodeOutNgh(long i, bool* vertexSubset, F &f, bool* next) {
+    uintE d = getOutDegree();
+    if(d < 1000) {
+      for(uintE j=0; j<d; j++){
+        uintE ngh = getOutNeighbor(j);
+#ifndef WEIGHTED
+        if (f.cond(ngh) && f.updateAtomic(i,ngh))
+#else 
+        if (f.cond(ngh) && f.updateAtomic(i,ngh,getOutWeight(j))) 
+#endif
+          next[ngh] = 1;
+      }
+    } else {
+      parallel_for(uintE j=0; j<d; j++){
+        uintE ngh = getOutNeighbor(j);
+#ifndef WEIGHTED
+        if (f.cond(ngh) && f.updateAtomic(i,ngh)) 
+#else
+          if (f.cond(ngh) && f.updateAtomic(i,ngh,getOutWeight(j)))
+#endif
+        next[ngh] = 1;
+      }
+    }
+  }
+
+  template <class F>
+  void decodeOutNghSparse(long i, uintT o, F &f, uintE* outEdges) {
+    uintE d = getOutDegree();
+    if(d < 1000) {
+      for (uintE j=0; j < d; j++) {
+        uintE ngh = getOutNeighbor(j);
+#ifndef WEIGHTED
+        if(f.cond(ngh) && f.updateAtomic(i,ngh)) 
+#else
+        if(f.cond(ngh) && f.updateAtomic(i,ngh,getOutWeight(j)))
+#endif
+          outEdges[o+j] = ngh;
+        else outEdges[o+j] = UINT_E_MAX;
+      }
+    } else {
+      parallel_for (uintE j=0; j < d; j++) {
+        uintE ngh = getOutNeighbor(j);
+#ifndef WEIGHTED
+        if(f.cond(ngh) && f.updateAtomic(i,ngh)) 
+#else
+        if(f.cond(ngh) && f.updateAtomic(i,ngh,getOutWeight(j)))
+#endif
+          outEdges[o+j] = ngh;
+        else outEdges[o+j] = UINT_E_MAX;
+      }
+    }
+  }
+
   uintT getInDegree() { return degree; }
   uintT getOutDegree() { return degree; }
   void setInDegree(uintT _d) { degree = _d; }
@@ -75,6 +159,90 @@ asymmetricVertex(intE* iN, intE* oN, uintT id, uintT od)
   void setInNeighbors(intE* _i) { inNeighbors = _i; }
   void setOutNeighbors(intE* _i) { outNeighbors = _i; }
 #endif
+
+  template<class F>
+  void decodeInNghBreakEarly(long i, bool* vertexSubset, F &f, bool* next, bool parallel = 0) {
+    uintE d = getInDegree();
+    if (!parallel || d < 1000) {
+      for (uintE j=0; j<d; j++){
+        uintE ngh = getInNeighbor(j);
+#ifndef WEIGHTED
+        if (vertexSubset[ngh] && f.update(ngh,i))
+#else
+        if (vertexSubset[ngh] && f.update(ngh,i,getInWeight(j)))
+#endif
+          next[i] = 1;
+        if(!f.cond(i)) break;
+      }
+    } else {
+      parallel_for(uintE j=0; j<d; j++){
+        uintE ngh = getInNeighbor(j);
+#ifndef WEIGHTED
+        if (vertexSubset[ngh] && f.update(ngh,i))
+#else
+        if (vertexSubset[ngh] && f.update(ngh,i,G[i].getInWeight(j)))
+#endif
+          next[i] = 1;
+      }
+    }
+  }
+
+  template <class F>
+  void decodeOutNgh(long i, bool* vertexSubset, F &f, bool* next) {
+    uintE d = getOutDegree();
+    if(d < 1000) {
+      for(uintE j=0; j<d; j++){
+        uintE ngh = getOutNeighbor(j);
+#ifndef WEIGHTED
+        if (f.cond(ngh) && f.updateAtomic(i,ngh))
+#else 
+        if (f.cond(ngh) && f.updateAtomic(i,ngh,getOutWeight(j))) 
+#endif
+          next[ngh] = 1;
+      }
+    } else {
+      parallel_for(uintE j=0; j<d; j++){
+        uintE ngh = getOutNeighbor(j);
+#ifndef WEIGHTED
+        if (f.cond(ngh) && f.updateAtomic(i,ngh)) 
+#else
+          if (f.cond(ngh) && f.updateAtomic(i,ngh,getOutWeight(j)))
+#endif
+        next[ngh] = 1;
+      }
+    }
+  }
+
+  template <class F>
+  void decodeOutNghSparse(long i, uintT o, F &f, uintE* outEdges) {
+    uintE d = getOutDegree();
+    if(d < 1000) {
+      for (uintE j=0; j < d; j++) {
+        uintE ngh = getOutNeighbor(j);
+#ifndef WEIGHTED
+        if(f.cond(ngh) && f.updateAtomic(i,ngh)) 
+#else
+        if(f.cond(ngh) && f.updateAtomic(i,ngh,getOutWeight(j)))
+#endif
+          outEdges[o+j] = ngh;
+        else outEdges[o+j] = UINT_E_MAX;
+      }
+    } else {
+      parallel_for (uintE j=0; j < d; j++) {
+        uintE ngh = getOutNeighbor(j);
+#ifndef WEIGHTED
+        if(f.cond(ngh) && f.updateAtomic(i,ngh)) 
+#else
+        if(f.cond(ngh) && f.updateAtomic(i,ngh,getOutWeight(j)))
+#endif
+          outEdges[o+j] = ngh;
+        else outEdges[o+j] = UINT_E_MAX;
+      }
+    }
+  }
+
+
+
   uintT getInDegree() { return inDegree; }
   uintT getOutDegree() { return outDegree; }
   void setInDegree(uintT _d) { inDegree = _d; }

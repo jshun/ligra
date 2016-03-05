@@ -31,7 +31,7 @@ inline void writeOr(ET *a, ET b) {
   while ((oldV != newV) && !CAS(a, oldV, newV));
 }
 
-struct Radii_F : public Edge_F {
+struct Radii_F {
 public:
   intE round;
   intE* radii;

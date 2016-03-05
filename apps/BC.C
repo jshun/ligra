@@ -26,7 +26,7 @@
 
 typedef double fType;
 
-struct BC_F : public Edge_F {
+struct BC_F {
 public:
   fType* NumPaths;
   bool* Visited;
@@ -48,7 +48,7 @@ public:
   inline bool cond (uintE d) { return Visited[d] == 0; } //check if visited
 };
 
-struct BC_Back_F : public Edge_F {
+struct BC_Back_F {
   fType* Dependencies;
   bool* Visited;
   BC_Back_F(fType* _Dependencies, bool* _Visited) : 

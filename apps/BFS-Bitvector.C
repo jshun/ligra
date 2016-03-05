@@ -35,7 +35,7 @@ inline void writeOr(ET *a, ET b) {
   while ((oldV != newV) && !CAS(a, oldV, newV));
 }
 
-struct BFS_F : public Edge_F {
+struct BFS_F {
 public:
   uintE* Parents; long* Visited;
   BFS_F(uintE* _Parents, long* _Visited) 

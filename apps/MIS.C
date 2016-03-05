@@ -69,7 +69,7 @@ bool checkMis(graph<vertex>& G, int* flags) {
 }
 #endif
 
-struct MIS_Update : public Edge_F {
+struct MIS_Update {
 public:
   int* flags;
   MIS_Update(int* _flags) : flags(_flags) {}

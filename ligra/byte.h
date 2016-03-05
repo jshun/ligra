@@ -101,8 +101,8 @@ inline uintE eatEdge(uchar* &start) {
   edge, and then eats the remaining |d-1| many edges that are normally
   coded. 
 */
-template <class T>
-  inline void decode(T t, Edge_F &f, uchar* edgeStart, const uintE &source, const uintT &degree) {
+template <class T, class F>
+  inline void decode(T t, F &f, uchar* edgeStart, const uintE &source, const uintT &degree) {
   uintE edgesRead = 0;
   if (degree > 0) {
     // Eat first edge, which is compressed specially 
@@ -123,8 +123,8 @@ template <class T>
 }
 
 //decode edges for weighted graph
-template <class T>
-  inline void decodeWgh(T t, Edge_F &f, uchar* edgeStart, const uintE &source, const uintT &degree) {
+template <class T, class F>
+  inline void decodeWgh(T t, F &f, uchar* edgeStart, const uintE &source, const uintT &degree) {
   uintT edgesRead = 0;
   if (degree > 0) {
     // Eat first edge, which is compressed specially 

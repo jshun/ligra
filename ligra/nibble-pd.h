@@ -107,8 +107,8 @@ inline uintE decode_next_edge(uchar* &start, long* location) {
   edge, and then eats the remaining |d-1| many edges that are normally
   coded. 
 */
-template <class T>
-  inline void decode(T t, Edge_F &f, uchar* edgeStart, const uintE &source, const uintT &degree) {  
+template <class T, class F>
+  inline void decode(T t, F &f, uchar* edgeStart, const uintE &source, const uintT &degree) {  
   if (degree > 0) {
     long numChunks = 1+(degree-1)/PARALLEL_DEGREE;
     uintE* pOffsets = (uintE*) edgeStart; //use beginning of edgeArray for offsets into edge list
@@ -148,8 +148,8 @@ template <class T>
 }
 
 //decode edges for weighted graph
-template <class T>
-  inline void decodeWgh(T t, Edge_F &f, uchar* edgeStart, const uintE &source,const uintT &degree) {
+template <class T, class F>
+  inline void decodeWgh(T t, F &f, uchar* edgeStart, const uintE &source,const uintT &degree) {
   if(degree > 0){
     long numChunks = 1+(degree-1)/PARALLEL_DEGREE;
     uintE* pOffsets = (uintE*) edgeStart; //use beginning of edgeArray for offsets into edge list

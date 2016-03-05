@@ -25,7 +25,7 @@
 #include "math.h"
 
 template <class vertex>
-struct PR_F : public Edge_F {
+struct PR_F {
 public:
   double* p_curr, *p_next;
   vertex* V;

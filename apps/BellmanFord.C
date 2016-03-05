@@ -24,7 +24,7 @@
 #define WEIGHTED 1
 #include "ligra.h"
 
-struct BF_F : public Edge_F {
+struct BF_F {
 public:
   intE* ShortestPathLen;
   int* Visited;

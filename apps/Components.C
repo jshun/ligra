@@ -23,7 +23,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "ligra.h"
 
-struct CC_F : public Edge_F {
+struct CC_F {
 public:
   uintE* IDs, *prevIDs;
   CC_F(uintE* _IDs, uintE* _prevIDs) : 

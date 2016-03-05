@@ -23,7 +23,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "ligra.h"
 
-struct BFS_F : public Edge_F {
+struct BFS_F {
 public:
   uintE* Parents;
   BFS_F(uintE* _Parents) : Parents(_Parents) {}

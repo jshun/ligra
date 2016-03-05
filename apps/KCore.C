@@ -26,7 +26,7 @@
 // graph.
 #include "ligra.h"
 
-struct Update_Deg : public Edge_F {
+struct Update_Deg {
 public:
   intE* Degrees;
   Update_Deg(intE* _Degrees) : Degrees(_Degrees) {}

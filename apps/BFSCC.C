@@ -28,7 +28,7 @@
 //graphs or graphs with very many components.
 #include "ligra.h"
 
-struct BFS_F : public Edge_F {
+struct BFS_F {
 public:
   uintE* Parents;
   uintE label;
