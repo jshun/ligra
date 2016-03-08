@@ -19,61 +19,94 @@
 #endif
 #endif
 
-
-template <class F>
-struct denseT {
-  bool* nextArr, *vertexArr;
-denseT(bool* np, bool* vp) : nextArr(np), vertexArr(vp) {}
+namespace decode_compressed {
+  template <class F>
+  struct denseT {
+    bool* nextArr, *vertexArr;
+  denseT(bool* np, bool* vp) : nextArr(np), vertexArr(vp) {}
 #ifndef WEIGHTED
-  inline bool srcTarg(F &f, const uintE &src, const uintE &target, const uintT &edgeNumber) {
-    if (vertexArr[target] && f.update(target, src)) nextArr[src] = 1;
-    return f.cond(src);
-  }
+    inline bool srcTarg(F &f, const uintE &src, const uintE &target, const uintT &edgeNumber) {
+      if (vertexArr[target] && f.update(target, src)) nextArr[src] = 1;
+      return f.cond(src);
+    }
 #else
-  inline bool srcTarg(F &f, const uintE &src, const uintE &target, const intE &weight, const uintT &edgeNumber) {
-    if (vertexArr[target] && f.update(target, src, weight)) nextArr[src] = 1;
-    return f.cond(src);
-  }
+    inline bool srcTarg(F &f, const uintE &src, const uintE &target, const intE &weight, const uintT &edgeNumber) {
+      if (vertexArr[target] && f.update(target, src, weight)) nextArr[src] = 1;
+      return f.cond(src);
+    }
 #endif
-};
+  };
 
-template <class F>
-struct denseForwardT {
-  bool* nextArr, *vertexArr;
-denseForwardT(bool* np, bool* vp) : nextArr(np), vertexArr(vp) {}
+  template <class F>
+  struct denseForwardT {
+    bool* nextArr, *vertexArr;
+  denseForwardT(bool* np, bool* vp) : nextArr(np), vertexArr(vp) {}
 #ifndef WEIGHTED
-  inline bool srcTarg(F &f, const uintE &src, const uintE &target, const uintT &edgeNumber) {
-    if (f.cond(target) && f.updateAtomic(src,target)) nextArr[target] = 1;
-    return true;
-  }
+    inline bool srcTarg(F &f, const uintE &src, const uintE &target, const uintT &edgeNumber) {
+      if (f.cond(target) && f.updateAtomic(src,target)) nextArr[target] = 1;
+      return true;
+    }
 #else
-  inline bool srcTarg(F &f, const uintE &src, const uintE &target, const intE &weight, const uintT &edgeNumber) {
-    if (f.cond(target) && f.updateAtomic(src,target, weight)) nextArr[target] = 1;
-    return true;
-  }
+    inline bool srcTarg(F &f, const uintE &src, const uintE &target, const intE &weight, const uintT &edgeNumber) {
+      if (f.cond(target) && f.updateAtomic(src,target, weight)) nextArr[target] = 1;
+      return true;
+    }
 #endif
-};
+  };
 
-template <class F>
-struct sparseT {
-  uintT v, o;
-  uintE *outEdges;
-sparseT(uintT vP, uintT oP, uintE *outEdgesP) : v(vP), o(oP), outEdges(outEdgesP) {}
+  template <class F>
+  struct sparseT {
+    uintT v, o;
+    uintE *outEdges;
+  sparseT(uintT vP, uintT oP, uintE *outEdgesP) : v(vP), o(oP), outEdges(outEdgesP) {}
 #ifndef WEIGHTED
-  inline bool srcTarg(F &f, const uintE &src, const uintE &target, const uintT &edgeNumber) {
-    if (f.cond(target) && f.updateAtomic(v, target))
-      outEdges[o + edgeNumber] = target;
-    else outEdges[o + edgeNumber] = UINT_E_MAX;
-    return true; }
+    inline bool srcTarg(F &f, const uintE &src, const uintE &target, const uintT &edgeNumber) {
+      if (f.cond(target) && f.updateAtomic(v, target))
+        outEdges[o + edgeNumber] = target;
+      else outEdges[o + edgeNumber] = UINT_E_MAX;
+      return true; }
 #else
-  inline bool srcTarg(F &f, const uintE &src, const uintE &target, const intE &weight, const uintT &edgeNumber) {
-    if (f.cond(target) && f.updateAtomic(v, target, weight))
-      outEdges[o + edgeNumber] = target;
-    else outEdges[o + edgeNumber] = UINT_E_MAX;
-    return true; }
+    inline bool srcTarg(F &f, const uintE &src, const uintE &target, const intE &weight, const uintT &edgeNumber) {
+      if (f.cond(target) && f.updateAtomic(v, target, weight))
+        outEdges[o + edgeNumber] = target;
+      else outEdges[o + edgeNumber] = UINT_E_MAX;
+      return true; }
 #endif
-};
+  };
 
+  template<class V, class F>
+  inline void decodeInNghBreakEarly(V* v, long i, bool* vertexSubset, F &f, bool* next, bool parallel = 0) {
+    uintE d = v->getInDegree();
+    uchar *nghArr = v->getInNeighbors();
+#ifdef WEIGHTED
+        decodeWgh(denseT<F>(next, vertexSubset), f, nghArr, i, v->getInDegree());
+#else
+        decode(denseT<F>(next, vertexSubset), f, nghArr, i, v->getInDegree());
+#endif
+  }
+
+  template<class V, class F>
+  inline void decodeOutNgh(V* v, long i, bool* vertexSubset, F &f, bool* next) {
+    uintE d = v->getInDegree();
+    uchar *nghArr = v->getOutNeighbors();
+#ifdef WEIGHTED
+        decodeWgh(denseForwardT<F>(next, vertexSubset), f, nghArr, i, v->getOutDegree());
+#else
+        decode(denseForwardT<F>(next, vertexSubset), f, nghArr, i, v->getOutDegree());
+#endif
+  }
+
+  template <class V, class F>
+  inline void decodeOutNghSparse(V* v, long i, uintT o, F &f, uintE* outEdges) {
+    uchar *nghArr = v->getOutNeighbors();
+#ifdef WEIGHTED
+    decodeWgh(sparseT<F>(i, o, outEdges), f, nghArr, i, v->getOutDegree());
+#else
+    decode(sparseT<F>(i, o, outEdges), f, nghArr, i, v->getOutDegree());
+#endif
+  }
+
+}
 
 struct compressedSymmetricVertex {
   uchar* neighbors;
@@ -89,40 +122,20 @@ struct compressedSymmetricVertex {
   void flipEdges() {}
   void del() {}
 
-
   template<class F>
-  void decodeInNghBreakEarly(long i, bool* vertexSubset, F &f, bool* next, bool parallel = 0) {
-    uintE d = getInDegree();
-    uchar *nghArr = getInNeighbors();
-#ifdef WEIGHTED
-        decodeWgh(denseT<F>(next, vertexSubset), f, nghArr, i, getInDegree());
-#else
-        decode(denseT<F>(next, vertexSubset), f, nghArr, i, getInDegree());
-#endif
+  inline void decodeInNghBreakEarly(long i, bool* vertexSubset, F &f, bool* next, bool parallel = 0) {
+    decode_compressed::decodeInNghBreakEarly<compressedSymmetricVertex, F>(this, i, vertexSubset, f, next, parallel);
   }
 
   template<class F>
-  void decodeOutNgh(long i, bool* vertexSubset, F &f, bool* next) {
-    uintE d = getInDegree();
-    uchar *nghArr = getOutNeighbors();
-#ifdef WEIGHTED
-        decodeWgh(denseForwardT<F>(next, vertexSubset), f, nghArr, i, getOutDegree());
-#else
-        decode(denseForwardT<F>(next, vertexSubset), f, nghArr, i, getOutDegree());
-#endif
+  inline void decodeOutNgh(long i, bool* vertexSubset, F &f, bool* next) {
+    decode_compressed::decodeOutNgh<compressedSymmetricVertex, F>(this, i, vertexSubset, f, next);
   }
 
   template <class F>
-  void decodeOutNghSparse(long i, uintT o, F &f, uintE* outEdges) {
-    uchar *nghArr = getOutNeighbors();
-#ifdef WEIGHTED
-    decodeWgh(sparseT<F>(i, o, outEdges), f, nghArr, i, getOutDegree());
-#else
-    decode(sparseT<F>(i, o, outEdges), f, nghArr, i, getOutDegree());
-#endif
+  inline void decodeOutNghSparse(long i, uintT o, F &f, uintE* outEdges) {
+    decode_compressed::decodeOutNghSparse<compressedSymmetricVertex, F>(this, i, o, f, outEdges);
   }
-
-
 };
 
 struct compressedAsymmetricVertex {
@@ -143,37 +156,19 @@ struct compressedAsymmetricVertex {
   void del() {}
 
   template<class F>
-  void decodeInNghBreakEarly(long i, bool* vertexSubset, F &f, bool* next, bool parallel = 0) {
-    uintE d = getInDegree();
-    uchar *nghArr = getInNeighbors();
-#ifdef WEIGHTED
-        decodeWgh(denseT<F>(next, vertexSubset), f, nghArr, i, getInDegree());
-#else
-        decode(denseT<F>(next, vertexSubset), f, nghArr, i, getInDegree());
-#endif
+  inline void decodeInNghBreakEarly(long i, bool* vertexSubset, F &f, bool* next, bool parallel = 0) {
+    decode_compressed::decodeInNghBreakEarly<compressedAsymmetricVertex, F>(this, i, vertexSubset, f, next, parallel);
   }
 
   template<class F>
-  void decodeOutNgh(long i, bool* vertexSubset, F &f, bool* next) {
-    uintE d = getInDegree();
-    uchar *nghArr = getOutNeighbors();
-#ifdef WEIGHTED
-        decodeWgh(denseForwardT<F>(next, vertexSubset), f, nghArr, i, getOutDegree());
-#else
-        decode(denseForwardT<F>(next, vertexSubset), f, nghArr, i, getOutDegree());
-#endif
+  inline void decodeOutNgh(long i, bool* vertexSubset, F &f, bool* next) {
+    decode_compressed::decodeOutNgh<compressedAsymmetricVertex, F>(this, i, vertexSubset, f, next);
   }
 
   template <class F>
-  void decodeOutNghSparse(long i, uintT o, F &f, uintE* outEdges) {
-    uchar *nghArr = getOutNeighbors();
-#ifdef WEIGHTED
-    decodeWgh(sparseT<F>(i, o, outEdges), f, nghArr, i, getOutDegree());
-#else
-    decode(sparseT<F>(i, o, outEdges), f, nghArr, i, getOutDegree());
-#endif
+  inline void decodeOutNghSparse(long i, uintT o, F &f, uintE* outEdges) {
+    decode_compressed::decodeOutNghSparse<compressedAsymmetricVertex, F>(this, i, o, f, outEdges);
   }
-
 };
 
 #endif
