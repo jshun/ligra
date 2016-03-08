@@ -180,7 +180,7 @@ asymmetricVertex(intE* iN, intE* oN, uintT id, uintT od)
 #ifndef WEIGHTED
         if (vertexSubset[ngh] && f.update(ngh,i))
 #else
-        if (vertexSubset[ngh] && f.update(ngh,i,G[i].getInWeight(j)))
+        if (vertexSubset[ngh] && f.update(ngh,i,getInWeight(j)))
 #endif
           next[i] = 1;
       }
