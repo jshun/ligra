@@ -60,44 +60,21 @@ using namespace std;
 
 //*****START FRAMEWORK*****
 
-struct nonMaxF{bool operator() (uintE &a) {return (a != UINT_E_MAX);}};
-
 //options to edgeMap for different versions of dense edgeMap (default is DENSE)
-enum options { DENSE, DENSE_FORWARD};
-
-//remove duplicate integers in [0,...,n-1]
-void remDuplicates(uintE* indices, uintE* flags, long m, long n) {
-  //make flags for first time
-  if(flags == NULL) {flags = newA(uintE,n); 
-    {parallel_for(long i=0;i<n;i++) flags[i]=UINT_E_MAX;}}
-  {parallel_for(uintE i=0;i<m;i++)
-      if(indices[i] != UINT_E_MAX && flags[indices[i]] == UINT_E_MAX) 
-	CAS(&flags[indices[i]],(uintE)UINT_E_MAX,i);
-  }
-  //reset flags
-  {parallel_for(long i=0;i<m;i++){
-      if(indices[i] != UINT_E_MAX){
-	if(flags[indices[i]] == i){ //win
-	  flags[indices[i]] = UINT_E_MAX; //reset
-	}
-	else indices[i] = UINT_E_MAX; //lost
-      }
-    }
-  }
-}
+enum options { DENSE, DENSE_FORWARD };
 
 template <class vertex, class F>
 bool* edgeMapDense(graph<vertex> GA, bool* vertexSubset, F &f, bool parallel = 0) {
-long numVertices = GA.n;
-vertex *G = GA.V;
-bool* next = newA(bool,numVertices);
-{parallel_for (long i=0; i<numVertices; i++) {
-  next[i] = 0;
-  if (f.cond(i)) {
-    G[i].decodeInNghBreakEarly(i, vertexSubset, f, next, parallel);
-  }
-}}
-return next;
+  long numVertices = GA.n;
+  vertex *G = GA.V;
+  bool* next = newA(bool,numVertices);
+  {parallel_for (long i=0; i<numVertices; i++) {
+    next[i] = 0;
+    if (f.cond(i)) {
+      G[i].decodeInNghBreakEarly(i, vertexSubset, f, next, parallel);
+    }
+  }}
+  return next;
 }
 
 template <class vertex, class F>
