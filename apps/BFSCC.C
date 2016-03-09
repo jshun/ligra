@@ -61,7 +61,7 @@ void Compute(graph<vertex>& GA, commandLine P) {
 	round++;
 	numVisited+=Frontier.numNonzeros();
 	//apply edgemap
-	vertexSubset output = edgeMap(GA,Frontier,BFS_F(Parents,start),GA.m/20);    
+	vertexSubset output = edgeMap(GA,Frontier,BFS_F(Parents,start));    
 	Frontier.del();
 	Frontier = output; //set new frontier
       } 

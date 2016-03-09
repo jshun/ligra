@@ -67,7 +67,7 @@ void Compute(graph<vertex>& GA, commandLine P) {
   Visited[start/64] = (long)1 << (start % 64);
   vertexSubset Frontier(n,start); //creates initial frontier
   while(!Frontier.isEmpty()){ //loop until frontier is empty
-    vertexSubset output = edgeMap(GA,Frontier,BFS_F(Parents,Visited),GA.m/20);    
+    vertexSubset output = edgeMap(GA,Frontier,BFS_F(Parents,Visited));    
     Frontier.del();
     Frontier = output; //set new frontier
   } 
