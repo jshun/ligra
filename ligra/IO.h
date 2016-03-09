@@ -25,8 +25,11 @@
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
+#include <cmath>
 #include "parallel.h"
 #include "quickSort.h"
+#include "utils.h"
+#include "graph.h"
 using namespace std;
 
 typedef pair<uintE,uintE> intPair;
@@ -36,6 +39,14 @@ template <class E>
 struct pairFirstCmp {
   bool operator() (pair<uintE,E> a, pair<uintE,E> b) {
     return a.first < b.first; }
+};
+
+template <class IntType>
+struct pairBothCmp {
+  bool operator() (pair<uintE,IntType> a, pair<uintE,IntType> b) {
+    if (a.first != b.first) return a.first < b.first;
+    return a.second < b.second;
+  }
 };
 
 // A structure that keeps a sequence of strings all allocated from
@@ -99,6 +110,29 @@ words stringToWords(char *Str, long n) {
   free(offsets); free(FL);
   return words(Str,n,SA,m);
 }
+
+template <class vertex>
+struct Uncompressed_Mem : public Deletable {
+public:
+
+  vertex* V;
+  long n;
+  long m;
+  void* allocatedInplace, * inEdges;
+  uintE* flags;
+
+  Uncompressed_Mem(vertex* VV, long nn, long mm, void* ai, void* _inEdges = NULL) 
+  : V(VV), n(nn), m(mm), allocatedInplace(ai), inEdges(_inEdges),  flags(NULL) {}
+
+  void del() {
+    if (flags != NULL) free(flags);
+    if (allocatedInplace == NULL) 
+      for (long i=0; i < n; i++) V[i].del();
+    else free(allocatedInplace);
+    free(V);
+    if(inEdges != NULL) free(inEdges);
+  }
+};
 
 template <class vertex>
 graph<vertex> readGraphFromFile(char* fname, bool isSymmetric) {
@@ -221,11 +255,13 @@ graph<vertex> readGraphFromFile(char* fname, bool isSymmetric) {
       }}    
 
     free(tOffsets);
-    return graph<vertex>(v,n,m,edges,inEdges);
+    Uncompressed_Mem<vertex>* mem = new Uncompressed_Mem<vertex>(v,n,m,edges,inEdges);
+    return graph<vertex>(v,n,m,mem);
   }
   else {
     free(offsets);
-    return graph<vertex>(v,n,m,edges);
+    Uncompressed_Mem<vertex>* mem = new Uncompressed_Mem<vertex>(v,n,m,edges);
+    return graph<vertex>(v,n,m,mem);
   }
 }
 
@@ -344,21 +380,118 @@ graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
       }}
     free(tOffsets);
 #ifndef WEIGHTED
-    return graph<vertex>(v,n,m,(uintE*)edges, (uintE*)inEdges);
+    Uncompressed_Mem<vertex>* mem = new Uncompressed_Mem<vertex>(v,n,m,edges,inEdges);
+    return graph<vertex>(v,n,m,mem);
 #else
-    return graph<vertex>(v,n,m,(intE*)edgesAndWeights, (intE*)inEdges);
+    Uncompressed_Mem<vertex>* mem = new Uncompressed_Mem<vertex>(v,n,m,edges,inEdges);
+    return graph<vertex>(v,n,m,mem);
 #endif
   }
   free(offsets);
 #ifndef WEIGHTED  
-  return graph<vertex>(v,n,m,(uintE*)edges);
+  Uncompressed_Mem<vertex>* mem = new Uncompressed_Mem<vertex>(v,n,m,edges);
+  return graph<vertex>(v,n,m,mem);
 #else
-  return graph<vertex>(v,n,m,(intE*)edgesAndWeights);
+  Uncompressed_Mem<vertex>* mem = new Uncompressed_Mem<vertex>(v,n,m,edgesAndWeights);
+  return graph<vertex>(v,n,m,mem);
 #endif
 }
 
 template <class vertex>
-graph<vertex> readGraph(char* iFile, bool symmetric, bool binary) {
+graph<vertex> readGraph(char* iFile, bool compressed, bool symmetric, bool binary) {
   if(binary) return readGraphFromBinary<vertex>(iFile,symmetric); 
   else return readGraphFromFile<vertex>(iFile,symmetric);
+}
+
+template <class vertex>
+struct Compressed_Mem : public Deletable {
+public:
+  vertex* V;
+  long n;
+  long m;
+  uintT* inOffsets;
+  uintT* offsets;
+  uchar* inEdges;
+  uchar* edges;
+  uintE* inDegrees;
+  uintE* Degrees;
+  char* s;
+
+  Compressed_Mem(vertex* _V, long _n, long _m, uintT* _inOffsets, uintT* _offsets, uchar* _inEdges, 
+                 uchar* _edges, uintE* _inDegrees, uintE* _Degrees, char* _s) : 
+                 V(_V), inOffsets(_inOffsets), offsets(_offsets), inEdges(_inEdges),
+                 edges(_edges), inDegrees(_inDegrees), Degrees(_Degrees), s(_s) {}
+
+  void del() {
+    free(s);
+  }
+};
+
+template <class vertex>
+graph<vertex> readCompressedGraph(char* fname, bool isSymmetric) {
+  ifstream in(fname,ifstream::in |ios::binary);
+  in.seekg(0,ios::end);
+  long size = in.tellg();
+  in.seekg(0);
+  cout << "size = " << size << endl;
+  char* s = (char*) malloc(size);
+  in.read(s,size);
+  long* sizes = (long*) s;
+  long n = sizes[0], m = sizes[1], totalSpace = sizes[2];
+
+  cout << "n = "<<n<<" m = "<<m<<" totalSpace = "<<totalSpace<<endl;
+  cout << "reading file..."<<endl;
+
+  uintT* offsets = (uintT*) (s+3*sizeof(long));
+  long skip = 3*sizeof(long) + (n+1)*sizeof(intT);
+  uintE* Degrees = (uintE*) (s+skip);
+  skip+= n*sizeof(intE);
+  uchar* edges = (uchar*)(s+skip);
+
+  uintT* inOffsets;
+  uchar* inEdges;
+  uintE* inDegrees;
+  if(!isSymmetric){
+    skip += totalSpace;
+    uchar* inData = (uchar*)(s + skip);
+    sizes = (long*) inData;
+    long inTotalSpace = sizes[0];
+    cout << "inTotalSpace = "<<inTotalSpace<<endl;
+    skip += sizeof(long);
+    inOffsets = (uintT*) (s + skip);
+    skip += (n+1)*sizeof(uintT);
+    inDegrees = (uintE*)(s+skip);
+    skip += n*sizeof(uintE);
+    inEdges = (uchar*)(s + skip);
+  } else {
+    inOffsets = offsets;
+    inEdges = edges;
+    inDegrees = Degrees;
+  }
+
+  in.close();
+
+  vertex *V = newA(vertex,n);
+  parallel_for(long i=0;i<n;i++) {
+    long o = offsets[i];
+    uintT d = Degrees[i];
+    V[i].setOutDegree(d);
+    V[i].setOutNeighbors(edges+o);
+  }
+
+  if(sizeof(vertex) == sizeof(compressedAsymmetricVertex)){
+    parallel_for(long i=0;i<n;i++) {
+      long o = inOffsets[i];
+      uintT d = inDegrees[i];
+      V[i].setInDegree(d);
+      V[i].setInNeighbors(inEdges+o);
+    }
+  }
+
+  cout << "creating graph..."<<endl;
+  Compressed_Mem<vertex>* mem = new Compressed_Mem<vertex>(V, n, m, inOffsets, offsets, 
+                                  inEdges, edges, inDegrees, Degrees, s);
+
+  graph<vertex> G(V,n,m,mem);
+  return G;
 }

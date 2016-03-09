@@ -70,6 +70,7 @@ bool checkMis(graph<vertex>& G, int* flags) {
 #endif
 
 struct MIS_Update {
+public:
   int* flags;
   MIS_Update(int* _flags) : flags(_flags) {}
   inline bool update (uintE s, uintE d) {
@@ -115,8 +116,9 @@ void Compute(graph<vertex>& GA, commandLine P) {
   }}
   long round = 0;
   vertexSubset Frontier(n, frontier_data);
+  MIS_Update f = MIS_Update(flags);
   while (!Frontier.isEmpty()) {
-    edgeMap(GA, Frontier, MIS_Update(flags));
+    edgeMap(GA, Frontier, f);
     vertexSubset output = vertexFilter(Frontier, MIS_Filter(flags));
     Frontier.del();
     Frontier = output;

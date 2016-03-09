@@ -32,6 +32,7 @@ inline void writeOr(ET *a, ET b) {
 }
 
 struct Radii_F {
+public:
   intE round;
   intE* radii;
   long* Visited, *NextVisited;
@@ -55,7 +56,8 @@ struct Radii_F {
     }
     return 0;
   }
-  inline bool cond (uintE d) { return cond_true(d); }};
+  inline bool cond (uintE d) { return cond_true(d); }
+};
 
 //function passed to vertex map to sync NextVisited and Visited
 struct Radii_Vertex_F {
@@ -93,7 +95,8 @@ void Compute(graph<vertex>& GA, commandLine P) {
   while(!Frontier.isEmpty()){
     round++;
     vertexMap(Frontier, Radii_Vertex_F(Visited,NextVisited));
-    vertexSubset output = edgeMap(GA, Frontier, Radii_F(Visited,NextVisited,radii,round),GA.m/20);
+    Radii_F f = Radii_F(Visited,NextVisited,radii,round);
+    vertexSubset output = edgeMap(GA,Frontier,f,GA.m/20);
     Frontier.del();
     Frontier = output;
   }

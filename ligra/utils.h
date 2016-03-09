@@ -63,6 +63,8 @@ struct minF { E operator() (const E& a, const E& b) const {return (a < b) ? a : 
 template <class E>
 struct maxF { E operator() (const E& a, const E& b) const {return (a>b) ? a : b;}};
 
+struct nonMaxF{bool operator() (uintE &a) {return (a != UINT_E_MAX);}};
+
 #define _SCAN_LOG_BSIZE 10
 #define _SCAN_BSIZE (1 << _SCAN_LOG_BSIZE)
 
@@ -332,5 +334,29 @@ inline ulong hashInt(ulong a) {
    a = (a^0xb55a4f090dd4a67b) ^ (a>>32);
    return a;
 }
+
+
+//remove duplicate integers in [0,...,n-1]
+void remDuplicates(uintE* indices, uintE* flags, long m, long n) {
+  //make flags for first time
+  if(flags == NULL) {flags = newA(uintE,n); 
+    {parallel_for(long i=0;i<n;i++) flags[i]=UINT_E_MAX;}}
+  {parallel_for(uintE i=0;i<m;i++)
+      if(indices[i] != UINT_E_MAX && flags[indices[i]] == UINT_E_MAX) 
+	CAS(&flags[indices[i]],(uintE)UINT_E_MAX,i);
+  }
+  //reset flags
+  {parallel_for(long i=0;i<m;i++){
+      if(indices[i] != UINT_E_MAX){
+	if(flags[indices[i]] == i){ //win
+	  flags[indices[i]] = UINT_E_MAX; //reset
+	}
+	else indices[i] = UINT_E_MAX; //lost
+      }
+    }
+  }
+}
+
+
 
 #endif
