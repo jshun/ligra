@@ -32,30 +32,13 @@
 #include "parallel.h"
 #include "gettime.h"
 #include "utils.h"
+#include "vertex.h"
+#include "compressedVertex.h"
 #include "vertexSubset.h"
 #include "graph.h"
 #include "IO.h"
 #include "parseCommandLine.h"
 #include "gettime.h"
-
-#ifndef PD 
-#ifdef BYTE
-#include "byte.h"
-#elif defined NIBBLE
-#include "nibble.h"
-#else
-#include "byteRLE.h"
-#endif
-#else //decode in parallel
-#ifdef BYTE
-#include "byte-pd.h"
-#elif defined NIBBLE
-#include "nibble-pd.h"
-#else
-#include "byteRLE-pd.h"
-#endif
-#endif
-
 using namespace std;
 
 //*****START FRAMEWORK*****
@@ -113,7 +96,7 @@ pair<long,uintE*> edgeMapSparse(vertex* frontierVertices, uintE* indices,
 
 // decides on sparse or dense base on number of nonzeros in the active vertices
 template <class vertex, class F>
-vertexSubset edgeMap(graph<vertex> GA, vertexSubset &V, F &f, intT threshold = -1, 
+vertexSubset edgeMap(graph<vertex> GA, vertexSubset &V, F f, intT threshold = -1, 
 		 char option=DENSE, bool remDups=false) {
   long numVertices = GA.n, numEdges = GA.m;
   if(threshold == -1) threshold = numEdges/20; //default threshold

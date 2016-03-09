@@ -4,53 +4,45 @@ Ligra (and Ligra+): A Lightweight Graph Processing Framework for Shared Memory
 Organization
 --------
 
-The code for the Ligra framework is located in the ligra/ directory,
-and the code for Ligra+ is located in the ligra+/ directory.  Code for
-the applications is in the apps/ directory, which is where compilation
-should be performed.  Example inputs are provided in the inputs/
-directory. Graph utilities are provided in the utils/ directory.
+The code for the Ligra (and Ligra+) framework is located in the ligra/
+directory.  The code for the applications is in the apps/ directory,
+which is where compilation should be performed.  Example inputs are
+provided in the inputs/ directory. Graph utilities are provided in the
+utils/ directory.
 
 Compilation
 --------
 
-Compilation is done from within the apps/ directory. The code can be
-compiled for either Ligra or Ligra+. There are two Makefiles provided
-in the directory (Makefile.ligra and Makefile.ligra+), one for Ligra
-and one for Ligra+. The file for the desired backend should be
-linked/copied into a file named "Makefile". For example:
-
-```
-$ ln -s Makefile.ligra Makefile #if using Ligra
-$ ln -s Makefile.ligra+ Makefile #if using Ligra+
-```
+Compilation is done from within the apps/ directory. The compiled code
+will work on both uncompressed and compressed graphs.
 
 Compilers
 
+* g++ &gt;= 4.8.0 with support for Cilk Plus
 * Intel icpc compiler
-* g++ &gt;= 4.8.0 with support for Cilk+, 
 * OpenMP
 
-To compile with g++ using Cilk, define the environment variable
+To compile with g++ using Cilk Plus, define the environment variable
 CILK. To compile with icpc, define the environment variable MKLROOT
 and make sure CILK is not defined.  To compile with OpenMP, define the
 environment variable OPENMP and make sure CILK and MKLROOT are not
-defined.  Using Cilk+ seems to give the best parallel performance in
+defined.  Using Cilk Plus seems to give the best parallel performance in
 our experience.  To compile with g++ with no parallel support, make
 sure CILK, MKLROOT and OPENMP are not defined.
 
 Note: OpenMP support in Ligra has not been thoroughly tested. If you
 experience any errors, please send an email to [Julian
-Shun](mailto:jshun@cs.cmu.edu). A known issue is that OpenMP will not
+Shun](mailto:jshun@eecs.berkeley.edu). A known issue is that OpenMP will not
 work correctly when using the experimental version of gcc 4.8.0.
 
-If Ligra+ is used, there are three compression schemes currently
-implemented that can be used---byte codes, byte codes with run-length
-encoding and nibble codes. By default, the code is compiled for byte
-codes with run-length encoding. To use byte codes instead, define the
-environment variable BYTE, and to use nibble codes instead, define the
-environment variable NIBBLE. Parallel decoding within a vertex can be
-enabled by defining the environment variable PD (by default, a
-vertex's edge list is decoded sequentially).
+For processing compressed graph files, there are three compression
+schemes currently implemented that can be used---byte codes, byte
+codes with run-length encoding and nibble codes. By default, the code
+is compiled for byte codes with run-length encoding. To use byte codes
+instead, define the environment variable BYTE, and to use nibble codes
+instead, define the environment variable NIBBLE. Parallel decoding
+within a vertex can be enabled by defining the environment variable PD
+(by default, a vertex's edge list is decoded sequentially).
 
 After the appropriate environment variables are set, to compile,
 simply run
@@ -62,7 +54,7 @@ $ make -j 16  #compiles with 16 threads (thread count can be changed)
 The following commands cleans the directory:
 ```
 $ make clean #removes all executables
-$ make cleansrc #removes all executables and linked files from the ligra/ or ligra+/ directory
+$ make cleansrc #removes all executables and linked files from the ligra/ directory
 ```
 
 Running code in Ligra
@@ -91,7 +83,7 @@ the program may improve performance for large graphs. For example:
 $ numactl -i all ./BFS -s <input file>
 ```
 
-Running code in Ligra+ 
+Running code on compressed graphs (Ligra+) 
 -----------
 When using Ligra+, graphs must first be compressed using the encoder
 program provided. The encoder program takes as input a file in the
@@ -106,11 +98,12 @@ $ ./encoder -s -w ../inputs/rMatGraph_WJ_5_100 inputs/rMatGraph_WJ_5_100.compres
 ```
  
 After compressing the graphs, the applications can be run in the same
-manner as in Ligra. For example:
+manner as on uncompressed graphs, but with an additional "-c"
+flag. For example:
 
 ```
-$ ./BFS -s ../inputs/rMatGraph_J_5_100.compressed
-$ ./BellmanFord -s ../inputs/rMatGraph_WJ_5_100.compressed
+$ ./BFS -s -c ../inputs/rMatGraph_J_5_100.compressed
+$ ./BellmanFord -s -c ../inputs/rMatGraph_WJ_5_100.compressed
 ``` 
 
 Make sure that the compression method used for compilation of the
@@ -169,7 +162,8 @@ EDGELONG defined.
 Graph Utilities
 ---------
 
-Several graph utilities are provided in the utils/ directory and can be compiled using "make".
+Several graph utilities are provided in the utils/ directory and can
+be compiled using "make".
 
 ### Graph Generators
 
@@ -333,9 +327,11 @@ construct in place of "for".
 
 Graph Applications
 ---------
-Implementation files are provided in the apps/ directory: 
-**BFS.C** (breadth-first search), **BFS-Bitvector.C** (breadth-first search with a bitvector to mark visited vertices), **BC.C** (betweenness centrality), **Radii.C** (graph
-eccentricity estimation), **Components.C** (connected components), **BellmanFord.C**
+Implementation files are provided in the apps/ directory: **BFS.C**
+(breadth-first search), **BFS-Bitvector.C** (breadth-first search with
+a bitvector to mark visited vertices), **BC.C** (betweenness
+centrality), **Radii.C** (graph eccentricity estimation),
+**Components.C** (connected components), **BellmanFord.C**
 (Bellman-Ford shortest paths), **PageRank.C**, **PageRankDelta.C** and
 **BFSCC.C** (connected components based on BFS).
 
@@ -343,20 +339,20 @@ eccentricity estimation), **Components.C** (connected components), **BellmanFord
 Eccentricity Estimation 
 -------- 
 Code for eccentricity estimation is available in the
-apps/eccentricity/ directory: **kBFS-Ecc.C** (2 passes of multiple BFS's),
-**kBFS-1Phase-Ecc.C** (1 pass of multiple BFS's), **FM-Ecc.C** (estimation
-using Flajolet-Martin counters; an implementation of a variant of HADI from *TKDD
-'11*), **LogLog-Ecc.C** (estimation using LogLog counters; an
-implementation of a variant of HyperANF from *WWW '11*), **RV.C** (a parallel
-implementation of the algorithm by Roditty and Vassilevska Williams from
-*STOC '13*), **CLRSTV.C** (a parallel implementation of a variant of the
-algorithm by Chechik, Larkin, Roditty, Schoenebeck, Tarjan, and
-Vassilevska Williams from *SODA '14*), **kBFS-Exact.C** (exact algorithm using
-multiple BFS's), **TK.C** (a parallel implementation of the exact
-algorithm by Takes and Kosters from *Algorithms '13*),
-**Simple-Approx-Ecc.C** (simple 2-approximation algorithm).  Follow the
-same instructions as above for compilation, but from the
-apps/eccentricity/ directory.
+apps/eccentricity/ directory: **kBFS-Ecc.C** (2 passes of multiple
+BFS's), **kBFS-1Phase-Ecc.C** (1 pass of multiple BFS's), **FM-Ecc.C**
+(estimation using Flajolet-Martin counters; an implementation of a
+variant of HADI from *TKDD '11*), **LogLog-Ecc.C** (estimation using
+LogLog counters; an implementation of a variant of HyperANF from *WWW
+'11*), **RV.C** (a parallel implementation of the algorithm by Roditty
+and Vassilevska Williams from *STOC '13*), **CLRSTV.C** (a parallel
+implementation of a variant of the algorithm by Chechik, Larkin,
+Roditty, Schoenebeck, Tarjan, and Vassilevska Williams from *SODA
+'14*), **kBFS-Exact.C** (exact algorithm using multiple BFS's),
+**TK.C** (a parallel implementation of the exact algorithm by Takes
+and Kosters from *Algorithms '13*), **Simple-Approx-Ecc.C** (simple
+2-approximation algorithm).  Follow the same instructions as above for
+compilation, but from the apps/eccentricity/ directory.
 
 For kBFS-Ecc.C, kBFS-1Phase-Ecc.C, FM-Ecc.C, LogLog-Ecc.C, and
 kBFS-Exact.C, the "-r" flag followed by an integer indicates the
@@ -385,4 +381,3 @@ Algorithms on Undirected Real-World
 Graphs*](http://www.cs.cmu.edu/~jshun/kdd-final.pdf). Proceedings of
 the ACM SIGKDD Conference on Knowledge Discovery and Data Mining
 (KDD), 2015.
-

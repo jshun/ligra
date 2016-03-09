@@ -1,6 +1,5 @@
 #ifndef GRAPH_H
 #define GRAPH_H
-
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
@@ -27,9 +26,7 @@ struct graph {
   long m;
   bool transposed;
   uintE* flags;
-
   Deletable *D;
-
   graph(vertex* VV, long nn, long mm, Deletable* DD) : V(VV), n(nn), m(mm), D(DD), flags(NULL) {}
   graph(vertex* VV, long nn, long mm, Deletable* DD, uintE* _flags) : V(VV), n(nn), m(mm), D(DD), flags(_flags) {}
 
@@ -48,5 +45,4 @@ struct graph {
     }
   }
 };
-
 #endif

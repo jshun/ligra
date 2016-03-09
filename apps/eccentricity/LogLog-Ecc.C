@@ -148,7 +148,6 @@ void Compute(graph<vertex>& GA, commandLine P) {
   bool* frontier = newA(bool,n);
   {parallel_for(long i=0;i<n;i++) frontier[i] = 1;} 
   vertexSubset Frontier(n,n,frontier); //initial frontier contains all vertices
-
   intE round = 0;
   while(!Frontier.isEmpty()){
     round++;

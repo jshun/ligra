@@ -21,10 +21,8 @@
 // LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
 #ifndef UTIL_H
 #define UTIL_H
-
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
@@ -34,7 +32,6 @@ using namespace std;
 // Needed to make frequent large allocations efficient with standard
 // malloc implementation.  Otherwise they are allocated directly from
 // vm.
-
 #ifndef __APPLE__
 #include <malloc.h>
 static int __ii =  mallopt(M_MMAP_MAX,0);
@@ -335,7 +332,6 @@ inline ulong hashInt(ulong a) {
    return a;
 }
 
-
 //remove duplicate integers in [0,...,n-1]
 void remDuplicates(uintE* indices, uintE* flags, long m, long n) {
   //make flags for first time
@@ -356,7 +352,4 @@ void remDuplicates(uintE* indices, uintE* flags, long m, long n) {
     }
   }
 }
-
-
-
 #endif

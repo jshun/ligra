@@ -1,8 +1,6 @@
 #ifndef VERTEX_H
 #define VERTEX_H
-
 #include "vertexSubset.h"
-
 using namespace std;
 
 namespace decode_uncompressed {
