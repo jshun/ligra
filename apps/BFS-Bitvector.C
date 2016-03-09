@@ -36,7 +36,6 @@ inline void writeOr(ET *a, ET b) {
 }
 
 struct BFS_F {
-public:
   uintE* Parents; long* Visited;
   BFS_F(uintE* _Parents, long* _Visited) 
   : Parents(_Parents), Visited(_Visited) {}
@@ -67,10 +66,8 @@ void Compute(graph<vertex>& GA, commandLine P) {
   {parallel_for(long i=0;i<numWords;i++) Visited[i] = 0;}
   Visited[start/64] = (long)1 << (start % 64);
   vertexSubset Frontier(n,start); //creates initial frontier
-
-  BFS_F f = BFS_F(Parents,Visited);
   while(!Frontier.isEmpty()){ //loop until frontier is empty
-    vertexSubset output = edgeMap(GA,Frontier,f,GA.m/20);    
+    vertexSubset output = edgeMap(GA,Frontier,BFS_F(Parents,Visited),GA.m/20);    
     Frontier.del();
     Frontier = output; //set new frontier
   } 

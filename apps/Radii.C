@@ -32,7 +32,6 @@ inline void writeOr(ET *a, ET b) {
 }
 
 struct Radii_F {
-public:
   intE round;
   intE* radii;
   long* Visited, *NextVisited;
@@ -95,8 +94,7 @@ void Compute(graph<vertex>& GA, commandLine P) {
   while(!Frontier.isEmpty()){
     round++;
     vertexMap(Frontier, Radii_Vertex_F(Visited,NextVisited));
-    Radii_F f = Radii_F(Visited,NextVisited,radii,round);
-    vertexSubset output = edgeMap(GA,Frontier,f,GA.m/20);
+    vertexSubset output = edgeMap(GA,Frontier,Radii_F(Visited,NextVisited,radii,round));
     Frontier.del();
     Frontier = output;
   }

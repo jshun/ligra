@@ -25,7 +25,6 @@
 #include "ligra.h"
 
 struct BF_F {
-public:
   intE* ShortestPathLen;
   int* Visited;
   BF_F(intE* _ShortestPathLen, int* _Visited) : 
@@ -71,14 +70,13 @@ void Compute(graph<vertex>& GA, commandLine P) {
   vertexSubset Frontier(n,start); //initial frontier
 
   long round = 0;
-  BF_F f = BF_F(ShortestPathLen,Visited);
   while(!Frontier.isEmpty()){
     if(round == n) {
       //negative weight cycle
       {parallel_for(long i=0;i<n;i++) ShortestPathLen[i] = -(INT_E_MAX/2);}
       break;
     }
-    vertexSubset output = edgeMap(GA, Frontier, f, GA.m/20, DENSE_FORWARD);
+    vertexSubset output = edgeMap(GA, Frontier, BF_F(ShortestPathLen,Visited), GA.m/20, DENSE_FORWARD);
     vertexMap(output,BF_Vertex_F(Visited));
     Frontier.del();
     Frontier = output;

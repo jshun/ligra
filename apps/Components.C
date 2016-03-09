@@ -24,7 +24,6 @@
 #include "ligra.h"
 
 struct CC_F {
-public:
   uintE* IDs, *prevIDs;
   CC_F(uintE* _IDs, uintE* _prevIDs) : 
     IDs(_IDs), prevIDs(_prevIDs) {}
@@ -60,10 +59,9 @@ void Compute(graph<vertex>& GA, commandLine P) {
   {parallel_for(long i=0;i<n;i++) frontier[i] = 1;} 
   vertexSubset Frontier(n,n,frontier); //initial frontier contains all vertices
 
-  CC_F f = CC_F(IDs,prevIDs);
   while(!Frontier.isEmpty()){ //iterate until IDS converge
     vertexMap(Frontier,CC_Vertex_F(IDs,prevIDs));
-    vertexSubset output = edgeMap(GA, Frontier, f, GA.m/20);
+    vertexSubset output = edgeMap(GA, Frontier, CC_F(IDs,prevIDs));
     Frontier.del();
     Frontier = output;
   }

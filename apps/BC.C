@@ -27,10 +27,8 @@
 typedef double fType;
 
 struct BC_F {
-public:
   fType* NumPaths;
   bool* Visited;
-
   BC_F(fType* _NumPaths, bool* _Visited) : 
     NumPaths(_NumPaths), Visited(_Visited) {}
   inline bool update(uintE s, uintE d){ //Update function for forward phase
@@ -94,7 +92,7 @@ struct BC_Back_Vertex_F {
 template <class vertex>
 void Compute(graph<vertex>& GA, commandLine P) {
   long start = P.getOptionLongValue("-r",0);
-  long n = GA.n, threshold = GA.m/20;
+  long n = GA.n;
 
   fType* NumPaths = newA(fType,n);
   {parallel_for(long i=0;i<n;i++) NumPaths[i] = 0.0;}
@@ -109,10 +107,9 @@ void Compute(graph<vertex>& GA, commandLine P) {
   Levels.push_back(Frontier);
 
   long round = 0;
-  BC_F f = BC_F(NumPaths,Visited);
   while(!Frontier.isEmpty()){ //first phase
     round++;
-    vertexSubset output = edgeMap(GA, Frontier, f, threshold);
+    vertexSubset output = edgeMap(GA, Frontier, BC_F(NumPaths,Visited));
     vertexMap(output, BC_Vertex_F(Visited)); //mark visited
     Levels.push_back(output); //save frontier onto Levels
     Frontier = output;
@@ -133,9 +130,8 @@ void Compute(graph<vertex>& GA, commandLine P) {
 
   //tranpose graph
   GA.transpose();
-  BC_Back_F bf = BC_Back_F(Dependencies,Visited);
   for(long r=round-2;r>=0;r--) { //backwards phase
-    vertexSubset output = edgeMap(GA, Frontier, bf ,threshold);
+    vertexSubset output = edgeMap(GA, Frontier, BC_Back_F(Dependencies,Visited));
     output.del(); Frontier.del();
     Frontier = Levels[r]; //gets frontier from Levels array
     //vertex map to mark visited and update Dependencies scores

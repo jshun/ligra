@@ -29,7 +29,6 @@
 #include "ligra.h"
 
 struct BFS_F {
-public:
   uintE* Parents;
   uintE label;
   BFS_F(uintE* _Parents, uintE _label) : Parents(_Parents), label(_label) {}
@@ -62,8 +61,7 @@ void Compute(graph<vertex>& GA, commandLine P) {
 	round++;
 	numVisited+=Frontier.numNonzeros();
 	//apply edgemap
-  BFS_F f = BFS_F(Parents,start);
-	vertexSubset output = edgeMap(GA,Frontier,f,GA.m/20);    
+	vertexSubset output = edgeMap(GA,Frontier,BFS_F(Parents,start),GA.m/20);    
 	Frontier.del();
 	Frontier = output; //set new frontier
       } 
