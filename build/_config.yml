@@ -1,0 +1,19 @@
+---
+name: Ligra
+description: A Lightweight Graph Processing Framework for Shared Memory
+url: "http://jshun.github.io" 
+baseurl: "/ligra" 
+email: dummy@cs.cmu.edu
+github_username: laxmandhulipala
+sass:
+  style: :compressed
+  sass_dir: _css
+exclude:
+- Gemfile
+- Gemfile.lock
+- README.md
+- Rakefile
+- vendor/bundle
+- push.sh
+markdown: redcarpet
+highlighter: pygments

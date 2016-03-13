@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+
+  {% include head.html %}
+
+ <body>
+
+    <div class="container">
+
+    {% include header.html %}
+
+    {% if page.id == 'home' %}
+    <div class="hero">
+      <div class="wrap">
+        <div class="text"><strong>Ligra</strong></div>
+        <div class="minitext">
+          A Lightweight Graph Processing Framework for Shared Memory
+        </div>
+
+        <div class="buttons-unit">
+          <a href="/ligra/docs/introduction.html" class="button">Get Started</a>
+          <a href="/ligra/downloads.html" class="button">Download Ligra</a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {{ content }}
+
+    {% include footer.html %}
+
+  </div>
+
+  </body>
+
+</html>

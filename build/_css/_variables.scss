@@ -1,0 +1,33 @@
+//https://color.adobe.com/Neutral-Blue-color-theme-22361/?showPublished=true
+
+$primary: #D96459;
+$linkColor: darken($primary, 9%);
+$linkInteract: darken($linkColor, 9%);
+$pageBg: #f9f9f9;
+
+$whiteColor: #FFF;
+$grayColor: #F2F2F2;
+$darkGrayColor: #333;
+$lightBlueColor: #4183C4;
+$activeLinkColor: #4078C0;
+$greenTextColor: #39AEC6;
+$greenBgColor: #76C7D7;
+
+$lightColor: #e9e9e9;
+$mediumestColor: #666;
+$mediumColor: #484848;
+$darkColor: #2d2d2d;
+$darkestColor: #222222;
+//$blueColor: #61dafb;
+$blueColor: #61dafb;
+$orangeColor: complement($blueColor);
+
+$lightTextColor: #fafafa;
+$mediumTextColor: #aaa;
+$darkTextColor: $mediumColor;
+
+$buttonBlueTop: #77a3d2;
+$buttonBlueBottom: #4783c2;
+$buttonGreyTop: #9a9a9a;
+$buttonGreyBottom: #646464;
+

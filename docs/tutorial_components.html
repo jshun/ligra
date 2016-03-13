@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Tutorial: Connected Components</title>
+  <meta name="description" content="A Lightweight Graph Processing Framework for Shared Memory">
+
+  <link rel="stylesheet" href="/ligra/css/main.css">
+  <link rel="stylesheet" href="/ligra/css/syntax.css">
+
+  <link rel="canonical" href="http://laxmandhulipala.github.io/ligra/docs/tutorial_components.html">
+  <link rel="alternate" type="application/rss+xml" title="" href="http://laxmandhulipala.github.io/ligra/feed.xml">
+
+
+  <script src="//use.typekit.net/vqa1hcx.js"></script>
+  <script>try{Typekit.load();}catch(e){}</script>
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+        processEscapes: true
+      }
+    });
+  </script>
+
+  <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+</head>
+
+
+ <body>
+
+    <div class="container">
+
+    <div class="nav-main">
+  <div class="wrap">
+    <a class="nav-home" href="/ligra/index.html">
+      Ligra 
+    </a>
+    <ul class="nav-site nav-site-internal">
+      <li><a href="/ligra/docs/introduction.html" class="active">Docs</a></li>
+      <li><a href="/ligra/downloads.html">Download</a></li>
+    </ul>
+
+    <ul class="nav-site nav-site-external">
+      <li><a href="https://github.com/jshun/ligra">GitHub</a></li>
+    </ul>
+  </div>
+</div>
+
+
+    
+
+    <section class="content wrap documentationContent">
+  <div class="nav-docs">
+  <!-- Docs Nav -->
+  
+  <div class="nav-docs-section">
+      <h3></h3>
+      <ul>
+        
+          <li>
+            <a href="/ligra/docs/introduction.html">Introduction</a>
+            
+          </li>
+        
+          <li>
+            <a href="/ligra/docs/getting_started.html">Getting Started</a>
+            
+          </li>
+        
+          <li>
+            <a href="/ligra/docs/tutorial_bfs.html">Tutorial: BFS</a>
+            
+          </li>
+        
+          <li>
+            <a href="/ligra/docs/tutorial_kcore.html">Tutorial: KCore</a>
+            
+          </li>
+        
+          <li>
+            <a href="/ligra/docs/api.html">API</a>
+            
+              <ul>
+                
+                  <li>
+                    <a href="/ligra/docs/vertex.html">Vertex</a>
+                  </li>
+                
+                  <li>
+                    <a href="/ligra/docs/graph.html">Graph</a>
+                  </li>
+                
+              </ul>
+            
+          </li>
+        
+          <li>
+            <a href="/ligra/docs/running_code.html">Running Code</a>
+            
+          </li>
+        
+          <li>
+            <a href="/ligra/docs/examples.html">Examples</a>
+            
+          </li>
+        
+      </ul>
+    </div>
+  
+</div>
+
+
+  <div class="inner-content">
+    <h1>
+      Tutorial: Connected Components
+    </h1>
+    <div class="subHeader"></div>
+
+    <p>In this project we will build a simple application to compute
+the connected components of a graph. Given an undirected graph 
+$G = (V, E)$  the connected components problem is to compute a 
+map $f : V \rightarrow \mathbb{N}$ s.t. for $u,v \in V$, $f(v) = f(u)$ 
+if and only if $v$ and $u$ are in the same component. Two vertices
+are in the same component if there exists a path between them. 
+This is an intuitive, and fundamental problem on graphs that appears
+as a subroutine for many other algorithms in numerous areas such
+as computer vision and data mining.</p>
+<h3><a class="anchor" name="a-simple-connectivity-algorithm"></a>A simple connectivity algorithm <a class="hash-link" href="#a-simple-connectivity-algorithm">#</a></h3>
+<p>A simple algorithm for connectivity goes as follows. Initially, every
+vertex is a part of a component containing just itself. We identify a
+component with a <em>label</em> and the label of vertex $v$ is just $v$. In 
+each step of the algorithm, every $v \in V$ scans its neighbors and sets
+its value to be the minimum over all of its neighbors labels. The algorithm
+is to just apply this step until no vertex labels change in an iteration. </p>
+<h3><a class="anchor" name="implementation"></a>Implementation <a class="hash-link" href="#implementation">#</a></h3>
+<p>Open up a new file, <code>Components.C</code>, and enter in the following stub. </p>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="cp">#include &quot;ligra.h&quot;</span>
+<span class="k">template</span> <span class="o">&lt;</span><span class="k">class</span> <span class="nc">vertex</span><span class="o">&gt;</span>
+<span class="kt">void</span> <span class="n">Compute</span><span class="p">(</span><span class="n">graph</span><span class="o">&lt;</span><span class="n">vertex</span><span class="o">&gt;&amp;</span> <span class="n">GA</span><span class="p">,</span> <span class="n">commandLine</span> <span class="n">P</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">long</span> <span class="n">n</span> <span class="o">=</span> <span class="n">GA</span><span class="p">.</span><span class="n">n</span><span class="p">;</span>
+  <span class="kt">long</span><span class="o">*</span> <span class="n">IDs</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">long</span><span class="p">[</span><span class="n">n</span><span class="p">];</span> 
+  <span class="p">{</span><span class="n">parallel_for</span><span class="p">(</span><span class="kt">long</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">i</span><span class="o">&lt;</span><span class="n">n</span><span class="p">;</span><span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="n">IDs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span><span class="p">;}</span> <span class="c1">//initialize unique IDs</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>The simple connectivity algorithm we described is actually a special case
+of a <em>label-propagation</em> algorithm. We could implement a version where in 
+each iteration, every vertex checks its neighbors, but this is wasteful. 
+Instead, we should only have vertices that have changed their labels in 
+the current round be active in the next round. Initially, we don&#39;t have this
+information, so we set everyone to be active. </p>
+
+<p>Add the following code to the end of <code>Compute</code>. </p>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp">  <span class="kt">bool</span><span class="o">*</span> <span class="n">frontier</span> <span class="o">=</span> <span class="n">newA</span><span class="p">(</span><span class="kt">bool</span><span class="p">,</span><span class="n">n</span><span class="p">);</span>
+  <span class="p">{</span><span class="n">parallel_for</span><span class="p">(</span><span class="kt">long</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">i</span><span class="o">&lt;</span><span class="n">n</span><span class="p">;</span><span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="n">frontier</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;}</span> 
+  <span class="n">vertexSubset</span> <span class="n">Frontier</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="n">frontier</span><span class="p">);</span> <span class="c1">//initial frontier contains all vertices</span>
+
+  <span class="k">while</span><span class="p">(</span><span class="o">!</span><span class="n">Frontier</span><span class="p">.</span><span class="n">isEmpty</span><span class="p">()){</span> <span class="c1">//iterate until IDS converge</span>
+    <span class="c1">// TODO</span>
+  <span class="p">}</span>
+</code></pre></div>
+<p>The loop termination condition in this app is simple: it just checks that 
+the frontier is non-empty. Inside of the loop, we need to examine all of
+the out-edges for each vertex in the frontier and see if we can lower the 
+label of a neighbor. If this is possible, we should (1) lower the label and 
+(2) place our neighbor in the next frontier. </p>
+
+<p>To do this, we will need to use an <code>edgeMap</code>, and pass in the following 
+function. </p>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="k">struct</span> <span class="n">CC_F</span> <span class="p">{</span>
+  <span class="kt">long</span><span class="o">*</span> <span class="n">IDs</span><span class="p">;</span>
+  <span class="n">CC_F</span><span class="p">(</span><span class="kt">long</span><span class="o">*</span> <span class="n">_IDs</span><span class="p">)</span> <span class="o">:</span> <span class="n">IDs</span><span class="p">(</span><span class="n">_IDs</span><span class="p">)</span> <span class="p">{}</span>
+  <span class="kr">inline</span> <span class="kt">bool</span> <span class="n">updateAtomic</span> <span class="p">(</span><span class="kt">long</span> <span class="n">s</span><span class="p">,</span> <span class="kt">long</span> <span class="n">d</span><span class="p">)</span> <span class="p">{</span> <span class="c1">//atomic Update</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">writeMin</span><span class="p">(</span><span class="o">&amp;</span><span class="n">IDs</span><span class="p">[</span><span class="n">d</span><span class="p">],</span> <span class="n">IDs</span><span class="p">[</span><span class="n">s</span><span class="p">]));</span>
+  <span class="p">}</span>
+  <span class="kr">inline</span> <span class="kt">bool</span> <span class="n">update</span><span class="p">(</span><span class="kt">long</span> <span class="n">s</span><span class="p">,</span> <span class="kt">long</span> <span class="n">d</span><span class="p">){</span> 
+    <span class="k">return</span> <span class="n">updateAtomic</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">d</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="kr">inline</span> <span class="kt">bool</span> <span class="n">cond</span> <span class="p">(</span><span class="kt">long</span> <span class="n">d</span><span class="p">)</span> <span class="p">{</span> 
+    <span class="n">reutrn</span> <span class="n">cond_true</span><span class="p">(</span><span class="n">d</span><span class="p">);</span> <span class="c1">//does nothing</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+</code></pre></div>
+<p>The final step is to fill in the remaining loop logic. All we should do is 
+apply the <code>edgeMap</code> with <code>CC_F</code> and set the new frontier to be the output 
+of the <code>edgeMap</code>. The finished application should like:</p>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="cp">#include &quot;ligra.h&quot;</span>
+
+<span class="k">struct</span> <span class="n">CC_F</span> <span class="p">{</span>
+  <span class="kt">long</span><span class="o">*</span> <span class="n">IDs</span><span class="p">;</span>
+  <span class="n">CC_F</span><span class="p">(</span><span class="kt">long</span><span class="o">*</span> <span class="n">_IDs</span><span class="p">)</span> <span class="o">:</span> <span class="n">IDs</span><span class="p">(</span><span class="n">_IDs</span><span class="p">)</span> <span class="p">{}</span>
+  <span class="kr">inline</span> <span class="kt">bool</span> <span class="n">updateAtomic</span> <span class="p">(</span><span class="kt">long</span> <span class="n">s</span><span class="p">,</span> <span class="kt">long</span> <span class="n">d</span><span class="p">)</span> <span class="p">{</span> <span class="c1">//atomic Update</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">writeMin</span><span class="p">(</span><span class="o">&amp;</span><span class="n">IDs</span><span class="p">[</span><span class="n">d</span><span class="p">],</span> <span class="n">IDs</span><span class="p">[</span><span class="n">s</span><span class="p">]));</span>
+  <span class="p">}</span>
+  <span class="kr">inline</span> <span class="kt">bool</span> <span class="n">update</span><span class="p">(</span><span class="kt">long</span> <span class="n">s</span><span class="p">,</span> <span class="kt">long</span> <span class="n">d</span><span class="p">){</span> 
+    <span class="k">return</span> <span class="n">updateAtomic</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">d</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="kr">inline</span> <span class="kt">bool</span> <span class="n">cond</span> <span class="p">(</span><span class="kt">long</span> <span class="n">d</span><span class="p">)</span> <span class="p">{</span> 
+    <span class="n">reutrn</span> <span class="n">cond_true</span><span class="p">(</span><span class="n">d</span><span class="p">);</span> <span class="c1">//does nothing</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+
+<span class="k">template</span> <span class="o">&lt;</span><span class="k">class</span> <span class="nc">vertex</span><span class="o">&gt;</span>
+<span class="kt">void</span> <span class="n">Compute</span><span class="p">(</span><span class="n">graph</span><span class="o">&lt;</span><span class="n">vertex</span><span class="o">&gt;&amp;</span> <span class="n">GA</span><span class="p">,</span> <span class="n">commandLine</span> <span class="n">P</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">long</span> <span class="n">n</span> <span class="o">=</span> <span class="n">GA</span><span class="p">.</span><span class="n">n</span><span class="p">;</span>
+  <span class="kt">long</span><span class="o">*</span> <span class="n">IDs</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">long</span><span class="p">[</span><span class="n">n</span><span class="p">];</span> 
+  <span class="p">{</span><span class="n">parallel_for</span><span class="p">(</span><span class="kt">long</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">i</span><span class="o">&lt;</span><span class="n">n</span><span class="p">;</span><span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="n">IDs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span><span class="p">;}</span> <span class="c1">//initialize unique IDs</span>
+
+  <span class="kt">bool</span><span class="o">*</span> <span class="n">frontier</span> <span class="o">=</span> <span class="n">newA</span><span class="p">(</span><span class="kt">bool</span><span class="p">,</span><span class="n">n</span><span class="p">);</span>
+  <span class="p">{</span><span class="n">parallel_for</span><span class="p">(</span><span class="kt">long</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">i</span><span class="o">&lt;</span><span class="n">n</span><span class="p">;</span><span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="n">frontier</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;}</span> 
+  <span class="n">vertexSubset</span> <span class="n">Frontier</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="n">frontier</span><span class="p">);</span> <span class="c1">//initial frontier contains all vertices</span>
+
+  <span class="k">while</span><span class="p">(</span><span class="o">!</span><span class="n">Frontier</span><span class="p">.</span><span class="n">isEmpty</span><span class="p">()){</span> <span class="c1">//iterate until IDS converge</span>
+    <span class="n">vertexSubset</span> <span class="n">output</span> <span class="o">=</span> <span class="n">edgeMap</span><span class="p">(</span><span class="n">GA</span><span class="p">,</span> <span class="n">Frontier</span><span class="p">,</span> <span class="n">CC_F</span><span class="p">(</span><span class="n">IDs</span><span class="p">),</span>
+                  <span class="n">GA</span><span class="p">.</span><span class="n">m</span><span class="o">/</span><span class="mi">20</span><span class="p">,</span><span class="n">DENSE</span><span class="p">,</span><span class="nb">true</span><span class="p">);</span> <span class="c1">//tells edgemap to remove duplicates</span>
+    <span class="n">Frontier</span><span class="p">.</span><span class="n">del</span><span class="p">();</span>
+    <span class="n">Frontier</span> <span class="o">=</span> <span class="n">output</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="n">Frontier</span><span class="p">.</span><span class="n">del</span><span class="p">();</span> <span class="n">free</span><span class="p">(</span><span class="n">IDs</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div><h3><a class="anchor" name="compilation"></a>Compilation <a class="hash-link" href="#compilation">#</a></h3>
+<p>You can compile your algorithm by adding it to the Ligra <code>Makefile</code>. Open up the
+<code>Makefile</code> in the <code>apps/</code> directory in your editor, and change the definition of
+<code>ALL</code> to:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nv">ALL</span><span class="o">=</span> Components encoder ... <span class="o">(</span>other apps<span class="o">)</span> ...
+</code></pre></div>
+<p>Now, compile the application by running <code>make</code>, which will produce a binary called 
+<code>Components</code>.</p>
+<h3><a class="anchor" name="testing"></a>Testing <a class="hash-link" href="#testing">#</a></h3>
+<p>Let&#39;s run our program on one of the test-inputs provided by ligra in the <code>inputs/</code>
+directory. Note that the <code>-s</code> flag tells Ligra that the graph is symmetric (undirected). </p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">./Components -s -start 1 ../inputs/rMatGraph_J_5_100
+Running time : 0.000956
+Running time : 0.000518
+Running time : 0.000439
+</code></pre></div>
+
+    <div class="docs-prevnext">
+      
+        <a class="docs-prev" href="/ligra/docs/tutorial_kcore.html">&larr; Prev</a>
+      
+      
+        <a class="docs-next" href="/ligra/docs/api.html">Next &rarr;</a>
+      
+    </div>
+  </div>
+</section>
+
+
+    <footer class="wrap">
+<!--  <div class="left">
+    Built by <br>
+  </div> -->
+<!--  <div class="right">
+    &copy; 2016 Julian Shun<br>
+    MIT Licensed.
+  </div> -->
+</footer>
+
+
+<!--
+<footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading"></h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li></li>
+          <li><a href="mailto:dummy@cs.cmu.edu">dummy@cs.cmu.edu</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <ul class="social-media-list">
+          
+          <li>
+            <a href="https://github.com/laxmandhulipala"><span class="icon icon--github"><svg viewBox="0 0 16 16"><path fill="#828282" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761 c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32 c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472 c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037 C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65 c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261 c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082 c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129 c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/></svg>
+</span><span class="username">laxmandhulipala</span></a>
+
+          </li>
+          
+
+          
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-3">
+        <p>A Lightweight Graph Processing Framework for Shared Memory</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+-->
+
+
+  </div>
+
+  </body>
+
+</html>

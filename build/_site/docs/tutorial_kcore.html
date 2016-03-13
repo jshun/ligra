@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Tutorial: KCore</title>
+  <meta name="description" content="A Lightweight Graph Processing Framework for Shared Memory">
+
+  <link rel="stylesheet" href="/ligra/css/main.css">
+  <link rel="stylesheet" href="/ligra/css/syntax.css">
+
+  <link rel="canonical" href="http://jshun.github.io/ligra/docs/tutorial_kcore.html">
+  <link rel="alternate" type="application/rss+xml" title="" href="http://jshun.github.io/ligra/feed.xml">
+
+
+  <script src="//use.typekit.net/vqa1hcx.js"></script>
+  <script>try{Typekit.load();}catch(e){}</script>
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+        processEscapes: true
+      }
+    });
+  </script>
+
+  <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+</head>
+
+
+ <body>
+
+    <div class="container">
+
+    <div class="nav-main">
+  <div class="wrap">
+    <a class="nav-home" href="/ligra/index.html">
+      Ligra 
+    </a>
+    <ul class="nav-site nav-site-internal">
+      <li><a href="/ligra/docs/introduction.html" class="active">Docs</a></li>
+      <li><a href="/ligra/downloads.html">Download</a></li>
+    </ul>
+
+    <ul class="nav-site nav-site-external">
+      <li><a href="https://github.com/jshun/ligra">GitHub</a></li>
+    </ul>
+  </div>
+</div>
+
+
+    
+
+    <section class="content wrap documentationContent">
+  <div class="nav-docs">
+  <!-- Docs Nav -->
+  
+  <div class="nav-docs-section">
+      <h3></h3>
+      <ul>
+        
+          <li>
+            <a href="/ligra/docs/introduction.html">Introduction</a>
+            
+          </li>
+        
+          <li>
+            <a href="/ligra/docs/getting_started.html">Getting Started</a>
+            
+          </li>
+        
+          <li>
+            <a href="/ligra/docs/tutorial_bfs.html">Tutorial: BFS</a>
+            
+          </li>
+        
+          <li>
+            <a href="/ligra/docs/tutorial_kcore.html" class="active">Tutorial: KCore</a>
+            
+          </li>
+        
+          <li>
+            <a href="/ligra/docs/api.html">API</a>
+            
+              <ul>
+                
+                  <li>
+                    <a href="/ligra/docs/vertex.html">Vertex</a>
+                  </li>
+                
+                  <li>
+                    <a href="/ligra/docs/graph.html">Graph</a>
+                  </li>
+                
+              </ul>
+            
+          </li>
+        
+          <li>
+            <a href="/ligra/docs/running_code.html">Running Code</a>
+            
+          </li>
+        
+          <li>
+            <a href="/ligra/docs/examples.html">Examples</a>
+            
+          </li>
+        
+      </ul>
+    </div>
+  
+</div>
+
+
+  <div class="inner-content">
+    <h1>
+      Tutorial: KCore
+    </h1>
+    <div class="subHeader"></div>
+
+    <p>At this point, you should be familiar with some of the basic features 
+of Ligra such as the <code>vertexSubset</code> datatype and core parts of the API
+such as <code>edgeMap</code>. For examples of how to use this, please refer to either
+the <a href="/ligra/docs/tutorial_bfs.html">previous tutorial</a> or the <a href="/ligra/api.html">API reference</a>. </p>
+
+<p>In this tutorial, we will introduce and use other parts of the core API such
+as <code>vertexFilter</code> in order to compute the <em>k-core</em> of a graph. Given 
+$G = (V, E)$ the $k$-core of $G$ is the maximal set of vertices $S \subset V$
+s.t. the degree for $v \in S$ in $G[S]$ (the induced subgraph of $G$ over $S$) 
+is at least $k$. These objects have been useful in the study of <em>social networks</em>
+and <em>bioinformatics</em>, and have natural applications in the visualization of 
+complex networks. </p>
+
+<p>In the $k$-core problem, our goal will be to produce a map, $f : V \rightarrow \mathbb{N}$
+s.t. for $v \in V$, $f(v)$ is the maximum core that $v$ is a part of. We refer to 
+$f(v)$ as the core-number of $v$. A commonly used measure is the <em>degeneracy</em> of 
+a graph, which is just the maximum non-empty core that $G$ supports. </p>
+<h3><a class="anchor" name="a-simple-algorithm"></a>A simple algorithm <a class="hash-link" href="#a-simple-algorithm">#</a></h3>
+<p>Here&#39;s a simple algorithm for computing the $k$-cores of a graph. Our goal
+is to produce an array <code>cores</code> that contains the core-number for each vertex. 
+Initialize $k$ to be 1. Initially, all vertices are active. Check all active 
+vertices, and remove any with induced degree less than $k$. Continue this process 
+until no vertices are left. By definition, this is the $k$-core of the graph. 
+For any vertices $v \in V$ removed during this step, set <code>cores[v] = k-1</code>. 
+Decrement the induced degree of all neighbors of removed vertices. Increment 
+$k$ and continue until there are no more active vertices. </p>
+<h3><a class="anchor" name="implementing-the-simple-algorithm"></a>Implementing the simple algorithm <a class="hash-link" href="#implementing-the-simple-algorithm">#</a></h3>
+<p>Let&#39;s get started! <code>cd</code> into the <code>tutorial/</code> directory and open up the file
+called <code>KCore.C</code>. </p>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="cp">#include &quot;ligra.h&quot;</span>
+
+<span class="k">template</span> <span class="o">&lt;</span><span class="k">class</span> <span class="nc">vertex</span><span class="o">&gt;</span>
+<span class="kt">void</span> <span class="n">Compute</span><span class="p">(</span><span class="n">graph</span><span class="o">&lt;</span><span class="n">vertex</span><span class="o">&gt;&amp;</span> <span class="n">GA</span><span class="p">,</span> <span class="n">commandLine</span> <span class="n">P</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">const</span> <span class="kt">long</span> <span class="n">n</span> <span class="o">=</span> <span class="n">GA</span><span class="p">.</span><span class="n">n</span><span class="p">;</span> 
+  <span class="kt">bool</span><span class="o">*</span> <span class="n">active</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">bool</span><span class="p">[</span><span class="n">n</span><span class="p">];</span>
+  <span class="p">{</span><span class="n">parallel_for</span><span class="p">(</span><span class="kt">long</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">i</span><span class="o">&lt;</span><span class="n">n</span><span class="p">;</span><span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="n">active</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;}</span>
+  <span class="n">vertexSubset</span> <span class="n">Frontier</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">active</span><span class="p">);</span>
+  <span class="kt">long</span><span class="o">*</span> <span class="n">coreNumbers</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">long</span><span class="p">[</span><span class="n">n</span><span class="p">];</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Last time we explicitly created a <code>vertexSubset</code>, we used a constructor that took a single
+vertex, $v$ and produced the subset ${s}$. The default representation of such a small subset
+is <em>sparse</em>. Here, we are creating a <em>dense</em> <code>vertexSubset</code>. The difference is that a <code>sparse</code>
+subset will represent a subset of size $k$ using an array containing $k$ vertex-ids, but a 
+<code>dense</code> representation will just use an array of $n$ bits. For large subsets that are roughly
+$O(n)$, the dense implementation will be more space efficient, and will allow us to decide 
+membership in a subset in $O(1)$. </p>
+
+<p>We also need to keep around an array containing the induced degrees of vertices. </p>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp">  <span class="kt">long</span><span class="o">*</span> <span class="n">Degrees</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">long</span><span class="p">[</span><span class="n">n</span><span class="p">];</span> 
+  <span class="n">parallel_for</span><span class="p">(</span><span class="kt">long</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">i</span><span class="o">&lt;</span><span class="n">n</span><span class="p">;</span><span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">coreNumbers</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="n">Degrees</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">GA</span><span class="p">.</span><span class="n">V</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">getOutDegree</span><span class="p">();</span>
+  <span class="p">}</span>
+  <span class="kt">long</span> <span class="n">largestCore</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span> 
+</code></pre></div><h3><a class="anchor" name="filtering-vertices"></a>Filtering vertices <a class="hash-link" href="#filtering-vertices">#</a></h3>
+<p>Great! We now need to implement the logic that separates a <code>vertexSubset</code>
+into two sets:  vertices with degree $&lt; k$ and vertices with induced degree 
+$\geq k$. In order to do this, we will use a new part of the Ligra API:
+<code>vertexFilter</code>, which takes as input  a <code>vertexSubset</code> and a function 
+that, given the id of a vertex, determines whether the vertex should be 
+included in the returned vertexSubset or not. The function has the following 
+signature: </p>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="k">template</span> <span class="o">&lt;</span><span class="k">class</span> <span class="nc">F</span><span class="o">&gt;</span>
+<span class="n">vertexSubset</span> <span class="n">vertexFilter</span><span class="p">(</span><span class="n">vertexSubset</span> <span class="n">V</span><span class="p">,</span> <span class="n">F</span> <span class="n">filter</span><span class="p">);</span>
+</code></pre></div>
+<p>We need to supply it with a structure that is callable on values of the 
+vertex-id type (in our case, <code>long</code>). We need to overload the <code>()</code> operator
+for the structure for a <code>long</code> argument. The most basic structure that
+can be passed to <code>vertexFilter</code> is:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">struct Vertex_F {
+  inline bool operator () (long i) {
+    return true;
+  }
+};
+</code></pre></div>
+<p>Note that this leaves the input vertexSubset unchanged. We implement 
+the structure to produce a <code>vertexSubset</code> containing vertices with degree 
+$&gt;= k$ as follows:</p>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">vertex</span><span class="o">&gt;</span>
+<span class="k">struct</span> <span class="n">Deg_AtLeast_K</span> <span class="p">{</span>
+  <span class="n">vertex</span><span class="o">*</span> <span class="n">V</span><span class="p">;</span>
+  <span class="kt">long</span> <span class="o">*</span><span class="n">Degrees</span><span class="p">;</span>
+  <span class="kt">long</span> <span class="n">k</span><span class="p">;</span>
+  <span class="n">Deg_AtLeast_K</span><span class="p">(</span><span class="n">vertex</span><span class="o">*</span> <span class="n">_V</span><span class="p">,</span> <span class="kt">long</span><span class="o">*</span> <span class="n">_Degrees</span><span class="p">,</span> <span class="kt">long</span> <span class="n">_k</span><span class="p">)</span> <span class="o">:</span> 
+    <span class="n">V</span><span class="p">(</span><span class="n">_V</span><span class="p">),</span> <span class="n">k</span><span class="p">(</span><span class="n">_k</span><span class="p">),</span> <span class="n">Degrees</span><span class="p">(</span><span class="n">_Degrees</span><span class="p">)</span> <span class="p">{}</span>
+  <span class="kr">inline</span> <span class="kt">bool</span> <span class="k">operator</span> <span class="p">()</span> <span class="p">(</span><span class="kt">long</span> <span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">Degrees</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">k</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+</code></pre></div>
+<p>The following structure will filter all vertices with degree $&lt; k$. As vertices
+that satisfy this predicate are removed, we have to do some bookkeeping. In 
+particular we </p>
+
+<ul>
+<li>set their core-number to $k-1$</li>
+<li>set their induced degree to $0$. </li>
+</ul>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">vertex</span><span class="o">&gt;</span>
+<span class="k">struct</span> <span class="n">Deg_LessThan_K</span> <span class="p">{</span>
+  <span class="n">vertex</span><span class="o">*</span> <span class="n">V</span><span class="p">;</span>
+  <span class="kt">long</span><span class="o">*</span> <span class="n">coreNumbers</span><span class="p">;</span>
+  <span class="kt">long</span><span class="o">*</span> <span class="n">Degrees</span><span class="p">;</span>
+  <span class="kt">long</span> <span class="n">k</span><span class="p">;</span>
+  <span class="n">Deg_LessThan_K</span><span class="p">(</span><span class="n">vertex</span><span class="o">*</span> <span class="n">_V</span><span class="p">,</span> <span class="kt">long</span><span class="o">*</span> <span class="n">_Degrees</span><span class="p">,</span> <span class="kt">long</span><span class="o">*</span> <span class="n">_coreNumbers</span><span class="p">,</span> <span class="kt">long</span> <span class="n">_k</span><span class="p">)</span> <span class="o">:</span> 
+    <span class="n">V</span><span class="p">(</span><span class="n">_V</span><span class="p">),</span> <span class="n">k</span><span class="p">(</span><span class="n">_k</span><span class="p">),</span> <span class="n">Degrees</span><span class="p">(</span><span class="n">_Degrees</span><span class="p">),</span> <span class="n">coreNumbers</span><span class="p">(</span><span class="n">_coreNumbers</span><span class="p">)</span> <span class="p">{</span> <span class="p">}</span>
+  <span class="kr">inline</span> <span class="kt">bool</span> <span class="k">operator</span> <span class="p">()</span> <span class="p">(</span><span class="kt">long</span> <span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">Degrees</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">k</span><span class="p">)</span> <span class="p">{</span> <span class="n">coreNumbers</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">k</span><span class="o">-</span><span class="mi">1</span><span class="p">;</span> <span class="n">Degrees</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="k">return</span> <span class="nb">true</span><span class="p">;</span> <span class="p">}</span>
+    <span class="k">else</span> <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+</code></pre></div><h3><a class="anchor" name="updating-induced-degrees"></a>Updating induced degrees <a class="hash-link" href="#updating-induced-degrees">#</a></h3>
+<p>The last part of the implementaiton is to update the induced degrees of the
+neighbors of removed vertices. We can do this by using <code>edgeMap</code>. We&#39;ll pass
+the following struct to <code>edgeMap</code>. </p>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="k">struct</span> <span class="n">Update_Deg</span> <span class="p">{</span>
+  <span class="kt">long</span><span class="o">*</span> <span class="n">Degrees</span><span class="p">;</span>
+  <span class="n">Update_Deg</span><span class="p">(</span><span class="kt">long</span><span class="o">*</span> <span class="n">_Degrees</span><span class="p">)</span> <span class="o">:</span> <span class="n">Degrees</span><span class="p">(</span><span class="n">_Degrees</span><span class="p">)</span> <span class="p">{}</span>
+  <span class="kr">inline</span> <span class="kt">bool</span> <span class="n">update</span> <span class="p">(</span><span class="kt">long</span> <span class="n">s</span><span class="p">,</span> <span class="kt">long</span> <span class="n">d</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">Degrees</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="n">Degrees</span><span class="p">[</span><span class="n">d</span><span class="p">]</span><span class="o">--</span><span class="p">;</span>
+    <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="kr">inline</span> <span class="kt">bool</span> <span class="n">updateAtomic</span> <span class="p">(</span><span class="kt">long</span> <span class="n">s</span><span class="p">,</span> <span class="kt">long</span> <span class="n">d</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">Degrees</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="n">writeAdd</span><span class="p">(</span><span class="o">&amp;</span><span class="n">Degrees</span><span class="p">[</span><span class="n">d</span><span class="p">],(</span><span class="kt">long</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+    <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="kr">inline</span> <span class="kt">bool</span> <span class="n">cond</span> <span class="p">(</span><span class="kt">long</span> <span class="n">d</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="n">cond_true</span><span class="p">(</span><span class="n">d</span><span class="p">);</span> <span class="p">}</span>
+<span class="p">};</span>
+</code></pre></div><h3><a class="anchor" name="putting-it-all-together"></a>Putting it all together <a class="hash-link" href="#putting-it-all-together">#</a></h3>
+<p>What should our loop do? Initially $k$ starts at one. We don&#39;t know what the
+<em>degeneracy</em> (recall, the maximum non-empty $k$-core) of the graph is, but have
+a simple upper bound of $n$. </p>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp">  <span class="k">for</span> <span class="p">(</span><span class="kt">long</span> <span class="n">k</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">k</span> <span class="o">&lt;=</span> <span class="n">n</span><span class="p">;</span> <span class="n">k</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// TODO</span>
+  <span class="p">}</span>
+</code></pre></div>
+<p>What should we do inside of the loop? Inductively assume that we&#39;ve computed the
+$k-1$ core, for some $1 &lt; k &lt; n$. In order to compute the $k$ core, we need to 
+keep filtering vertices with induced degree $&lt; k$ until either (1) there are
+no more vertices remaining in the graph or (2) all vertices have induced degree
+$&gt;= k$. In code:</p>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp">  <span class="k">for</span> <span class="p">(</span><span class="kt">long</span> <span class="n">k</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">k</span> <span class="o">&lt;=</span> <span class="n">n</span><span class="p">;</span> <span class="n">k</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">while</span> <span class="p">(</span><span class="nb">true</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">vertexSubset</span> <span class="n">toRemove</span> <span class="o">=</span>
+        <span class="n">vertexFilter</span><span class="p">(</span><span class="n">Frontier</span><span class="p">,</span><span class="n">Deg_LessThan_K</span><span class="o">&lt;</span><span class="n">vertex</span><span class="o">&gt;</span><span class="p">(</span><span class="n">GA</span><span class="p">.</span><span class="n">V</span><span class="p">,</span><span class="n">Degrees</span><span class="p">,</span><span class="n">coreNumbers</span><span class="p">,</span><span class="n">k</span><span class="p">));</span>
+      <span class="n">vertexSubset</span> <span class="n">remaining</span> <span class="o">=</span> 
+        <span class="n">vertexFilter</span><span class="p">(</span><span class="n">Frontier</span><span class="p">,</span><span class="n">Deg_AtLeast_K</span><span class="o">&lt;</span><span class="n">vertex</span><span class="o">&gt;</span><span class="p">(</span><span class="n">GA</span><span class="p">.</span><span class="n">V</span><span class="p">,</span><span class="n">Degrees</span><span class="p">,</span><span class="n">k</span><span class="p">));</span>
+      <span class="n">Frontier</span><span class="p">.</span><span class="n">del</span><span class="p">();</span>
+      <span class="n">Frontier</span> <span class="o">=</span> <span class="n">remaining</span><span class="p">;</span>
+      <span class="k">if</span> <span class="p">(</span><span class="mi">0</span> <span class="o">==</span> <span class="n">toRemove</span><span class="p">.</span><span class="n">numNonzeros</span><span class="p">())</span> <span class="p">{</span> <span class="c1">// fixed point. found k-core</span>
+        <span class="n">toRemove</span><span class="p">.</span><span class="n">del</span><span class="p">();</span>
+        <span class="k">break</span><span class="p">;</span>
+      <span class="p">}</span>
+      <span class="k">else</span> <span class="p">{</span>
+        <span class="n">vertexSubset</span> <span class="n">output</span> <span class="o">=</span> <span class="n">edgeMap</span><span class="p">(</span><span class="n">GA</span><span class="p">,</span><span class="n">toRemove</span><span class="p">,</span><span class="n">Update_Deg</span><span class="p">(</span><span class="n">Degrees</span><span class="p">));</span>
+        <span class="n">toRemove</span><span class="p">.</span><span class="n">del</span><span class="p">();</span> <span class="n">output</span><span class="p">.</span><span class="n">del</span><span class="p">();</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">Frontier</span><span class="p">.</span><span class="n">numNonzeros</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span> <span class="n">largestCore</span> <span class="o">=</span> <span class="n">k</span><span class="o">-</span><span class="mi">1</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span> <span class="p">}</span>
+  <span class="p">}</span>
+</code></pre></div><h3><a class="anchor" name="the-finished-application"></a>The finished application <a class="hash-link" href="#the-finished-application">#</a></h3><div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="cp">#include &quot;ligra.h&quot;</span>
+
+<span class="k">struct</span> <span class="n">Update_Deg</span> <span class="p">{</span>
+  <span class="kt">long</span><span class="o">*</span> <span class="n">Degrees</span><span class="p">;</span>
+  <span class="n">Update_Deg</span><span class="p">(</span><span class="kt">long</span><span class="o">*</span> <span class="n">_Degrees</span><span class="p">)</span> <span class="o">:</span> <span class="n">Degrees</span><span class="p">(</span><span class="n">_Degrees</span><span class="p">)</span> <span class="p">{}</span>
+  <span class="kr">inline</span> <span class="kt">bool</span> <span class="n">update</span> <span class="p">(</span><span class="kt">long</span> <span class="n">s</span><span class="p">,</span> <span class="kt">long</span> <span class="n">d</span><span class="p">)</span> <span class="p">{</span> 
+    <span class="k">if</span> <span class="p">(</span><span class="n">Degrees</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="n">Degrees</span><span class="p">[</span><span class="n">d</span><span class="p">]</span><span class="o">--</span><span class="p">;</span>
+    <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="kr">inline</span> <span class="kt">bool</span> <span class="n">updateAtomic</span> <span class="p">(</span><span class="kt">long</span> <span class="n">s</span><span class="p">,</span> <span class="kt">long</span> <span class="n">d</span><span class="p">){</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">Degrees</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="n">writeAdd</span><span class="p">(</span><span class="o">&amp;</span><span class="n">Degrees</span><span class="p">[</span><span class="n">d</span><span class="p">],</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+    <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="kr">inline</span> <span class="kt">bool</span> <span class="n">cond</span> <span class="p">(</span><span class="kt">long</span> <span class="n">d</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="n">cond_true</span><span class="p">(</span><span class="n">d</span><span class="p">);</span> <span class="p">}</span>
+<span class="p">};</span>
+
+<span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">vertex</span><span class="o">&gt;</span>
+<span class="k">struct</span> <span class="n">Deg_LessThan_K</span> <span class="p">{</span>
+  <span class="n">vertex</span><span class="o">*</span> <span class="n">V</span><span class="p">;</span>
+  <span class="kt">long</span><span class="o">*</span> <span class="n">coreNumbers</span><span class="p">;</span>
+  <span class="kt">long</span><span class="o">*</span> <span class="n">Degrees</span><span class="p">;</span>
+  <span class="kt">long</span> <span class="n">k</span><span class="p">;</span>
+  <span class="n">Deg_LessThan_K</span><span class="p">(</span><span class="n">vertex</span><span class="o">*</span> <span class="n">_V</span><span class="p">,</span> <span class="kt">long</span><span class="o">*</span> <span class="n">_Degrees</span><span class="p">,</span> <span class="kt">long</span><span class="o">*</span> <span class="n">_coreNumbers</span><span class="p">,</span> <span class="kt">long</span> <span class="n">_k</span><span class="p">)</span> <span class="o">:</span> 
+    <span class="n">V</span><span class="p">(</span><span class="n">_V</span><span class="p">),</span> <span class="n">k</span><span class="p">(</span><span class="n">_k</span><span class="p">),</span> <span class="n">Degrees</span><span class="p">(</span><span class="n">_Degrees</span><span class="p">),</span> <span class="n">coreNumbers</span><span class="p">(</span><span class="n">_coreNumbers</span><span class="p">)</span> <span class="p">{}</span>
+  <span class="kr">inline</span> <span class="kt">bool</span> <span class="k">operator</span> <span class="p">()</span> <span class="p">(</span><span class="kt">long</span> <span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">Degrees</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">k</span><span class="p">)</span> <span class="p">{</span> <span class="n">coreNumbers</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">k</span><span class="o">-</span><span class="mi">1</span><span class="p">;</span> <span class="n">Degrees</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="k">return</span> <span class="nb">true</span><span class="p">;</span> <span class="p">}</span>
+    <span class="k">else</span> <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+
+<span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">vertex</span><span class="o">&gt;</span>
+<span class="k">struct</span> <span class="n">Deg_AtLeast_K</span> <span class="p">{</span>
+  <span class="n">vertex</span><span class="o">*</span> <span class="n">V</span><span class="p">;</span>
+  <span class="kt">long</span> <span class="o">*</span><span class="n">Degrees</span><span class="p">;</span>
+  <span class="kt">long</span> <span class="n">k</span><span class="p">;</span>
+  <span class="n">Deg_AtLeast_K</span><span class="p">(</span><span class="n">vertex</span><span class="o">*</span> <span class="n">_V</span><span class="p">,</span> <span class="kt">long</span><span class="o">*</span> <span class="n">_Degrees</span><span class="p">,</span> <span class="kt">long</span> <span class="n">_k</span><span class="p">)</span> <span class="o">:</span> 
+    <span class="n">V</span><span class="p">(</span><span class="n">_V</span><span class="p">),</span> <span class="n">k</span><span class="p">(</span><span class="n">_k</span><span class="p">),</span> <span class="n">Degrees</span><span class="p">(</span><span class="n">_Degrees</span><span class="p">)</span> <span class="p">{}</span>
+  <span class="kr">inline</span> <span class="kt">bool</span> <span class="k">operator</span> <span class="p">()</span> <span class="p">(</span><span class="kt">long</span> <span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">Degrees</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">k</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+
+<span class="k">template</span> <span class="o">&lt;</span><span class="k">class</span> <span class="nc">vertex</span><span class="o">&gt;</span>
+<span class="kt">void</span> <span class="n">Compute</span><span class="p">(</span><span class="n">graph</span><span class="o">&lt;</span><span class="n">vertex</span><span class="o">&gt;&amp;</span> <span class="n">GA</span><span class="p">,</span> <span class="n">commandLine</span> <span class="n">P</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">const</span> <span class="kt">long</span> <span class="n">n</span> <span class="o">=</span> <span class="n">GA</span><span class="p">.</span><span class="n">n</span><span class="p">;</span>
+  <span class="kt">bool</span><span class="o">*</span> <span class="n">active</span> <span class="o">=</span> <span class="n">newA</span><span class="p">(</span><span class="kt">bool</span><span class="p">,</span><span class="n">n</span><span class="p">);</span>
+  <span class="p">{</span><span class="n">parallel_for</span><span class="p">(</span><span class="kt">long</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">i</span><span class="o">&lt;</span><span class="n">n</span><span class="p">;</span><span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="n">active</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;}</span>
+  <span class="n">vertexSubset</span> <span class="n">Frontier</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">active</span><span class="p">);</span>
+  <span class="kt">long</span><span class="o">*</span> <span class="n">coreNumbers</span> <span class="o">=</span> <span class="n">newA</span><span class="p">(</span><span class="kt">long</span><span class="p">,</span><span class="n">n</span><span class="p">);</span>
+  <span class="kt">long</span><span class="o">*</span> <span class="n">Degrees</span> <span class="o">=</span> <span class="n">newA</span><span class="p">(</span><span class="kt">long</span><span class="p">,</span><span class="n">n</span><span class="p">);</span>
+  <span class="p">{</span><span class="n">parallel_for</span><span class="p">(</span><span class="kt">long</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">i</span><span class="o">&lt;</span><span class="n">n</span><span class="p">;</span><span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">coreNumbers</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+      <span class="n">Degrees</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">GA</span><span class="p">.</span><span class="n">V</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">getOutDegree</span><span class="p">();</span>
+  <span class="p">}}</span>
+  <span class="kt">long</span> <span class="n">largestCore</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kt">long</span> <span class="n">k</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">k</span> <span class="o">&lt;=</span> <span class="n">n</span><span class="p">;</span> <span class="n">k</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">while</span> <span class="p">(</span><span class="nb">true</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">vertexSubset</span> <span class="n">toRemove</span> <span class="o">=</span> 
+        <span class="n">vertexFilter</span><span class="p">(</span><span class="n">Frontier</span><span class="p">,</span><span class="n">Deg_LessThan_K</span><span class="o">&lt;</span><span class="n">vertex</span><span class="o">&gt;</span><span class="p">(</span><span class="n">GA</span><span class="p">.</span><span class="n">V</span><span class="p">,</span><span class="n">Degrees</span><span class="p">,</span><span class="n">coreNumbers</span><span class="p">,</span><span class="n">k</span><span class="p">));</span>
+      <span class="n">vertexSubset</span> <span class="n">remaining</span> <span class="o">=</span> 
+        <span class="n">vertexFilter</span><span class="p">(</span><span class="n">Frontier</span><span class="p">,</span><span class="n">Deg_AtLeast_K</span><span class="o">&lt;</span><span class="n">vertex</span><span class="o">&gt;</span><span class="p">(</span><span class="n">GA</span><span class="p">.</span><span class="n">V</span><span class="p">,</span><span class="n">Degrees</span><span class="p">,</span><span class="n">k</span><span class="p">));</span>
+      <span class="n">Frontier</span><span class="p">.</span><span class="n">del</span><span class="p">();</span>
+      <span class="n">Frontier</span> <span class="o">=</span> <span class="n">remaining</span><span class="p">;</span>
+      <span class="k">if</span> <span class="p">(</span><span class="mi">0</span> <span class="o">==</span> <span class="n">toRemove</span><span class="p">.</span><span class="n">numNonzeros</span><span class="p">())</span> <span class="p">{</span> <span class="c1">// fixed point. found k-core</span>
+        <span class="n">toRemove</span><span class="p">.</span><span class="n">del</span><span class="p">();</span>
+        <span class="k">break</span><span class="p">;</span>
+      <span class="p">}</span>
+      <span class="k">else</span> <span class="p">{</span>
+        <span class="n">vertexSubset</span> <span class="n">output</span> <span class="o">=</span> <span class="n">edgeMap</span><span class="p">(</span><span class="n">GA</span><span class="p">,</span><span class="n">toRemove</span><span class="p">,</span><span class="n">Update_Deg</span><span class="p">(</span><span class="n">Degrees</span><span class="p">));</span>
+        <span class="n">toRemove</span><span class="p">.</span><span class="n">del</span><span class="p">();</span> <span class="n">output</span><span class="p">.</span><span class="n">del</span><span class="p">();</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">Frontier</span><span class="p">.</span><span class="n">numNonzeros</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span> <span class="n">largestCore</span> <span class="o">=</span> <span class="n">k</span><span class="o">-</span><span class="mi">1</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span> <span class="p">}</span>
+  <span class="p">}</span>
+  <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Degeneracy is &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">largestCore</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+  <span class="n">Frontier</span><span class="p">.</span><span class="n">del</span><span class="p">();</span> <span class="n">free</span><span class="p">(</span><span class="n">coreNumbers</span><span class="p">);</span> <span class="n">free</span><span class="p">(</span><span class="n">Degrees</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div><h3><a class="anchor" name="compilation"></a>Compilation <a class="hash-link" href="#compilation">#</a></h3>
+<p>Compile the application by running <code>make</code>, which will produce a binary called 
+<code>KCore</code>.</p>
+<h3><a class="anchor" name="testing"></a>Testing <a class="hash-link" href="#testing">#</a></h3>
+<p>Let&#39;s try computing the KCore of one of the input graphs. </p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">$ ./KCore -s ../inputs/rMatGraph_J_5_100
+largestCore was 4
+Running time : 0.00594
+largestCore was 4
+Running time : 0.00559
+largestCore was 4
+Running time : 0.0057
+</code></pre></div>
+<p>Great! You can try running the KCore on more interesting examples, such 
+as the twitter graph (note that <code>-b</code> indicates that the graph is stored
+as a binary, and <code>-rounds 1</code> indicates that the application should be run
+just once)</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">$ numactl -i all ./KCore -s -b -rounds 1 twitter_sym
+largestCore was 2488
+Running time : 280
+</code></pre></div>
+
+    <div class="docs-prevnext">
+      
+        <a class="docs-prev" href="/ligra/docs/tutorial_bfs.html">&larr; Prev</a>
+      
+      
+        <a class="docs-next" href="/ligra/docs/api.html">Next &rarr;</a>
+      
+    </div>
+  </div>
+</section>
+
+
+    <footer class="wrap">
+<!--  <div class="left">
+    Built by <br>
+  </div> -->
+<!--  <div class="right">
+    &copy; 2016 Julian Shun<br>
+    MIT Licensed.
+  </div> -->
+</footer>
+
+
+<!--
+<footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading"></h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li></li>
+          <li><a href="mailto:dummy@cs.cmu.edu">dummy@cs.cmu.edu</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <ul class="social-media-list">
+          
+          <li>
+            <a href="https://github.com/laxmandhulipala"><span class="icon icon--github"><svg viewBox="0 0 16 16"><path fill="#828282" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761 c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32 c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472 c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037 C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65 c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261 c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082 c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129 c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/></svg>
+</span><span class="username">laxmandhulipala</span></a>
+
+          </li>
+          
+
+          
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-3">
+        <p>A Lightweight Graph Processing Framework for Shared Memory</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+-->
+
+
+  </div>
+
+  </body>
+
+</html>

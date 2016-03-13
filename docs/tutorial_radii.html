@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Tutorial: Radii</title>
+  <meta name="description" content="A Lightweight Graph Processing Framework for Shared Memory">
+
+  <link rel="stylesheet" href="/ligra/css/main.css">
+  <link rel="stylesheet" href="/ligra/css/syntax.css">
+
+  <link rel="canonical" href="http://laxmandhulipala.github.io/ligra/docs/tutorial_radii.html">
+  <link rel="alternate" type="application/rss+xml" title="" href="http://laxmandhulipala.github.io/ligra/feed.xml">
+
+
+  <script src="//use.typekit.net/vqa1hcx.js"></script>
+  <script>try{Typekit.load();}catch(e){}</script>
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+        processEscapes: true
+      }
+    });
+  </script>
+
+  <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+</head>
+
+
+ <body>
+
+    <div class="container">
+
+    <div class="nav-main">
+  <div class="wrap">
+    <a class="nav-home" href="/ligra/index.html">
+      Ligra 
+    </a>
+    <ul class="nav-site nav-site-internal">
+      <li><a href="/ligra/docs/introduction.html" class="active">Docs</a></li>
+      <li><a href="/ligra/downloads.html">Download</a></li>
+    </ul>
+
+    <ul class="nav-site nav-site-external">
+      <li><a href="https://github.com/jshun/ligra">GitHub</a></li>
+    </ul>
+  </div>
+</div>
+
+
+    
+
+    <section class="content wrap documentationContent">
+  <div class="nav-docs">
+  <!-- Docs Nav -->
+  
+  <div class="nav-docs-section">
+      <h3></h3>
+      <ul>
+        
+          <li>
+            <a href="/ligra/docs/introduction.html">Introduction</a>
+            
+          </li>
+        
+          <li>
+            <a href="/ligra/docs/getting_started.html">Getting Started</a>
+            
+          </li>
+        
+          <li>
+            <a href="/ligra/docs/tutorial_bfs.html">Tutorial: BFS</a>
+            
+          </li>
+        
+          <li>
+            <a href="/ligra/docs/tutorial_kcore.html">Tutorial: KCore</a>
+            
+          </li>
+        
+          <li>
+            <a href="/ligra/docs/api.html">API</a>
+            
+              <ul>
+                
+                  <li>
+                    <a href="/ligra/docs/vertex.html">Vertex</a>
+                  </li>
+                
+                  <li>
+                    <a href="/ligra/docs/graph.html">Graph</a>
+                  </li>
+                
+              </ul>
+            
+          </li>
+        
+          <li>
+            <a href="/ligra/docs/running_code.html">Running Code</a>
+            
+          </li>
+        
+          <li>
+            <a href="/ligra/docs/examples.html">Examples</a>
+            
+          </li>
+        
+      </ul>
+    </div>
+  
+</div>
+
+
+  <div class="inner-content">
+    <h1>
+      Tutorial: Radii
+    </h1>
+    <div class="subHeader"></div>
+
+    <p>In this project we will build an application to compute the <em>Radii</em> of a 
+graph. </p>
+
+
+    <div class="docs-prevnext">
+      
+        <a class="docs-prev" href="/ligra/docs/tutorial_components.html">&larr; Prev</a>
+      
+      
+        <a class="docs-next" href="/ligra/docs/api.html">Next &rarr;</a>
+      
+    </div>
+  </div>
+</section>
+
+
+    <footer class="wrap">
+<!--  <div class="left">
+    Built by <br>
+  </div> -->
+<!--  <div class="right">
+    &copy; 2016 Julian Shun<br>
+    MIT Licensed.
+  </div> -->
+</footer>
+
+
+<!--
+<footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading"></h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li></li>
+          <li><a href="mailto:dummy@cs.cmu.edu">dummy@cs.cmu.edu</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <ul class="social-media-list">
+          
+          <li>
+            <a href="https://github.com/laxmandhulipala"><span class="icon icon--github"><svg viewBox="0 0 16 16"><path fill="#828282" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761 c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32 c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472 c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037 C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65 c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261 c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082 c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129 c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/></svg>
+</span><span class="username">laxmandhulipala</span></a>
+
+          </li>
+          
+
+          
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-3">
+        <p>A Lightweight Graph Processing Framework for Shared Memory</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+-->
+
+
+  </div>
+
+  </body>
+
+</html>

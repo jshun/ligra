@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Tutorial: Breadth-First Search</title>
+  <meta name="description" content="A Lightweight Graph Processing Framework for Shared Memory">
+
+  <link rel="stylesheet" href="/ligra/css/main.css">
+  <link rel="stylesheet" href="/ligra/css/syntax.css">
+
+  <link rel="canonical" href="http://jshun.github.io/ligra/docs/tutorial_bfs.html">
+  <link rel="alternate" type="application/rss+xml" title="" href="http://jshun.github.io/ligra/feed.xml">
+
+
+  <script src="//use.typekit.net/vqa1hcx.js"></script>
+  <script>try{Typekit.load();}catch(e){}</script>
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+        processEscapes: true
+      }
+    });
+  </script>
+
+  <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+
+</head>
+
+
+ <body>
+
+    <div class="container">
+
+    <div class="nav-main">
+  <div class="wrap">
+    <a class="nav-home" href="/ligra/index.html">
+      Ligra 
+    </a>
+    <ul class="nav-site nav-site-internal">
+      <li><a href="/ligra/docs/introduction.html" class="active">Docs</a></li>
+      <li><a href="/ligra/downloads.html">Download</a></li>
+    </ul>
+
+    <ul class="nav-site nav-site-external">
+      <li><a href="https://github.com/jshun/ligra">GitHub</a></li>
+    </ul>
+  </div>
+</div>
+
+
+    
+
+    <section class="content wrap documentationContent">
+  <div class="nav-docs">
+  <!-- Docs Nav -->
+  
+  <div class="nav-docs-section">
+      <h3></h3>
+      <ul>
+        
+          <li>
+            <a href="/ligra/docs/introduction.html">Introduction</a>
+            
+          </li>
+        
+          <li>
+            <a href="/ligra/docs/getting_started.html">Getting Started</a>
+            
+          </li>
+        
+          <li>
+            <a href="/ligra/docs/tutorial_bfs.html" class="active">Tutorial: BFS</a>
+            
+          </li>
+        
+          <li>
+            <a href="/ligra/docs/tutorial_kcore.html">Tutorial: KCore</a>
+            
+          </li>
+        
+          <li>
+            <a href="/ligra/docs/api.html">API</a>
+            
+              <ul>
+                
+                  <li>
+                    <a href="/ligra/docs/vertex.html">Vertex</a>
+                  </li>
+                
+                  <li>
+                    <a href="/ligra/docs/graph.html">Graph</a>
+                  </li>
+                
+              </ul>
+            
+          </li>
+        
+          <li>
+            <a href="/ligra/docs/running_code.html">Running Code</a>
+            
+          </li>
+        
+          <li>
+            <a href="/ligra/docs/examples.html">Examples</a>
+            
+          </li>
+        
+      </ul>
+    </div>
+  
+</div>
+
+
+  <div class="inner-content">
+    <h1>
+      Tutorial: Breadth-First Search
+    </h1>
+    <div class="subHeader"></div>
+
+    <p>In this project we&#39;ll implement a parallel version of Breadth-First Search in 
+Ligra. Given a graph, $G = (V,E)$, and a source node $s$, a Breadth-First Search 
+processes the graph level by level, starting from $s$. The output of the 
+algorithm is an array $A$ s.t. $\forall v \in V, A[v]$ holds the parent of $v$ in 
+the <em>breadth-first tree</em> rooted at $s$. </p>
+<h3><a class="anchor" name="writing-generic-graph-algorithms"></a>Writing generic graph algorithms <a class="hash-link" href="#writing-generic-graph-algorithms">#</a></h3>
+<p>One of the main goals of Ligra is to abstract away implementation specific details
+about how the graph is represented (Is the graph compressed/uncompressed? Is it
+directed/undirected?). The standard way of implementing an algorithm in Ligra is 
+to implement a method, <code>Compute</code>, which has the following signature: </p>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="k">template</span> <span class="o">&lt;</span><span class="k">class</span> <span class="nc">vertex</span><span class="o">&gt;</span>
+<span class="kt">void</span> <span class="n">Compute</span><span class="p">(</span><span class="n">graph</span><span class="o">&lt;</span><span class="n">vertex</span><span class="o">&gt;&amp;</span> <span class="n">G</span><span class="p">,</span> <span class="n">commandLine</span> <span class="n">P</span><span class="p">);</span>
+</code></pre></div>
+<p>To get started, cd into the <code>tutorial/</code> directory and open up the file <code>BFS.C</code>. 
+We will examine the code piece by piece.</p>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="cp">#inclde &quot;ligra.h&quot;</span>
+
+<span class="k">template</span> <span class="o">&lt;</span><span class="k">class</span> <span class="nc">vertex</span><span class="o">&gt;</span>
+<span class="kt">void</span> <span class="n">Compute</span><span class="p">(</span><span class="n">graph</span><span class="o">&lt;</span><span class="n">vertex</span><span class="o">&gt;&amp;</span> <span class="n">G</span><span class="p">,</span> <span class="n">commandLine</span> <span class="n">P</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">long</span> <span class="n">start</span> <span class="o">=</span> <span class="n">P</span><span class="p">.</span><span class="n">getOptionLongValue</span><span class="p">(</span><span class="s">&quot;-start&quot;</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span>
+  <span class="kt">long</span> <span class="n">n</span> <span class="o">=</span> <span class="n">GA</span><span class="p">.</span><span class="n">n</span><span class="p">;</span>
+  <span class="c1">//creates Parents array, initialized to all -1, except for start</span>
+  <span class="kt">long</span><span class="o">*</span> <span class="n">Parents</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">long</span><span class="p">[</span><span class="n">n</span><span class="p">];</span>
+  <span class="n">parallel_for</span><span class="p">(</span><span class="kt">long</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">i</span><span class="o">&lt;</span><span class="n">n</span><span class="p">;</span><span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="n">Parents</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+  <span class="n">Parents</span><span class="p">[</span><span class="n">start</span><span class="p">]</span> <span class="o">=</span> <span class="n">start</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>So far, we have set up the variables and data necessary for the algorithm. 
+We use <code>parallel_for</code> to initialize memory in parallel. This statement 
+is just a macro that is replaced by either a parallel loop if we are using 
+OpenMP or Cilk, or a standard for loop if OpenMP or CILK is unavailable. Note that 
+all memory we allocate in the body of <code>Compute</code>  must be explicitly freed 
+in order to prevent memory leaks.</p>
+<h3><a class="anchor" name="representing-a-frontier"></a>Representing a frontier <a class="hash-link" href="#representing-a-frontier">#</a></h3>
+<p>We can express a frontier generated by the BFS with the <strong><code>vertexSubset</code></strong> 
+datatype in Ligra, which lets us represent a subset of the vertices. Each level 
+of the  traversal will be represented by a <code>vertexSubset</code>. The initial 
+<code>vertexSubset</code>, is just a set containing our source node can be constructed 
+the following constructor</p>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="n">vertexSubset</span> <span class="nf">Frontier</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">source</span><span class="p">);</span> <span class="c1">// creates initial frontier</span>
+</code></pre></div><h3><a class="anchor" name="traversing-a-frontier"></a>Traversing a frontier <a class="hash-link" href="#traversing-a-frontier">#</a></h3>
+<p>Now, we need to describe the logic to produce the next frontier given the current 
+frontier. Enter <strong><code>edgeMap</code></strong>. <code>edgeMap</code> allows us to process the out edges of a 
+<code>vertexSubset</code>, and produce a new <code>vertexSubset</code>. Please see the 
+<a href="/ligra/docs/api.html#edgemap">api</a>  for more details.</p>
+
+<p>The behavior of <code>edgeMap</code> is intended to be customized by providing a 
+user-defined structure. <code>edgeMap</code> expects a parameter of some template class 
+<code>F</code> that has the following fields: </p>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="k">struct</span> <span class="n">F</span> <span class="p">{</span>
+  <span class="n">F</span><span class="p">(...)</span> <span class="p">{</span> <span class="p">...</span> <span class="p">}</span>
+  <span class="kr">inline</span> <span class="kt">bool</span> <span class="n">update</span> <span class="p">(</span><span class="kt">long</span> <span class="n">s</span><span class="p">,</span> <span class="kt">long</span> <span class="n">d</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// logic for how to process the edge (s,d)</span>
+  <span class="p">}</span>
+
+  <span class="kr">inline</span> <span class="kt">bool</span> <span class="n">updateAtomic</span> <span class="p">(</span><span class="kt">long</span> <span class="n">s</span><span class="p">,</span> <span class="kt">long</span> <span class="n">d</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// logic for how to process the edge (s,d)</span>
+  <span class="p">}</span>
+
+  <span class="kr">inline</span> <span class="kt">bool</span> <span class="n">cond</span> <span class="p">(</span><span class="kt">long</span> <span class="n">d</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// return 1 if update should be applied on and edge (s,d) </span>
+    <span class="c1">// return 0 otherwise</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+</code></pre></div>
+<p>There is a subtle, but important distinction between <code>update</code> and <code>updateAtomic</code> that
+we will discuss later. For now, we will make sure that all <code>update</code> logic is atomic. 
+Atomicity is important because if the vertex has more than one in-edge from the current 
+frontier, then multiple calls to <code>update</code> can happen in parallel which may result in 
+an incorrect result.</p>
+
+<p>For our BFS, let&#39;s implement a struct <code>BFS_F</code> where</p>
+
+<ul>
+<li><code>updateAtomic</code>: atomically update <code>Parents</code> array. We can implement this using a
+compare and swap operation. A simple, implementation independent version
+is provided by the framework as <code>CAS</code> in <code>ligra/utils.h</code>.<br></li>
+<li><code>cond</code>: avoid revisiting previously visited vertices.</li>
+</ul>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="k">struct</span> <span class="n">BFS_F</span> <span class="p">{</span>
+  <span class="kt">long</span><span class="o">*</span> <span class="n">Parents</span><span class="p">;</span>
+  <span class="n">BFS_F</span><span class="p">(</span><span class="kt">long</span><span class="o">*</span> <span class="n">_Parents</span><span class="p">)</span> <span class="o">:</span> <span class="n">Parents</span><span class="p">(</span><span class="n">_Parents</span><span class="p">)</span> <span class="p">{</span> <span class="p">}</span>
+  <span class="kr">inline</span> <span class="kt">bool</span> <span class="n">updateAtomic</span> <span class="p">(</span><span class="kt">long</span> <span class="n">s</span><span class="p">,</span> <span class="kt">long</span> <span class="n">d</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// atomically update</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">CAS</span><span class="p">(</span><span class="o">&amp;</span><span class="n">Parents</span><span class="p">[</span><span class="n">d</span><span class="p">],(</span><span class="kt">long</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">s</span><span class="p">));</span>
+  <span class="p">}</span>
+  <span class="kr">inline</span> <span class="kt">bool</span> <span class="n">update</span> <span class="p">(</span><span class="kt">long</span> <span class="n">s</span><span class="p">,</span> <span class="kt">long</span> <span class="n">d</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// defer to updateAtomic</span>
+    <span class="k">return</span> <span class="n">updateAtomic</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">d</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="c1">//cond function checks if vertex has been visited yet</span>
+  <span class="kr">inline</span> <span class="kt">bool</span> <span class="n">cond</span> <span class="p">(</span><span class="kt">long</span> <span class="n">d</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="p">(</span><span class="n">Parents</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">);</span> <span class="p">}</span>
+<span class="p">};</span>
+</code></pre></div>
+<p>Add this code before the definition of <code>Compute</code>. </p>
+
+<p>Notice that while <code>BFS_F</code> will correctly produce the next frontier, the tree computed 
+by the BFS is still non-deterministic! We will discuss how to fix this in a later section.</p>
+<h3><a class="anchor" name="implementing-traversal-logic"></a>Implementing traversal logic <a class="hash-link" href="#implementing-traversal-logic">#</a></h3>
+<p>All we need to do to finish up the BFS is to actually call <code>edgeMap</code>, and
+add a termination condition that signifies when the traversal is finished. Given
+a current frontier, our condition should just apply the edgeMap while the current
+frontier is non-empty. In code:</p>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="k">while</span><span class="p">(</span><span class="o">!</span><span class="n">Frontier</span><span class="p">.</span><span class="n">isEmpty</span><span class="p">()){</span> <span class="c1">//loop until frontier is empty</span>
+  <span class="n">vertexSubset</span> <span class="n">output</span> <span class="o">=</span> <span class="n">edgeMap</span><span class="p">(</span><span class="n">GA</span><span class="p">,</span> <span class="n">Frontier</span><span class="p">,</span> <span class="n">BFS_F</span><span class="p">(</span><span class="n">Parents</span><span class="p">));</span>
+  <span class="n">Frontier</span><span class="p">.</span><span class="n">del</span><span class="p">();</span>
+  <span class="n">Frontier</span> <span class="o">=</span> <span class="n">output</span><span class="p">;</span> <span class="c1">//set new frontier</span>
+<span class="p">}</span>
+</code></pre></div><h3><a class="anchor" name="the-final-algorithm"></a>The final algorithm <a class="hash-link" href="#the-final-algorithm">#</a></h3>
+<p>The last step is to just free any memory allocated in the body of <code>Compute</code>. Our
+finished BFS algorithm should look as follows:</p>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="cp">#include &quot;ligra.h&quot;</span>
+
+<span class="k">struct</span> <span class="n">BFS_F</span> <span class="p">{</span>
+  <span class="kt">long</span><span class="o">*</span> <span class="n">Parents</span><span class="p">;</span>
+  <span class="n">BFS_F</span><span class="p">(</span><span class="kt">long</span><span class="o">*</span> <span class="n">_Parents</span><span class="p">)</span> <span class="o">:</span> <span class="n">Parents</span><span class="p">(</span><span class="n">_Parents</span><span class="p">)</span> <span class="p">{}</span>
+  <span class="kr">inline</span> <span class="kt">bool</span> <span class="n">updateAtomic</span><span class="p">(</span><span class="kt">long</span> <span class="n">s</span><span class="p">,</span> <span class="kt">long</span> <span class="n">d</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// atomically update</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">CAS</span><span class="p">(</span><span class="o">&amp;</span><span class="n">Parents</span><span class="p">[</span><span class="n">d</span><span class="p">],(</span><span class="kt">long</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">s</span><span class="p">));</span>
+  <span class="p">}</span>
+  <span class="kr">inline</span> <span class="kt">bool</span> <span class="n">update</span><span class="p">(</span><span class="kt">long</span> <span class="n">s</span><span class="p">,</span> <span class="kt">long</span> <span class="n">d</span><span class="p">){</span> <span class="c1">// defer to updateAtomic</span>
+    <span class="k">return</span> <span class="n">updateAtomic</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">d</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="c1">//cond function checks if vertex has been visited yet</span>
+  <span class="kr">inline</span> <span class="kt">bool</span> <span class="n">cond</span><span class="p">(</span><span class="kt">long</span> <span class="n">d</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="p">(</span><span class="n">Parents</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">);</span> <span class="p">}</span>
+<span class="p">};</span>
+
+<span class="k">template</span> <span class="o">&lt;</span><span class="k">class</span> <span class="nc">vertex</span><span class="o">&gt;</span>
+<span class="kt">void</span> <span class="n">Compute</span><span class="p">(</span><span class="n">graph</span><span class="o">&lt;</span><span class="n">vertex</span><span class="o">&gt;&amp;</span> <span class="n">GA</span><span class="p">,</span> <span class="n">commandLine</span> <span class="n">P</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">long</span> <span class="n">start</span> <span class="o">=</span> <span class="n">P</span><span class="p">.</span><span class="n">getOptionLongValue</span><span class="p">(</span><span class="s">&quot;-r&quot;</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span>
+  <span class="kt">long</span> <span class="n">n</span> <span class="o">=</span> <span class="n">GA</span><span class="p">.</span><span class="n">n</span><span class="p">;</span>
+  <span class="c1">//creates Parents array, initialized to all -1, except for start</span>
+  <span class="kt">long</span><span class="o">*</span> <span class="n">Parents</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">long</span><span class="p">[</span><span class="n">n</span><span class="p">];</span>
+  <span class="n">parallel_for</span><span class="p">(</span><span class="kt">long</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">i</span><span class="o">&lt;</span><span class="n">n</span><span class="p">;</span><span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="n">Parents</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+  <span class="n">Parents</span><span class="p">[</span><span class="n">start</span><span class="p">]</span> <span class="o">=</span> <span class="n">start</span><span class="p">;</span>
+  <span class="n">vertexSubset</span> <span class="nf">Frontier</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">start</span><span class="p">);</span> <span class="c1">//creates initial frontier</span>
+  <span class="k">while</span><span class="p">(</span><span class="o">!</span><span class="n">Frontier</span><span class="p">.</span><span class="n">isEmpty</span><span class="p">()){</span> <span class="c1">//loop until frontier is empty</span>
+    <span class="n">vertexSubset</span> <span class="n">output</span> <span class="o">=</span> <span class="n">edgeMap</span><span class="p">(</span><span class="n">GA</span><span class="p">,</span> <span class="n">Frontier</span><span class="p">,</span> <span class="n">BFS_F</span><span class="p">(</span><span class="n">Parents</span><span class="p">));</span>
+    <span class="n">Frontier</span><span class="p">.</span><span class="n">del</span><span class="p">();</span>
+    <span class="n">Frontier</span> <span class="o">=</span> <span class="n">output</span><span class="p">;</span> <span class="c1">//set new frontier</span>
+  <span class="p">}</span>
+  <span class="n">Frontier</span><span class="p">.</span><span class="n">del</span><span class="p">();</span>
+  <span class="n">free</span><span class="p">(</span><span class="n">Parents</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div><h3><a class="anchor" name="compilation"></a>Compilation <a class="hash-link" href="#compilation">#</a></h3>
+<p>Compile the application by running <code>make</code>, which will produce a binary called 
+<code>BFS</code>.</p>
+<h3><a class="anchor" name="testing"></a>Testing <a class="hash-link" href="#testing">#</a></h3>
+<p>Let&#39;s try running our program on one of the test-inputs provided by ligra in the <code>inputs/</code>
+directory. Note that the <code>-s</code> flag tells Ligra that the graph is symmetric (undirected). </p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">./BFS -s -start 1 ../inputs/rMatGraph_J_5_100
+Running time : 0.000234
+Running time : 0.000359
+Running time : 0.000243
+</code></pre></div>
+<p>Great! We&#39;ve successfully implemented a shared memory breadth-first search using Ligra. 
+In the remaining tutorials, we will consider more complicated graph algorithms and 
+introduce the remaining parts of the Ligra API.</p>
+
+
+    <div class="docs-prevnext">
+      
+        <a class="docs-prev" href="/ligra/docs/getting_started.html">&larr; Prev</a>
+      
+      
+        <a class="docs-next" href="/ligra/docs/tutorial_kcore.html">Next &rarr;</a>
+      
+    </div>
+  </div>
+</section>
+
+
+    <footer class="wrap">
+<!--  <div class="left">
+    Built by <br>
+  </div> -->
+<!--  <div class="right">
+    &copy; 2016 Julian Shun<br>
+    MIT Licensed.
+  </div> -->
+</footer>
+
+
+<!--
+<footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading"></h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li></li>
+          <li><a href="mailto:dummy@cs.cmu.edu">dummy@cs.cmu.edu</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-2">
+        <ul class="social-media-list">
+          
+          <li>
+            <a href="https://github.com/laxmandhulipala"><span class="icon icon--github"><svg viewBox="0 0 16 16"><path fill="#828282" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761 c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32 c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472 c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037 C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65 c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261 c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082 c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129 c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/></svg>
+</span><span class="username">laxmandhulipala</span></a>
+
+          </li>
+          
+
+          
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-3">
+        <p>A Lightweight Graph Processing Framework for Shared Memory</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+-->
+
+
+  </div>
+
+  </body>
+
+</html>
