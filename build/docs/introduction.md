@@ -7,6 +7,10 @@ next: getting_started.html
 redirect_from: "docs/index.html"
 ---
 
+## Tutorial
+
+You can find slides for the ligra tutorial [here](https://github.com/jshun/ligra/blob/master/tutorial/tutorial.pdf).
+
 ## Introduction
 
 Welcome! These documents will teach you about the Ligra Graph Processing Framework. Ligra 
