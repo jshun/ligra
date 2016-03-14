@@ -97,38 +97,85 @@ void gapCost(uintT* offsets, uintE* edges, long n, long m, uintE* Degrees){
   free(logs);
 }
 
-void encodeGraphFromFile(char* fname, bool isSymmetric, char* outFile) {
+void encodeGraphFromFile(char* fname, bool isSymmetric, char* outFile, bool binary) {
   cout << "reading file..."<<endl;
-  _seq<char> S = readStringFromFile(fname);
-  words W = stringToWords(S.A, S.n);
-  if (W.Strings[0] != (string) "AdjacencyGraph") {
-    cout << "Bad input file" << endl;
-    abort();
+  long n,m;
+  uintE* edges; uintT* offsets;
+  if(binary) {
+    char* config = (char*) ".config";
+    char* adj = (char*) ".adj";
+    char* idx = (char*) ".idx";
+    char configFile[strlen(fname)+strlen(config)+1];
+    char adjFile[strlen(fname)+strlen(adj)+1];
+    char idxFile[strlen(fname)+strlen(idx)+1];
+    *configFile = *adjFile = *idxFile = '\0'; 
+    strcat(configFile,fname);
+    strcat(adjFile,fname);
+    strcat(idxFile,fname);
+    strcat(configFile,config);
+    strcat(adjFile,adj);
+    strcat(idxFile,idx);
+
+    ifstream in(configFile, ifstream::in);
+    //long n;
+    in >> n;
+    in.close();
+
+    ifstream in2(adjFile,ifstream::in | ios::binary); //stored as uints
+    in2.seekg(0, ios::end);
+    long size = in2.tellg();
+    in2.seekg(0);
+    m = size/sizeof(uint);
+    char* s = (char *) malloc(size);
+    in2.read(s,size);
+    in2.close();
+    edges = (uintE*) s;
+
+    ifstream in3(idxFile,ifstream::in | ios::binary); //stored as longs
+    in3.seekg(0, ios::end);
+    size = in3.tellg();
+    in3.seekg(0);
+    if(n != size/sizeof(intT)) { cout << "File size wrong\n"; abort(); }
+
+    char* t = (char *) malloc(size+sizeof(uintT));
+    in3.read(t,size);
+    in3.close();
+    offsets = (uintT*) t;
+    offsets[n] = m;
+  } else {
+
+    _seq<char> S = readStringFromFile(fname);
+    words W = stringToWords(S.A, S.n);
+    if (W.Strings[0] != (string) "AdjacencyGraph") {
+      cout << "Bad input file" << endl;
+      abort();
+    }
+
+    long len = W.m -1;
+    n = atol(W.Strings[1]);
+    m = atol(W.Strings[2]);
+    if (len != n + m + 2) {
+      cout << "Bad input file" << endl;
+      abort();
+    }
+    offsets = newA(uintT,n+1);
+    edges = newA(uintE,m);
+
+    offsets[n] = m;
+    {parallel_for(long i=0; i < n; i++) offsets[i] = atol(W.Strings[i + 3]);}
+    {parallel_for(long i=0; i<m; i++) {
+	edges[i] = atol(W.Strings[i+n+3]);
+	if(atol(W.Strings[i+n+3]) < 0 || atol(W.Strings[i+n+3]) >= n) 
+	  { cout << "Out of bounds: edge at index "<<
+	      i<< " is "<<atol(W.Strings[i+n+3])<<endl;
+	    abort();}
+      }
+    }
+    W.del();
   }
 
-  long len = W.m -1;
-  long n = atol(W.Strings[1]);
-  long m = atol(W.Strings[2]);
-  if (len != n + m + 2) {
-    cout << "Bad input file" << endl;
-    abort();
-  }
   long* sizes = newA(long,3);
   sizes[0] = n; 
-  uintT* offsets = newA(uintT,n+1);
-  uintE* edges = newA(uintE,m);
-
-  offsets[n] = m;
-  {parallel_for(long i=0; i < n; i++) offsets[i] = atol(W.Strings[i + 3]);}
-  {parallel_for(long i=0; i<m; i++) {
-      edges[i] = atol(W.Strings[i+n+3]);
-      if(atol(W.Strings[i+n+3]) < 0 || atol(W.Strings[i+n+3]) >= n) 
-	{ cout << "Out of bounds: edge at index "<<
-	    i<< " is "<<atol(W.Strings[i+n+3])<<endl;
-	  abort();}
-    }
-  }
-  W.del();
 
   uintE* Degrees = newA(uintE,n);
   uintT* DegreesT = newA(uintT,n+1);
@@ -270,40 +317,93 @@ void encodeGraphFromFile(char* fname, bool isSymmetric, char* outFile) {
 
 
 void encodeWeightedGraphFromFile
-(char* fname, bool isSymmetric, char* outFile) {
+(char* fname, bool isSymmetric, char* outFile, bool binary) {
   cout << "reading file..."<<endl;
-  _seq<char> S = readStringFromFile(fname);
-  words W = stringToWords(S.A, S.n);
-  if (W.Strings[0] != (string) "WeightedAdjacencyGraph") {
-    cout << "Bad input file" << endl;
-    abort();
-  }
+  long n,m;
+  intEPair* edges; uintT* offsets;
+  if(binary) {
+    char* config = (char*) ".config";
+    char* adj = (char*) ".adj";
+    char* idx = (char*) ".idx";
+    char configFile[strlen(fname)+strlen(config)+1];
+    char adjFile[strlen(fname)+strlen(adj)+1];
+    char idxFile[strlen(fname)+strlen(idx)+1];
+    *configFile = *adjFile = *idxFile = '\0'; 
+    strcat(configFile,fname);
+    strcat(adjFile,fname);
+    strcat(idxFile,fname);
+    strcat(configFile,config);
+    strcat(adjFile,adj);
+    strcat(idxFile,idx);
 
-  long len = W.m -1;
-  long n = atol(W.Strings[1]);
-  long m = atol(W.Strings[2]);
-  if (len != n + 2*m + 2) {
-    cout << "Bad input file" << endl;
-    abort();
+    ifstream in(configFile, ifstream::in);
+    //long n;
+    in >> n;
+    in.close();
+
+    ifstream in2(adjFile,ifstream::in | ios::binary); //stored as uints
+    in2.seekg(0, ios::end);
+    long size = in2.tellg();
+    in2.seekg(0);
+    m = size/sizeof(uint);
+    char* s = (char *) malloc(size);
+    in2.read(s,size);
+    in2.close();
+    uintE* edges1 = (uintE*) s;
+    edges = newA(intEPair,m);
+    parallel_for(long i=0;i<m;i++) {
+      edges[i].first = edges1[i];
+      edges[i].second = 1; //default weight
+    }
+    free(edges1);
+
+    ifstream in3(idxFile,ifstream::in | ios::binary); //stored as longs
+    in3.seekg(0, ios::end);
+    size = in3.tellg();
+    in3.seekg(0);
+    if(n != size/sizeof(intT)) { cout << "File size wrong\n"; abort(); }
+
+    char* t = (char *) malloc(size+sizeof(uintT));
+    in3.read(t,size);
+    in3.close();
+    offsets = (uintT*) t;
+    offsets[n] = m;
+  } else {
+
+    _seq<char> S = readStringFromFile(fname);
+    words W = stringToWords(S.A, S.n);
+    if (W.Strings[0] != (string) "WeightedAdjacencyGraph") {
+      cout << "Bad input file" << endl;
+      abort();
+    }
+
+    long len = W.m -1;
+    n = atol(W.Strings[1]);
+    m = atol(W.Strings[2]);
+    if (len != n + 2*m + 2) {
+      cout << "Bad input file" << endl;
+      abort();
+    }
+    offsets = newA(uintT,n+1);
+    edges = newA(intEPair,m);
+
+    offsets[n] = m;
+    {parallel_for(long i=0; i < n; i++) offsets[i] = atol(W.Strings[i + 3]);}
+    {parallel_for(long i=0; i<m; i++) {
+	edges[i].first = atol(W.Strings[i+n+3]);
+	if(atol(W.Strings[i+n+3]) < 0 || atol(W.Strings[i+n+3]) >= n) 
+	  { cout << "Out of bounds: edge at index "<<i
+		 << " is "<<atol(W.Strings[i+n+3])<<endl; 
+	    abort();}
+	edges[i].second = atol(W.Strings[i+n+m+3]);
+      }
+    }
+
+    W.del(); // to deal with performance bug in malloc
   }
+  
   long* sizes = newA(long,3);
   sizes[0] = n; 
-  uintT* offsets = newA(uintT,n+1);
-  intEPair* edges = newA(intEPair,m);
-
-  offsets[n] = m;
-  {parallel_for(long i=0; i < n; i++) offsets[i] = atol(W.Strings[i + 3]);}
-  {parallel_for(long i=0; i<m; i++) {
-      edges[i].first = atol(W.Strings[i+n+3]);
-      if(atol(W.Strings[i+n+3]) < 0 || atol(W.Strings[i+n+3]) >= n) 
-	{ cout << "Out of bounds: edge at index "<<i
-	       << " is "<<atol(W.Strings[i+n+3])<<endl; 
-	  abort();}
-      edges[i].second = atol(W.Strings[i+n+m+3]);
-    }
-  }
-
-  W.del(); // to deal with performance bug in malloc
 
   uintE* Degrees = newA(uintE,n);
   uintT* DegreesT = newA(uintT,n+1);
@@ -445,7 +545,6 @@ int parallel_main(int argc, char* argv[]) {
   bool binary = P.getOptionValue("-b");
   bool symmetric = P.getOptionValue("-s");
   bool weighted = P.getOptionValue("-w");
-
-  if(!weighted) encodeGraphFromFile(iFile,symmetric,outFile);
-  else encodeWeightedGraphFromFile(iFile,symmetric,outFile);
+  if(!weighted) encodeGraphFromFile(iFile,symmetric,outFile,binary);
+  else encodeWeightedGraphFromFile(iFile,symmetric,outFile,binary);
 }
