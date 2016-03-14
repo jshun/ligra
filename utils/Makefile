@@ -25,8 +25,8 @@ PCC = g++
 PCFLAGS = -O2 $(INTT) $(INTE)
 endif
 
-COMMON = utils.h parseCommandLine.h parallel.h quickSort.h
-LOCAL_COMMON = blockRadixSort.h transpose.h graphIO.h
+COMMON = utils.h parseCommandLine.h parallel.h quickSort.h blockRadixSort.h transpose.h
+LOCAL_COMMON = graphIO.h
 GENERATORS = rMatGraph gridGraph randLocalGraph SNAPtoAdj adjGraphAddWeights adjToBinary adjWghToBinary
 
 .PHONY: all clean

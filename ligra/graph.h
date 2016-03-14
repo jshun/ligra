@@ -27,8 +27,8 @@ struct graph {
   bool transposed;
   uintE* flags;
   Deletable *D;
-  graph(vertex* VV, long nn, long mm, Deletable* DD) : V(VV), n(nn), m(mm), D(DD), flags(NULL) {}
-  graph(vertex* VV, long nn, long mm, Deletable* DD, uintE* _flags) : V(VV), n(nn), m(mm), D(DD), flags(_flags) {}
+graph(vertex* VV, long nn, long mm, Deletable* DD) : V(VV), n(nn), m(mm), D(DD), flags(NULL), transposed(0) {}
+graph(vertex* VV, long nn, long mm, Deletable* DD, uintE* _flags) : V(VV), n(nn), m(mm), D(DD), flags(_flags), transposed(0) {}
 
   void del() {
     D->del();

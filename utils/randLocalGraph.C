@@ -42,15 +42,15 @@ edgeArray<intT> edgeRandomWithDimension(intT dim, intT degree, intT numRows) {
     if (dim==0) {
       uintT h = k;
       do {
-	j = ((h = hash(h)) % numRows);
+	j = ((h = hashInt(h)) % numRows);
 	if(j < 0 || j >= numRows) {cout << h << " " << j << endl; abort();}
       } while (j == i);
     } else {
       intT pow = dim+2;
       uintT h = k;
       do {
-	while ((((h = hash(h)) % 1000003) < 500001)) pow += dim;
-	j = (i + ((h = hash(h)) % (((long) 1) << pow))) % numRows;
+	while ((((h = hashInt(h)) % 1000003) < 500001)) pow += dim;
+	j = (i + ((h = hashInt(h)) % (((long) 1) << pow))) % numRows;
       } while (j == i);
     }
     E[k].u = i;  E[k].v = j;

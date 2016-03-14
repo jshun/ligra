@@ -21,12 +21,10 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Adds a random integer weight in [1...log(n)] to each edge
-
 #include <math.h>
 #include "graphIO.h"
 #include "parseCommandLine.h"
 #include "parallel.h"
-
 using namespace benchIO;
 using namespace std;
 
@@ -53,7 +51,7 @@ int parallel_main(int argc, char* argv[]) {
   }
 
   parallel_for (long i=0;i<m;i++) {
-    Weights[i] = Choices[hash((uintT)i) % (2*maxEdgeLen)];
+    Weights[i] = Choices[hashInt((uintT)i) % (2*maxEdgeLen)];
     //if(i%1000==0 && Weights[i] < 0) Weights[i]*=-1;
   }
   free(Choices);

@@ -27,7 +27,7 @@ using namespace benchIO;
 using namespace std;
 
 double hashDouble(intT i) {
-  return ((double) (hash((uintT)i))/((double) UINT_T_MAX));}
+  return ((double) (hashInt((uintT)i))/((double) UINT_T_MAX));}
 
 template <class intT>
 struct rMat {
@@ -37,7 +37,7 @@ struct rMat {
   rMat(intT _n, intT _seed, 
        double _a, double _b, double _c) {
     n = _n; a = _a; ab = _a + _b; abc = _a+_b+_c;
-    h = hash((uintT)_seed);
+    h = hashInt((uintT)_seed);
     if(abc > 1) { cout << "in rMat: a + b + c add to more than 1\n"; abort();}
     if((1 << log2Up(n)) != n) { cout << "in rMat: n not a power of 2"; abort(); } 
   }
@@ -55,8 +55,8 @@ struct rMat {
   }
 
   edge<intT> operator() (intT i) {
-    uintT randStart = hash((uintT)(2*i)*h);
-    uintT randStride = hash((uintT)(2*i+1)*h);
+    uintT randStart = hashInt((uintT)(2*i)*h);
+    uintT randStride = hashInt((uintT)(2*i+1)*h);
     return rMatRec(n, randStart, randStride);
   }
 };

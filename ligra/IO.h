@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <cmath>
 #include "parallel.h"
+#include "blockRadixSort.h"
 #include "quickSort.h"
 #include "utils.h"
 #include "graph.h"
@@ -39,6 +40,9 @@ struct pairFirstCmp {
   bool operator() (pair<uintE,E> a, pair<uintE,E> b) {
     return a.first < b.first; }
 };
+
+template <class E>
+struct getFirst {uintE operator() (pair<uintE,E> a) {return a.first;} };
 
 template <class IntType>
 struct pairBothCmp {
@@ -212,9 +216,12 @@ graph<vertex> readGraphFromFile(char* fname, bool isSymmetric) {
     free(offsets);
 
 #ifndef WEIGHTED
-    quickSort(temp,m,pairFirstCmp<uintE>());
+    //quickSort(temp,m,pairFirstCmp<uintE>());
+    intSort::iSort(temp,m,n+1,getFirst<uintE>());
+
 #else
-    quickSort(temp,m,pairFirstCmp<intPair>());
+    //quickSort(temp,m,pairFirstCmp<intPair>());
+    intSort::iSort(temp,m,n+1,getFirst<intPair>());
 #endif
 
     tOffsets[temp[0].first] = 0; 
@@ -343,7 +350,8 @@ graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
       }
       }}
     free(offsets);
-    quickSort(temp,m,pairFirstCmp<uintE>());
+    //quickSort(temp,m,pairFirstCmp<uintE>());
+    intSort::iSort(temp,m,n+1,getFirst<uintE>());
 
     tOffsets[temp[0].first] = 0; 
     inEdges[0] = temp[0].second;
