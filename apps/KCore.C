@@ -30,14 +30,14 @@ struct Update_Deg {
   intE* Degrees;
   Update_Deg(intE* _Degrees) : Degrees(_Degrees) {}
   inline bool update (uintE s, uintE d) { 
-    if(Degrees[d] > 0) Degrees[d]--;
+    Degrees[d]--;
     return 1;
   }
   inline bool updateAtomic (uintE s, uintE d){
-    if(Degrees[d] > 0) writeAdd(&Degrees[d],-1);
+    writeAdd(&Degrees[d],-1);
     return 1;
   }
-  inline bool cond (uintE d) { return cond_true(d); }
+  inline bool cond (uintE d) { return Degrees[d] > 0; }
 };
 
 template<class vertex>
