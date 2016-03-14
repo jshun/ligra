@@ -25,15 +25,15 @@
 // Triangle counting code (assumes a symmetric graph, so pass the "-s"
 // flag). This is not optimized (no ordering heuristic is used)--for
 // optimized code, see "Multicore Triangle Computations Without
-// Tuning", ICDE 2015. Currently only works with Ligra, and not
-// Ligra+.
+// Tuning", ICDE 2015. Currently only works with uncompressed graphs,
+// and not with compressed graphs.
 #include "ligra.h"
 
 //assumes sorted neighbor lists
 template <class vertex>
 long countCommon(vertex& A, vertex& B, uintE a, uintE b) { 
   uintT i=0,j=0,nA = A.getOutDegree(), nB = B.getOutDegree();
-  uintE* nghA = A.getOutNeighbors(), *nghB = B.getOutNeighbors();
+  uintE* nghA = (uintE*) A.getOutNeighbors(), *nghB = (uintE*) B.getOutNeighbors();
   long ans=0;
   while (i < nA && j < nB && nghA[i] < a && nghB[j] < b) { //count "directed" triangles
     if (nghA[i]==nghB[j]) i++, j++, ans++;
