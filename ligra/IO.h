@@ -296,7 +296,7 @@ graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
   in2.seekg(0, ios::end);
   long size = in2.tellg();
   in2.seekg(0);
-  long m = size/sizeof(uint);
+  long m = size/(2*sizeof(uint));
   char* s = (char *) malloc(size);
   in2.read(s,size);
   in2.close();
@@ -318,9 +318,9 @@ graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
   intE* edgesAndWeights = newA(intE,2*m);
   {parallel_for(long i=0;i<m;i++) {
     edgesAndWeights[2*i] = edges[i];
-    edgesAndWeights[2*i+1] = 1; //give them unit weight
+    edgesAndWeights[2*i+1] = edges[i+m]; 
     }}
-  free(edges);
+  //free(edges);
 #endif
 
   {parallel_for(long i=0;i<n;i++) {
@@ -339,31 +339,47 @@ graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
     {parallel_for(long i=0;i<n;i++) tOffsets[i] = INT_T_MAX;}
 #ifndef WEIGHTED
     uintE* inEdges = newA(uintE,m);
+    intPair* temp = newA(intPair,m);
 #else
     intE* inEdges = newA(intE,2*m);
+    intTriple* temp = newA(intTriple,m);
 #endif
-    intPair* temp = newA(intPair,m);
     {parallel_for(intT i=0;i<n;i++){
       uintT o = offsets[i];
       for(uintT j=0;j<v[i].getOutDegree();j++){
+#ifndef WEIGHTED
 	temp[o+j] = make_pair(v[i].getOutNeighbor(j),i);
+#else
+	temp[o+j] = make_pair(v[i].getOutNeighbor(j),make_pair(i,v[i].getOutWeight(j)));
+#endif
+	//temp[o+j] = make_pair(v[i].getOutNeighbor(j),i);
       }
       }}
     free(offsets);
     //quickSort(temp,m,pairFirstCmp<uintE>());
+
+#ifndef WEIGHTED
+    //quickSort(temp,m,pairFirstCmp<uintE>());
     intSort::iSort(temp,m,n+1,getFirst<uintE>());
 
+#else
+    //quickSort(temp,m,pairFirstCmp<intPair>());
+    intSort::iSort(temp,m,n+1,getFirst<intPair>());
+#endif
+
     tOffsets[temp[0].first] = 0; 
+#ifndef WEIGHTED
     inEdges[0] = temp[0].second;
-#ifdef WEIGHTED
-    inEdges[1] = 1;
+#else
+    inEdges[0] = temp[0].second.first;
+    inEdges[1] = temp[0].second.second;
 #endif
     {parallel_for(long i=1;i<m;i++) {
 #ifndef WEIGHTED
       inEdges[i] = temp[i].second;
 #else
-      inEdges[2*i] = temp[i].second;
-      inEdges[2*i+1] = 1;
+      inEdges[2*i] = temp[i].second.first;
+      inEdges[2*i+1] = temp[i].second.second;
 #endif
       if(temp[i].first != temp[i-1].first) {
 	tOffsets[temp[i].first] = i;
@@ -390,7 +406,7 @@ graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
     Uncompressed_Mem<vertex>* mem = new Uncompressed_Mem<vertex>(v,n,m,edges,inEdges);
     return graph<vertex>(v,n,m,mem);
 #else
-    Uncompressed_Mem<vertex>* mem = new Uncompressed_Mem<vertex>(v,n,m,edges,inEdges);
+    Uncompressed_Mem<vertex>* mem = new Uncompressed_Mem<vertex>(v,n,m,edgesAndWeights,inEdges);
     return graph<vertex>(v,n,m,mem);
 #endif
   }
