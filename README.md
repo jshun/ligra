@@ -214,18 +214,17 @@ with '#' ignored.
 graph in adjacency graph format, and takes as input the input file
 name followed by the output file name.
 
-**adjToBinary** converts an unweighted Ligra graph in adjacency graph
-format to binary format. **adjWghToBinary** converts a weighted Ligra
-graph in adjacency graph format to binary format. The arguments are
-the adjacency graph file name followed by the 3 binary file names
-(.idx, .adj and .config). 
+**adjToBinary** converts a Ligra graph in adjacency graph format to
+binary format. The arguments are the adjacency graph file name
+followed by the 3 binary file names (.idx, .adj and .config). For a
+weighted graph, pass the "-w" flag before the file names.
 
 Examples:
 ```
 $ ./SNAPtoAdj SNAPfile LigraFile
 $ ./adjGraphAddWeights unweightedLigraFile weightedLigraFile
 $ ./adjToBinary rMatGraph_J_5_100 rMatGraph_J_5_100.idx rMatGraph_J_5_100.adj rMatGraph_J_5_100.config 
-$ ./adjWghToBinary rMatGraph_WJ_5_100 rMatGraph_WJ_5_100.idx rMatGraph_WJ_5_100.adj rMatGraph_WJ_5_100.config 
+$ ./adjToBinary -w rMatGraph_WJ_5_100 rMatGraph_WJ_5_100.idx rMatGraph_WJ_5_100.adj rMatGraph_WJ_5_100.config 
 ```
 
 
@@ -332,8 +331,8 @@ Implementation files are provided in the apps/ directory: **BFS.C**
 a bitvector to mark visited vertices), **BC.C** (betweenness
 centrality), **Radii.C** (graph eccentricity estimation),
 **Components.C** (connected components), **BellmanFord.C**
-(Bellman-Ford shortest paths), **PageRank.C**, **PageRankDelta.C** and
-**BFSCC.C** (connected components based on BFS).
+(Bellman-Ford shortest paths), **PageRank.C**, **PageRankDelta.C**,
+**BFSCC.C** (connected components based on BFS), **MIS.C** (maximal independent set), and **KCore.C** (K-core decomposition).
 
 
 Eccentricity Estimation 
