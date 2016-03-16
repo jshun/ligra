@@ -27,7 +27,6 @@
 #include <cmath>
 #include "parallel.h"
 #include "blockRadixSort.h"
-#include "quickSort.h"
 #include "utils.h"
 #include "graph.h"
 using namespace std;
@@ -216,11 +215,8 @@ graph<vertex> readGraphFromFile(char* fname, bool isSymmetric) {
     free(offsets);
 
 #ifndef WEIGHTED
-    //quickSort(temp,m,pairFirstCmp<uintE>());
     intSort::iSort(temp,m,n+1,getFirst<uintE>());
-
 #else
-    //quickSort(temp,m,pairFirstCmp<intPair>());
     intSort::iSort(temp,m,n+1,getFirst<intPair>());
 #endif
 
@@ -296,7 +292,11 @@ graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
   in2.seekg(0, ios::end);
   long size = in2.tellg();
   in2.seekg(0);
+#ifdef WEIGHTED
   long m = size/(2*sizeof(uint));
+#else
+  long m = size/sizeof(uint);
+#endif
   char* s = (char *) malloc(size);
   in2.read(s,size);
   in2.close();
@@ -322,7 +322,6 @@ graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
     }}
   //free(edges);
 #endif
-
   {parallel_for(long i=0;i<n;i++) {
     uintT o = offsets[i];
     uintT l = ((i==n-1) ? m : offsets[i+1])-offsets[i];
@@ -333,7 +332,6 @@ graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
       v[i].setOutNeighbors(edgesAndWeights+2*o);
 #endif
     }}
-
   if(!isSymmetric) {
     uintT* tOffsets = newA(uintT,n);
     {parallel_for(long i=0;i<n;i++) tOffsets[i] = INT_T_MAX;}
@@ -352,21 +350,14 @@ graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
 #else
 	temp[o+j] = make_pair(v[i].getOutNeighbor(j),make_pair(i,v[i].getOutWeight(j)));
 #endif
-	//temp[o+j] = make_pair(v[i].getOutNeighbor(j),i);
       }
       }}
     free(offsets);
-    //quickSort(temp,m,pairFirstCmp<uintE>());
-
 #ifndef WEIGHTED
-    //quickSort(temp,m,pairFirstCmp<uintE>());
     intSort::iSort(temp,m,n+1,getFirst<uintE>());
-
 #else
-    //quickSort(temp,m,pairFirstCmp<intPair>());
     intSort::iSort(temp,m,n+1,getFirst<intPair>());
 #endif
-
     tOffsets[temp[0].first] = 0; 
 #ifndef WEIGHTED
     inEdges[0] = temp[0].second;
@@ -386,11 +377,9 @@ graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
       }
       }}
     free(temp);
-
     //fill in offsets of degree 0 vertices by taking closest non-zero
     //offset to the right
     sequence::scanIBack(tOffsets,tOffsets,n,minF<uintT>(),(uintT)m);
-
     {parallel_for(long i=0;i<n;i++){
       uintT o = tOffsets[i];
       uintT l = ((i == n-1) ? m : tOffsets[i+1])-tOffsets[i];

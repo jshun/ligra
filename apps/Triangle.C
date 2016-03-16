@@ -28,6 +28,7 @@
 // Tuning", ICDE 2015. Currently only works with uncompressed graphs,
 // and not with compressed graphs.
 #include "ligra.h"
+#include "quickSort.h"
 
 //assumes sorted neighbor lists
 template <class vertex>
