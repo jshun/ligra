@@ -127,8 +127,8 @@
 <p>Ligra can be compiled with multiple backend compilers. We currently support</p>
 
 <ul>
+<li><code>g++ &gt;= 4.8.0</code> with support for <code>Cilk Plus</code></li>
 <li>Intel <code>icpc</code> compiler</li>
-<li><code>g++ &gt;= 4.8.0</code> with support for <code>Cilk+</code></li>
 <li><code>OpenMP</code></li>
 </ul>
 <h3><a class="anchor" name="organization"></a>Organization <a class="hash-link" href="#organization">#</a></h3>
@@ -149,13 +149,13 @@ utils       <span class="c"># utilities for parsing different graph formats</spa
 you wish to use, you will need to set a different environment variable. </p>
 
 <ul>
-<li><code>g++</code> using <code>Cilk</code>: define the environment variable <code>CILK</code>. </li>
+<li><code>g++</code> using <code>Cilk Plus</code>: define the environment variable <code>CILK</code>. </li>
 <li><code>icpc</code>: define the environment variable <code>MKLROOT</code> and make sure <code>CILK</code> is not defined. </li>
 <li><code>OpenMP</code>: define the environment variable <code>OPENMP</code> and make sure 
 <code>CILK</code> and <code>MKLROOT</code> are not defined. </li>
 </ul>
 
-<p>Using <code>Cilk+</code> seems to give the best parallel performance in our experience. To compile 
+<p>Using <code>Cilk Plus</code> seems to give the best parallel performance in our experience. To compile 
 with <code>g++</code> with no parallel support, make sure <code>CILK</code>, <code>MKLROOT</code> and <code>OPENMP</code> are not 
 defined.</p>
 

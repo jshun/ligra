@@ -21,7 +21,7 @@ the command line flag a user supplies when running the application.
 * If the flag `-c` is supplied, then the graph is assumed to be *compressed* and 
 one of the compressed vertex types is selected. 
 * If the flag `-s` is supplied, the graph is assumed to be *symmetric* (undirected) 
-and a symmetric vertex type is selected. Otherwise, an assymetric vertex type is selected. 
+and a symmetric vertex type is selected. Otherwise, an asymmetric vertex type is selected. 
 
 Certain applications, like PageRank, must work on both directed and undirected graphs,
 and therefore must do things like only iterating over *out*-edges, etc. In order to maximize

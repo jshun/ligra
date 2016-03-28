@@ -9,7 +9,7 @@ redirect_from: "docs/index.html"
 
 ## Tutorial
 
-You can find slides for the ligra tutorial [here](https://github.com/jshun/ligra/blob/master/tutorial/tutorial.pdf).
+You can find slides for the Ligra tutorial [here](https://github.com/jshun/ligra/blob/master/tutorial/tutorial.pdf).
 
 ## Introduction
 

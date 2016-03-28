@@ -30,7 +30,7 @@ To get started, cd into the `tutorial/` directory and open up the file `BFS.C`.
 We will examine the code piece by piece.
 
 ``` cpp
-#inclde "ligra.h"
+#include "ligra.h"
 
 template <class vertex>
 void Compute(graph<vertex>& G, commandLine P) {

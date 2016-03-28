@@ -145,7 +145,7 @@ struct Deg_LessThan_K {
 
 ### Updating induced degrees
 
-The last part of the implementaiton is to update the induced degrees of the
+The last part of the implementation is to update the induced degrees of the
 neighbors of removed vertices. We can do this by using `edgeMap`. We'll pass
 the following struct to `edgeMap`. 
 
@@ -154,14 +154,14 @@ struct Update_Deg {
   long* Degrees;
   Update_Deg(long* _Degrees) : Degrees(_Degrees) {}
   inline bool update (long s, long d) {
-    if(Degrees[d] > 0) Degrees[d]--;
+    Degrees[d]--;
     return 1;
   }
   inline bool updateAtomic (long s, long d) {
-    if(Degrees[d] > 0) writeAdd(&Degrees[d],(long)-1);
+    writeAdd(&Degrees[d],(long)-1);
     return 1;
   }
-  inline bool cond (long d) { return cond_true(d); }
+  inline bool cond (long d) { return Degrees[d] > 0; }
 };
 ```
 
@@ -214,14 +214,14 @@ struct Update_Deg {
   long* Degrees;
   Update_Deg(long* _Degrees) : Degrees(_Degrees) {}
   inline bool update (long s, long d) { 
-    if (Degrees[d] > 0) Degrees[d]--;
+    Degrees[d]--;
     return 1;
   }
   inline bool updateAtomic (long s, long d){
-    if(Degrees[d] > 0) writeAdd(&Degrees[d],-1);
+    writeAdd(&Degrees[d],-1);
     return 1;
   }
-  inline bool cond (long d) { return cond_true(d); }
+  inline bool cond (long d) { return Degrees[d] > 0; }
 };
 
 template<class vertex>
@@ -253,11 +253,11 @@ struct Deg_AtLeast_K {
 template <class vertex>
 void Compute(graph<vertex>& GA, commandLine P) {
   const long n = GA.n;
-  bool* active = newA(bool,n);
+  bool* active = new bool[n];
   {parallel_for(long i=0;i<n;i++) active[i] = 1;}
   vertexSubset Frontier(n, n, active);
-  long* coreNumbers = newA(long,n);
-  long* Degrees = newA(long,n);
+  long* coreNumbers = new long[n];
+  long* Degrees = new long[n];
   {parallel_for(long i=0;i<n;i++) {
       coreNumbers[i] = 0;
       Degrees[i] = GA.V[i].getOutDegree();

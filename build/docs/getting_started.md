@@ -12,8 +12,8 @@ redirect_from: "docs/index.html"
 
 Ligra can be compiled with multiple backend compilers. We currently support
 
+* `g++ >= 4.8.0` with support for `Cilk Plus`
 * Intel `icpc` compiler
-* `g++ >= 4.8.0` with support for `Cilk+`
 * `OpenMP`
 
 ### Organization
@@ -39,12 +39,12 @@ utils       # utilities for parsing different graph formats
 Compilation is done from within the `apps/` directory. Depending on the compiler
 you wish to use, you will need to set a different environment variable. 
 
-* `g++` using `Cilk`: define the environment variable `CILK`. 
+* `g++` using `Cilk Plus`: define the environment variable `CILK`. 
 * `icpc`: define the environment variable `MKLROOT` and make sure `CILK` is not defined. 
 * `OpenMP`: define the environment variable `OPENMP` and make sure 
   `CILK` and `MKLROOT` are not defined. 
 
-Using `Cilk+` seems to give the best parallel performance in our experience. To compile 
+Using `Cilk Plus` seems to give the best parallel performance in our experience. To compile 
 with `g++` with no parallel support, make sure `CILK`, `MKLROOT` and `OPENMP` are not 
 defined.
 

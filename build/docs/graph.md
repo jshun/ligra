@@ -8,7 +8,7 @@ next: running_code.html
 redirect_from: "docs/index.html"
 ---
 
-Ligra has a single `graph` type, which is parametrized by an arbitrary 
+Ligra has a single `graph` type, which is parameterized by an arbitrary 
 `vertex` type (see the [vertex api](/ligra/docs/vertex.html)). We represent
 a graph as a collection of vertices, along with memory that the graph owns, 
 which is necessary for storing information about edges (weights, and endpoints). 
