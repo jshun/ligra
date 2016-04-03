@@ -33,8 +33,8 @@ using namespace std;
 // probability roughly proportional to (1/|i-j|)^{(d+1)/d}, giving 
 // separators of size about n^{(d-1)/d}.    
 template <class intT>
-edgeArray<intT> edgeRandomWithDimension(intT dim, intT degree, intT numRows) {
-  intT nonZeros = numRows*degree;
+edgeArray<intT> edgeRandomWithDimension(intT dim, intT nonZeros, intT numRows) {
+  double degree = (double)nonZeros/numRows;
   edge<intT> *E = newA(edge<intT>,nonZeros);
   parallel_for (intT k=0; k < nonZeros; k++) {
     intT i = k / degree;
@@ -58,6 +58,9 @@ edgeArray<intT> edgeRandomWithDimension(intT dim, intT degree, intT numRows) {
   return edgeArray<intT>(E,numRows,numRows,nonZeros);
 }
 
+//Generates a graph with n vertices and m edges, possibly with
+//duplicates, and then removes duplicate edges and symmetrizes the
+//graph.
 int parallel_main(int argc, char* argv[]) {
   commandLine P(argc,argv,"[-s] [-m <numedges>] [-d <dims>] n <outFile>");
   pair<intT,char*> in = P.sizeAndFileName();
@@ -66,7 +69,7 @@ int parallel_main(int argc, char* argv[]) {
   int dim = P.getOptionIntValue("-d", 0);
   long m = P.getOptionLongValue("-m", 10*n);
   bool sym = P.getOptionValue("-s");
-  edgeArray<uintT> EA = edgeRandomWithDimension<uintT>(dim, m/n, n);
+  edgeArray<uintT> EA = edgeRandomWithDimension<uintT>(dim, m, n);
   graph<uintT> G = graphFromEdges<uintT>(EA, sym);
   EA.del();
   writeGraphToFile<uintT>(G, fname);
