@@ -45,7 +45,7 @@ struct CF_Edge_F {
     double err = edgeLen - estimate;
 
 #ifdef COMPUTE_ERROR
-    writeAdd(&squaredErrors[s],err*err);
+    squaredErrors[d] += err*err;
 #endif
 
     double* cur_error = &error[current_offset];
@@ -55,7 +55,7 @@ struct CF_Edge_F {
     return 1;
   }
   inline bool updateAtomic (uintE s, uintE d, intE edgeLen) {
-    //no needed as we will always do pull based
+    //not needed as we will always do pull based
     return update(s,d,edgeLen);
   }
   inline bool cond (intT d) { return cond_true(d); }};
