@@ -332,7 +332,9 @@ a bitvector to mark visited vertices), **BC.C** (betweenness
 centrality), **Radii.C** (graph eccentricity estimation),
 **Components.C** (connected components), **BellmanFord.C**
 (Bellman-Ford shortest paths), **PageRank.C**, **PageRankDelta.C**,
-**BFSCC.C** (connected components based on BFS), **MIS.C** (maximal independent set), **KCore.C** (K-core decomposition), and *Triangle.C** (triangle counting).
+**BFSCC.C** (connected components based on BFS), **MIS.C** (maximal
+independent set), **KCore.C** (K-core decomposition), **Triangle.C**
+(triangle counting), and **CF.C** (collaborative filtering).
 
 
 Eccentricity Estimation 
