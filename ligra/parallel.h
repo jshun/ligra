@@ -30,6 +30,22 @@
 #define parallel_for cilk_for
 #define parallel_for_1 _Pragma("cilk_grainsize = 1") cilk_for
 #define parallel_for_256 _Pragma("cilk_grainsize = 256") cilk_for
+#include <cilk/cilk_api.h>
+#include <sstream>
+#include <iostream>
+#include <cstdlib>
+static int getWorkers() {
+  return __cilkrts_get_nworkers();
+}
+static void setWorkers(int n) {
+  __cilkrts_end_cilk();
+  //__cilkrts_init();
+  std::stringstream ss; ss << n;
+  if (0 != __cilkrts_set_param("nworkers", ss.str().c_str())) {
+    std::cerr << "failed to set worker count!" << std::endl;
+    std::abort();
+  }
+}
 
 // intel cilk+
 #elif defined(CILKP)
@@ -38,6 +54,22 @@
 #define parallel_main main
 #define parallel_for_1 _Pragma("cilk grainsize = 1") cilk_for
 #define parallel_for_256 _Pragma("cilk grainsize = 256") cilk_for
+#include <cilk/cilk_api.h>
+#include <sstream>
+#include <iostream>
+#include <cstdlib>
+static int getWorkers() {
+  return __cilkrts_get_nworkers();
+}
+static void setWorkers(int n) {
+  __cilkrts_end_cilk();
+  //__cilkrts_init();
+  std::stringstream ss; ss << n;
+  if (0 != __cilkrts_set_param("nworkers", ss.str().c_str())) {
+    std::cerr << "failed to set worker count!" << std::endl;
+    std::abort();
+  }
+}
 
 // openmp
 #elif defined(OPENMP)
@@ -48,6 +80,8 @@
 #define parallel_for _Pragma("omp parallel for") for
 #define parallel_for_1 _Pragma("omp parallel for schedule (static,1)") for
 #define parallel_for_256 _Pragma("omp parallel for schedule (static,256)") for
+static int getWorkers() { return omp_get_max_threads(); }
+static void setWorkers(int n) { omp_set_num_threads(n); }
 
 // c++
 #else
@@ -58,6 +92,8 @@
 #define parallel_for_1 for
 #define parallel_for_256 for
 #define cilk_for for
+static int getWorkers() { return 1; }
+static void setWorkers(int n) { }
 
 #endif
 

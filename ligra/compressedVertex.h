@@ -113,6 +113,8 @@ struct compressedSymmetricVertex {
   uintT degree;
   uchar* getInNeighbors() { return neighbors; }
   uchar* getOutNeighbors() { return neighbors; }
+  intT getInNeighbor(intT j) { return -1; } //should not be called
+  intT getOutNeighbor(intT j) { return -1; } //should not be called
   uintT getInDegree() { return degree; }
   uintT getOutDegree() { return degree; }
   void setInNeighbors(uchar* _i) { neighbors = _i; }
@@ -145,6 +147,8 @@ struct compressedAsymmetricVertex {
   uintT inDegree;
   uchar* getInNeighbors() { return inNeighbors; }
   uchar* getOutNeighbors() { return outNeighbors; }
+  intT getInNeighbor(intT j) { return -1; } //should not be called
+  intT getOutNeighbor(intT j) { return -1; } //should not be called
   uintT getInDegree() { return inDegree; }
   uintT getOutDegree() { return outDegree; }
   void setInNeighbors(uchar* _i) { inNeighbors = _i; }
