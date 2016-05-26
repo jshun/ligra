@@ -147,7 +147,8 @@ file stores in binary the offsets for the vertices in the CSR format
 the CSR format (the &lt;e>'s above).
 
 Weighted graphs: For format (1), the weights are listed at the end of
-the file (after &lt;e(m-1)>). For format (2), the weights
+the file (after &lt;e(m-1)>), and the first line of the file should
+store the string "WeightedAdjacencyGraph". For format (2), the weights
 are stored after all of the edge targets in the .adj file.
 
 By default, format (1) is used. To run an input with format (2), pass
