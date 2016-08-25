@@ -369,22 +369,22 @@ Resources
 -------- 
 Julian Shun and Guy Blelloch. [*Ligra: A
 Lightweight Graph Processing Framework for Shared
-Memory*](http://www.eecs.berkeley.edu/~jshun/ligra.pdf). Proceedings of the
+Memory*](http://people.eecs.berkeley.edu/~jshun/ligra.pdf). Proceedings of the
 ACM SIGPLAN Symposium on Principles and Practice of Parallel
 Programming (PPoPP), pp. 135-146, 2013.
 
 Julian Shun, Laxman Dhulipala and Guy Blelloch. [*Smaller and Faster:
 Parallel Processing of Compressed Graphs with
-Ligra+*](http://www.eecs.berkeley.edu/~jshun/ligra+.pdf). Proceedings of the
+Ligra+*](http://people.eecs.berkeley.edu/~jshun/ligra+.pdf). Proceedings of the
 IEEE Data Compression Conference (DCC), pp. 403-412, 2015.
 
 Julian Shun. [*An Evaluation of Parallel Eccentricity Estimation
 Algorithms on Undirected Real-World
-Graphs*](http://www.eecs.berkeley.edu/~jshun/kdd-final.pdf). Proceedings of
+Graphs*](http://people.eecs.berkeley.edu/~jshun/kdd-final.pdf). Proceedings of
 the ACM SIGKDD Conference on Knowledge Discovery and Data Mining
 (KDD), pp. 1095-1104, 2015.
 
 Julian Shun, Farbod Roosta-Khorasani, Kimon Fountoulakis and Michael
 Mahoney. [*Parallel Local Graph
-Clustering*](http://www.eecs.berkeley.edu/~jshun/local.pdf). Proceedings
+Clustering*](http://people.eecs.berkeley.edu/~jshun/local.pdf). Proceedings
 of the International Conference on Very Large Data Bases (VLDB), 2016.
