@@ -24,6 +24,11 @@
 // This file contains both the serial and the parallel implementations
 // of sweep cut. Currently only works with uncompressed graphs, and
 // not with compressed graphs.
+
+// To print out the set found by the sweep cut, uncomment the
+// following line (not to be used when measuring running time).
+//#define PRINT_SET
+
 #include "graph.h"
 #include <unordered_map>
 #include <unordered_set>
@@ -93,6 +98,14 @@ template <class vertex, class fType>
   if(bestConductance < bestGlobalCond) { 
     bestGlobalCond = bestConductance; bestSize = bestCut+1; bestStart = start; }
   //s1.reportTotal("Serial sweep time");
+#ifdef PRINT_SET
+  cout << "S = {";
+  {for(long i=0;i<bestCut;i++) {
+      cout << p[i].first << ", ";
+    }
+  }
+  cout << p[bestCut].first << "}" << endl;
+#endif
   setWorkers(procs);
   return sweepObject(bestConductance,bestCut+1,bestVol,volS,bestEdgesCrossing);
 }
@@ -195,6 +208,14 @@ template <class vertex, class fType>
   free(cuts); free(edges); free(Degrees);
   if(bestConductance < bestGlobalCond) { 
     bestGlobalCond = bestConductance; bestSize = bestCut+1; bestStart = start; }
+#ifdef PRINT_SET
+  cout << "S = {";
+  {for(long i=0;i<bestCut;i++) {
+      cout << p[i].first << ", ";
+    }
+  }
+  cout << p[bestCut].first << "}" << endl;
+#endif
   //s2.reportTotal("Parallel sweep time");
   return sweepObject(bestConductance,bestCut+1,bestVol,totalDegree/2,bestEdgesCrossing);
 }
