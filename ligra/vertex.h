@@ -22,9 +22,9 @@ namespace decode_uncompressed {
       parallel_for(uintE j=0; j<d; j++) {
         uintE ngh = v->getInNeighbor(j);
 #ifndef WEIGHTED
-        if (vertexSubset[ngh] && f.update(ngh,i))
+        if (vertexSubset[ngh] && f.updateAtomic(ngh,i))
 #else
-        if (vertexSubset[ngh] && f.update(ngh,i,v->getInWeight(j)))
+        if (vertexSubset[ngh] && f.updateAtomic(ngh,i,v->getInWeight(j)))
 #endif
           next[i] = 1;
       }
