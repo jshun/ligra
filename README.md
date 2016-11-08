@@ -202,7 +202,7 @@ $ ./gridGraph -d 3 10000000 3Dgrid_10000000
 ### Graph Converters
 
 **SNAPtoAdj** converts a graph in [SNAP
-format](snap.stanford.edu/data/index.html) and converts it to Ligra's
+format](http://snap.stanford.edu/data/index.html) and converts it to Ligra's
 adjacency graph format. The first required parameter is the input
 (SNAP) file name and second required parameter is the output (Ligra)
 file name. The "-s" flag may be used to symmetrize the input
