@@ -31,11 +31,12 @@ using namespace std;
 
 // Needed to make frequent large allocations efficient with standard
 // malloc implementation.  Otherwise they are allocated directly from
-// vm.
+// vm. 
 #ifndef __APPLE__
 #include <malloc.h>
+//comment out the following two lines if running out of memory 
 static int __ii =  mallopt(M_MMAP_MAX,0);
-static int __jj =  mallopt(M_TRIM_THRESHOLD,-1);
+static int __jj =  mallopt(M_TRIM_THRESHOLD,-1); 
 #endif
 
 #ifndef uint

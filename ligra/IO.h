@@ -196,10 +196,8 @@ graph<vertex> readGraphFromFile(char* fname, bool isSymmetric) {
     uintT* tOffsets = newA(uintT,n);
     {parallel_for(long i=0;i<n;i++) tOffsets[i] = INT_T_MAX;}
 #ifndef WEIGHTED
-    uintE* inEdges = newA(uintE,m);
     intPair* temp = newA(intPair,m);
 #else
-    intE* inEdges = newA(intE,2*m);
     intTriple* temp = newA(intTriple,m);
 #endif
     {parallel_for(long i=0;i<n;i++){
@@ -222,8 +220,10 @@ graph<vertex> readGraphFromFile(char* fname, bool isSymmetric) {
 
     tOffsets[temp[0].first] = 0; 
 #ifndef WEIGHTED
+    uintE* inEdges = newA(uintE,m);
     inEdges[0] = temp[0].second;
 #else
+    intE* inEdges = newA(intE,2*m);
     inEdges[0] = temp[0].second.first;
     inEdges[1] = temp[0].second.second;
 #endif
@@ -332,14 +332,13 @@ graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
       v[i].setOutNeighbors(edgesAndWeights+2*o);
 #endif
     }}
+
   if(!isSymmetric) {
     uintT* tOffsets = newA(uintT,n);
     {parallel_for(long i=0;i<n;i++) tOffsets[i] = INT_T_MAX;}
 #ifndef WEIGHTED
-    uintE* inEdges = newA(uintE,m);
     intPair* temp = newA(intPair,m);
 #else
-    intE* inEdges = newA(intE,2*m);
     intTriple* temp = newA(intTriple,m);
 #endif
     {parallel_for(intT i=0;i<n;i++){
@@ -360,8 +359,10 @@ graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
 #endif
     tOffsets[temp[0].first] = 0; 
 #ifndef WEIGHTED
+    uintE* inEdges = newA(uintE,m);
     inEdges[0] = temp[0].second;
 #else
+    intE* inEdges = newA(intE,2*m);
     inEdges[0] = temp[0].second.first;
     inEdges[1] = temp[0].second.second;
 #endif
