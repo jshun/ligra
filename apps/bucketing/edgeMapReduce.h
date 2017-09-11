@@ -45,7 +45,7 @@ struct EdgeMap {
   pbbs::hist_table<K, V> ht;
 
   EdgeMap(graph<vertex>& _G, KV _empty, size_t ht_size=numeric_limits<size_t>::max()) : G(_G) {
-    if (ht_size = numeric_limits<size_t>::max()) {
+    if (ht_size == numeric_limits<size_t>::max()) {
       ht_size = G.m/20;
     }
     ht = pbbs::hist_table<K, V>(_empty, ht_size);

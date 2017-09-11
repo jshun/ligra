@@ -70,7 +70,7 @@ dyn_arr<uintE> SetCover(graph<vertex>& G, size_t num_buckets=128) {
       if (Elms[v] == u) {
         if (D(u) & TOP_BIT) Elms[v] = COVERED;
         else Elms[v] = UINT_E_MAX;
-      }
+      } return false;
     };
     edgeMap(G, still_active, EdgeMap_F<decltype(reset_f)>(reset_f), -1, DENSE_FORWARD, no_output);
 
