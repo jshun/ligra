@@ -1,5 +1,5 @@
 // This code is part of the project "Ligra: A Lightweight Graph Processing
-// Framework for Shared Memory", presented at Principles and Practice of 
+// Framework for Shared Memory", presented at Principles and Practice of
 // Parallel Programming, 2013.
 // Copyright (c) 2013 Julian Shun and Guy Blelloch
 //
@@ -25,6 +25,13 @@
 #include <fstream>
 #include <stdlib.h>
 #include <cmath>
+#include <sys/mman.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+
 #include "parallel.h"
 #include "blockRadixSort.h"
 #include "utils.h"
@@ -63,16 +70,55 @@ words(char* C, long nn, char** S, long mm)
 : Chars(C), n(nn), Strings(S), m(mm) {}
   void del() {free(Chars); free(Strings);}
 };
- 
+
 inline bool isSpace(char c) {
   switch (c)  {
-  case '\r': 
-  case '\t': 
-  case '\n': 
+  case '\r':
+  case '\t':
+  case '\n':
   case 0:
   case ' ' : return true;
   default : return false;
   }
+}
+
+_seq<char> mmapStringFromFile(const char *filename) {
+  struct stat sb;
+  int fd = open(filename, O_RDONLY);
+  if (fd == -1) {
+    perror("open");
+    exit(-1);
+  }
+  if (fstat(fd, &sb) == -1) {
+    perror("fstat");
+    exit(-1);
+  }
+  if (!S_ISREG (sb.st_mode)) {
+    perror("not a file\n");
+    exit(-1);
+  }
+  char *p = static_cast<char*>(mmap(0, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0));
+  if (p == MAP_FAILED) {
+    perror("mmap");
+    exit(-1);
+  }
+  if (close(fd) == -1) {
+    perror("close");
+    exit(-1);
+  }
+  size_t n = sb.st_size;
+//  char *bytes = newA(char, n);
+//  parallel_for(size_t i=0; i<n; i++) {
+//    bytes[i] = p[i];
+//  }
+//  if (munmap(p, sb.st_size) == -1) {
+//    perror("munmap");
+//    exit(-1);
+//  }
+//  cout << "mmapped" << endl;
+//  free(bytes);
+//  exit(0);
+  return _seq<char>(p, n);
 }
 
 _seq<char> readStringFromFile(char *fileName) {
@@ -92,14 +138,14 @@ _seq<char> readStringFromFile(char *fileName) {
 
 // parallel code for converting a string to words
 words stringToWords(char *Str, long n) {
-  {parallel_for (long i=0; i < n; i++) 
+  {parallel_for (long i=0; i < n; i++)
       if (isSpace(Str[i])) Str[i] = 0; }
 
   // mark start of words
   bool *FL = newA(bool,n);
   FL[0] = Str[0];
   {parallel_for (long i=1; i < n; i++) FL[i] = Str[i] && !Str[i-1];}
-    
+
   // offset for each start of word
   _seq<long> Off = sequence::packIndex<long>(FL, n);
   long m = Off.n;
@@ -123,12 +169,12 @@ public:
   void* allocatedInplace, * inEdges;
   uintE* flags;
 
-  Uncompressed_Mem(vertex* VV, long nn, long mm, void* ai, void* _inEdges = NULL) 
+  Uncompressed_Mem(vertex* VV, long nn, long mm, void* ai, void* _inEdges = NULL)
   : V(VV), n(nn), m(mm), allocatedInplace(ai), inEdges(_inEdges),  flags(NULL) {}
 
   void del() {
     if (flags != NULL) free(flags);
-    if (allocatedInplace == NULL) 
+    if (allocatedInplace == NULL)
       for (long i=0; i < n; i++) V[i].del();
     else free(allocatedInplace);
     free(V);
@@ -137,9 +183,25 @@ public:
 };
 
 template <class vertex>
-graph<vertex> readGraphFromFile(char* fname, bool isSymmetric) {
-  _seq<char> S = readStringFromFile(fname);
-  words W = stringToWords(S.A, S.n);
+graph<vertex> readGraphFromFile(char* fname, bool isSymmetric, bool mmap) {
+  words W;
+  if (mmap) {
+    _seq<char> S = mmapStringFromFile(fname);
+    char *bytes = newA(char, S.n);
+    // Cannot mutate the graph unless we copy.
+    parallel_for(size_t i=0; i<S.n; i++) {
+      bytes[i] = S.A[i];
+    }
+    if (munmap(S.A, S.n) == -1) {
+      perror("munmap");
+      exit(-1);
+    }
+    S.A = bytes;
+    W = stringToWords(S.A, S.n);
+  } else {
+    _seq<char> S = readStringFromFile(fname);
+    W = stringToWords(S.A, S.n);
+  }
 #ifndef WEIGHTED
   if (W.Strings[0] != (string) "AdjacencyGraph") {
 #else
@@ -171,22 +233,22 @@ graph<vertex> readGraphFromFile(char* fname, bool isSymmetric) {
   {parallel_for(long i=0; i < n; i++) offsets[i] = atol(W.Strings[i + 3]);}
   {parallel_for(long i=0; i<m; i++) {
 #ifndef WEIGHTED
-      edges[i] = atol(W.Strings[i+n+3]); 
+      edges[i] = atol(W.Strings[i+n+3]);
 #else
-      edges[2*i] = atol(W.Strings[i+n+3]); 
+      edges[2*i] = atol(W.Strings[i+n+3]);
       edges[2*i+1] = atol(W.Strings[i+n+m+3]);
 #endif
     }}
   //W.del(); // to deal with performance bug in malloc
-    
+
   vertex* v = newA(vertex,n);
 
   {parallel_for (uintT i=0; i < n; i++) {
     uintT o = offsets[i];
     uintT l = ((i == n-1) ? m : offsets[i+1])-offsets[i];
-    v[i].setOutDegree(l); 
+    v[i].setOutDegree(l);
 #ifndef WEIGHTED
-    v[i].setOutNeighbors(edges+o);     
+    v[i].setOutNeighbors(edges+o);
 #else
     v[i].setOutNeighbors(edges+2*o);
 #endif
@@ -202,7 +264,7 @@ graph<vertex> readGraphFromFile(char* fname, bool isSymmetric) {
 #endif
     {parallel_for(long i=0;i<n;i++){
       uintT o = offsets[i];
-      for(uintT j=0;j<v[i].getOutDegree();j++){	  
+      for(uintT j=0;j<v[i].getOutDegree();j++){
 #ifndef WEIGHTED
 	temp[o+j] = make_pair(v[i].getOutNeighbor(j),i);
 #else
@@ -218,7 +280,7 @@ graph<vertex> readGraphFromFile(char* fname, bool isSymmetric) {
     intSort::iSort(temp,m,n+1,getFirst<intPair>());
 #endif
 
-    tOffsets[temp[0].first] = 0; 
+    tOffsets[temp[0].first] = 0;
 #ifndef WEIGHTED
     uintE* inEdges = newA(uintE,m);
     inEdges[0] = temp[0].second;
@@ -231,7 +293,7 @@ graph<vertex> readGraphFromFile(char* fname, bool isSymmetric) {
 #ifndef WEIGHTED
       inEdges[i] = temp[i].second;
 #else
-      inEdges[2*i] = temp[i].second.first; 
+      inEdges[2*i] = temp[i].second.first;
       inEdges[2*i+1] = temp[i].second.second;
 #endif
       if(temp[i].first != temp[i-1].first) {
@@ -240,7 +302,7 @@ graph<vertex> readGraphFromFile(char* fname, bool isSymmetric) {
       }}
 
     free(temp);
- 
+
     //fill in offsets of degree 0 vertices by taking closest non-zero
     //offset to the right
     sequence::scanIBack(tOffsets,tOffsets,n,minF<uintT>(),(uintT)m);
@@ -254,7 +316,7 @@ graph<vertex> readGraphFromFile(char* fname, bool isSymmetric) {
 #else
       v[i].setInNeighbors(inEdges+2*o);
 #endif
-      }}    
+      }}
 
     free(tOffsets);
     Uncompressed_Mem<vertex>* mem = new Uncompressed_Mem<vertex>(v,n,m,edges,inEdges);
@@ -275,7 +337,7 @@ graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
   char configFile[strlen(iFile)+strlen(config)+1];
   char adjFile[strlen(iFile)+strlen(adj)+1];
   char idxFile[strlen(iFile)+strlen(idx)+1];
-  *configFile = *adjFile = *idxFile = '\0'; 
+  *configFile = *adjFile = *idxFile = '\0';
   strcat(configFile,iFile);
   strcat(adjFile,iFile);
   strcat(idxFile,iFile);
@@ -318,16 +380,16 @@ graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
   intE* edgesAndWeights = newA(intE,2*m);
   {parallel_for(long i=0;i<m;i++) {
     edgesAndWeights[2*i] = edges[i];
-    edgesAndWeights[2*i+1] = edges[i+m]; 
+    edgesAndWeights[2*i+1] = edges[i+m];
     }}
   //free(edges);
 #endif
   {parallel_for(long i=0;i<n;i++) {
     uintT o = offsets[i];
     uintT l = ((i==n-1) ? m : offsets[i+1])-offsets[i];
-      v[i].setOutDegree(l); 
+      v[i].setOutDegree(l);
 #ifndef WEIGHTED
-      v[i].setOutNeighbors((uintE*)edges+o); 
+      v[i].setOutNeighbors((uintE*)edges+o);
 #else
       v[i].setOutNeighbors(edgesAndWeights+2*o);
 #endif
@@ -357,7 +419,7 @@ graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
 #else
     intSort::iSort(temp,m,n+1,getFirst<intPair>());
 #endif
-    tOffsets[temp[0].first] = 0; 
+    tOffsets[temp[0].first] = 0;
 #ifndef WEIGHTED
     uintE* inEdges = newA(uintE,m);
     inEdges[0] = temp[0].second;
@@ -401,7 +463,7 @@ graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
 #endif
   }
   free(offsets);
-#ifndef WEIGHTED  
+#ifndef WEIGHTED
   Uncompressed_Mem<vertex>* mem = new Uncompressed_Mem<vertex>(v,n,m,edges);
   return graph<vertex>(v,n,m,mem);
 #else
@@ -411,9 +473,9 @@ graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
 }
 
 template <class vertex>
-graph<vertex> readGraph(char* iFile, bool compressed, bool symmetric, bool binary) {
-  if(binary) return readGraphFromBinary<vertex>(iFile,symmetric); 
-  else return readGraphFromFile<vertex>(iFile,symmetric);
+graph<vertex> readGraph(char* iFile, bool compressed, bool symmetric, bool binary, bool mmap) {
+  if(binary) return readGraphFromBinary<vertex>(iFile,symmetric);
+  else return readGraphFromFile<vertex>(iFile,symmetric,mmap);
 }
 
 template <class vertex>
@@ -430,8 +492,8 @@ public:
   uintE* Degrees;
   char* s;
 
-  Compressed_Mem(vertex* _V, long _n, long _m, uintT* _inOffsets, uintT* _offsets, uchar* _inEdges, 
-                 uchar* _edges, uintE* _inDegrees, uintE* _Degrees, char* _s) : 
+  Compressed_Mem(vertex* _V, long _n, long _m, uintT* _inOffsets, uintT* _offsets, uchar* _inEdges,
+                 uchar* _edges, uintE* _inDegrees, uintE* _Degrees, char* _s) :
                  V(_V), inOffsets(_inOffsets), offsets(_offsets), inEdges(_inEdges),
                  edges(_edges), inDegrees(_inDegrees), Degrees(_Degrees), s(_s) {}
 
@@ -441,14 +503,31 @@ public:
 };
 
 template <class vertex>
-graph<vertex> readCompressedGraph(char* fname, bool isSymmetric) {
-  ifstream in(fname,ifstream::in |ios::binary);
-  in.seekg(0,ios::end);
-  long size = in.tellg();
-  in.seekg(0);
-  cout << "size = " << size << endl;
-  char* s = (char*) malloc(size);
-  in.read(s,size);
+graph<vertex> readCompressedGraph(char* fname, bool isSymmetric, bool mmap) {
+  char* s;
+  if (mmap) {
+    _seq<char> S = mmapStringFromFile(fname);
+    // Cannot mutate graph unless we copy.
+    char *bytes = newA(char, S.n);
+    parallel_for(size_t i=0; i<S.n; i++) {
+      bytes[i] = S.A[i];
+    }
+    if (munmap(S.A, S.n) == -1) {
+      perror("munmap");
+      exit(-1);
+    }
+    s = bytes;
+  } else {
+    ifstream in(fname,ifstream::in |ios::binary);
+    in.seekg(0,ios::end);
+    long size = in.tellg();
+    in.seekg(0);
+    cout << "size = " << size << endl;
+    s = (char*) malloc(size);
+    in.read(s,size);
+    in.close();
+  }
+
   long* sizes = (long*) s;
   long n = sizes[0], m = sizes[1], totalSpace = sizes[2];
 
@@ -482,7 +561,6 @@ graph<vertex> readCompressedGraph(char* fname, bool isSymmetric) {
     inDegrees = Degrees;
   }
 
-  in.close();
 
   vertex *V = newA(vertex,n);
   parallel_for(long i=0;i<n;i++) {
@@ -502,7 +580,7 @@ graph<vertex> readCompressedGraph(char* fname, bool isSymmetric) {
   }
 
   cout << "creating graph..."<<endl;
-  Compressed_Mem<vertex>* mem = new Compressed_Mem<vertex>(V, n, m, inOffsets, offsets, 
+  Compressed_Mem<vertex>* mem = new Compressed_Mem<vertex>(V, n, m, inOffsets, offsets,
                                   inEdges, edges, inDegrees, Degrees, s);
 
   graph<vertex> G(V,n,m,mem);
