@@ -440,7 +440,14 @@ namespace pbbs {
     // pads in case user wants to allign with cache lines
     size_t line_size = 64;
     size_t bytes = ((n * sizeof(E))/line_size + 1)*line_size;
+#ifndef __APPLE__
     E* r = (E*) aligned_alloc(line_size, bytes);
+#else
+    E* r;
+    if (posix_memalign((void**)&r, line_size, bytes) != 0) {
+      fprintf(stderr, "Cannot allocate space"); exit(1);
+    }
+#endif
     if (r == NULL) {fprintf(stderr, "Cannot allocate space"); exit(1);}
     // a hack to make sure tlb is full for huge pages
     if (touch_pages)

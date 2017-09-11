@@ -25,7 +25,7 @@ struct decompress_f {
   }
 
   inline bool updateAtomic (uintE s, uintE d) {
-    update(s, d);
+    return update(s, d);
   }
 
   // Condition is checked in update.
