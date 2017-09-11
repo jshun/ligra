@@ -6,7 +6,7 @@
 constexpr uintE TOP_BIT = ((uintE)INT_E_MAX) + 1;
 constexpr uintE COVERED = ((uintE)INT_E_MAX) - 1;
 constexpr double epsilon = 0.01;
-constexpr double x = 1.0/log(1.0 + epsilon);
+const double x = 1.0/log(1.0 + epsilon);
 auto max_f = [] (uintE x, uintE y) { return std::max(x,y); };
 
 struct Visit_Elms {
