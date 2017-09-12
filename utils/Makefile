@@ -9,20 +9,20 @@ endif
 #compilers
 ifdef CILK
 PCC = g++
-PCFLAGS = -fcilkplus -lcilkrts -O2 -DCILK $(INTT) $(INTE)
+PCFLAGS = -std=c++14 -fcilkplus -lcilkrts -O2 -DCILK $(INTT) $(INTE)
 PLFLAGS = -fcilkplus -lcilkrts
 
 else ifdef MKLROOT
 PCC = icpc
-PCFLAGS = -O3 -DCILKP $(INTT) $(INTE)
+PCFLAGS = -std=c++14 -O3 -DCILKP $(INTT) $(INTE)
 
 else ifdef OPENMP
 PCC = g++
-PCFLAGS = -fopenmp -O3 -DOPENMP $(INTT) $(INTE)
+PCFLAGS = -std=c++14 -fopenmp -O3 -DOPENMP $(INTT) $(INTE)
 
 else
 PCC = g++
-PCFLAGS = -O2 $(INTT) $(INTE)
+PCFLAGS = -std=c++14 -O2 $(INTT) $(INTE)
 endif
 
 COMMON = utils.h parseCommandLine.h parallel.h quickSort.h blockRadixSort.h transpose.h
