@@ -90,7 +90,7 @@ struct iter_imap {
   iter_imap<Iterator> cut(size_t ss, size_t ee) {
     return iter_imap<Iterator>(s + ss, s + ee);}
   void update(size_t i, const T& val) {s[i] = val;}
-  const size_t size() { return e - s;}
+  size_t size() { return e - s;}
 };
 
 // used so template argument can be inferred
@@ -120,7 +120,7 @@ struct array_imap {
     return array_imap<T>(s + ss, ee - ss);}
   inline void update(size_t i, const E& val) {s[i] = val;}
 //  inline void del() { if (alloc) { alloc = false; free(s); }}
-  inline const size_t size() { return e - s;}
+  inline size_t size() { return e - s;}
 };
 
 // used so template argument can be inferred
