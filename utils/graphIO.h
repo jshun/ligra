@@ -53,6 +53,26 @@ struct edgeArray {
   edgeArray() {}
 };
 
+template <class intT>
+struct wghEdge {
+  intT u;
+  intT v;
+  intT w;
+wghEdge(intT f, intT s, intT t) : u(f), v(s), w(t) {}
+};
+
+template <class intT>
+struct wghEdgeArray {
+  wghEdge<intT>* E;
+  intT numRows;
+  intT numCols;
+  intT nonZeros;
+  void del() {free(E);}
+  wghEdgeArray(wghEdge<intT> *EE, intT r, intT c, intT nz) :
+    E(EE), numRows(r), numCols(c), nonZeros(nz) {}
+  wghEdgeArray() {}
+};
+
 // **************************************************************
 //    ADJACENCY ARRAY REPRESENTATION
 // **************************************************************
@@ -154,6 +174,12 @@ struct edgeCmp {
   }
 };
 
+struct edgeCmpWgh {
+  bool operator() (wghEdge<uintT> e1, wghEdge<uintT> e2) {
+    return ((e1.u < e2.u) ? 1 : ((e1.u > e2.u) ? 0 : (e1.v < e2.v)));
+  }
+};
+
 template <class intT>
 edgeArray<intT> remDuplicates(edgeArray<intT> A) {
   intT m = A.nonZeros;
@@ -178,9 +204,36 @@ edgeArray<intT> remDuplicates(edgeArray<intT> A) {
   return edgeArray<intT>(F,A.numRows,A.numCols,mm);
 }
 
+template <class intT>
+wghEdgeArray<intT> remDuplicates(wghEdgeArray<intT> A) {
+  intT m = A.nonZeros;
+  wghEdge<intT> * E = newA(wghEdge<intT>,m);
+  {parallel_for(intT i=0;i<m;i++) {E[i].u = A.E[i].u; E[i].v = A.E[i].v; E[i].w = A.E[i].w;}}
+  quickSort(E,m,edgeCmpWgh());
+
+  intT* flags = newA(intT,m);
+  flags[0] = 1;
+  {parallel_for(intT i=1;i<m;i++) {
+    if((E[i].u != E[i-1].u) || (E[i].v != E[i-1].v)) flags[i] = 1;
+    else flags[i] = 0;
+    }}
+
+  intT mm = sequence::plusScan(flags,flags,m);
+  wghEdge<intT>* F = newA(wghEdge<intT>,mm);
+  F[mm-1] = E[m-1];
+  {parallel_for(intT i=0;i<m-1;i++) {
+    if(flags[i] != flags[i+1]) F[flags[i]] = E[i];
+    }}
+  free(flags);
+  return wghEdgeArray<intT>(F,A.numRows,A.numCols,mm);
+}
+
 
 template <class intT>
 struct nEQF {bool operator() (edge<intT> e) {return (e.u != e.v);}};
+
+template <class intT>
+struct nEQFWgh {bool operator() (wghEdge<intT> e) {return (e.u != e.v);}};
 
 template <class intT>
 edgeArray<intT> makeSymmetric(edgeArray<intT> A) {
@@ -201,7 +254,29 @@ edgeArray<intT> makeSymmetric(edgeArray<intT> A) {
 }
 
 template <class intT>
+wghEdgeArray<intT> makeSymmetric(wghEdgeArray<intT> A) {
+  intT m = A.nonZeros;
+  wghEdge<intT> *E = A.E;
+  wghEdge<intT> *F = newA(wghEdge<intT>,2*m);
+  intT mm = sequence::filter(E,F,m,nEQFWgh<intT>());
+
+  parallel_for (intT i=0; i < mm; i++) {
+    F[i+mm].u = F[i].v;
+    F[i+mm].v = F[i].u;
+    F[i+mm].w = F[i].w;
+  }
+
+  wghEdgeArray<intT> R = remDuplicates(wghEdgeArray<intT>(F,A.numRows,A.numCols,2*mm));
+  free(F);
+  
+  return R;
+}
+
+template <class intT>
 struct getuF {intT operator() (edge<intT> e) {return e.u;} };
+
+template <class intT>
+struct getuFWgh {intT operator() (wghEdge<intT> e) {return e.u;} };
 
 template <class intT>
 graph<intT> graphFromEdges(edgeArray<intT> EA, bool makeSym) {
@@ -230,6 +305,38 @@ graph<intT> graphFromEdges(edgeArray<intT> EA, bool makeSym) {
   A.del();
   free(offsets);
   return graph<intT>(v,n,m,X);
+}
+
+template <class intT>
+wghGraph<intT> wghGraphFromWghEdges(wghEdgeArray<intT> EA, bool makeSym) {
+  wghEdgeArray<intT> A;
+  if (makeSym) A = makeSymmetric<intT>(EA);
+  else {  // should have copy constructor
+    wghEdge<intT> *E = newA(wghEdge<intT>,EA.nonZeros);
+    parallel_for (intT i=0; i < EA.nonZeros; i++) E[i] = EA.E[i];
+    A = wghEdgeArray<intT>(E,EA.numRows,EA.numCols,EA.nonZeros);
+  }
+  intT m = A.nonZeros;
+  intT n = max<intT>(A.numCols,A.numRows);
+  intT* offsets = newA(intT,n*2);
+  intSort::iSort(A.E,offsets,m,n,getuFWgh<intT>());
+  intT *X = newA(intT,2*m);
+  intT *Weights = X+m;
+  wghVertex<intT> *v = newA(wghVertex<intT>,n);
+  parallel_for (intT i=0; i < n; i++) {
+    intT o = offsets[i];
+    intT l = ((i == n-1) ? m : offsets[i+1])-offsets[i];
+    v[i].degree = l;
+    v[i].Neighbors = X+o;
+    v[i].nghWeights = Weights+o;
+    for (intT j=0; j < l; j++) {
+      v[i].Neighbors[j] = A.E[o+j].v;
+      v[i].nghWeights[j] = A.E[o+j].w;
+    }
+  }
+  A.del();
+  free(offsets);
+  return wghGraph<intT>(v,n,m,X,Weights);
 }
 
 // **************************************************************
@@ -499,6 +606,40 @@ namespace benchIO {
     }
     long maxrc = max<intT>(maxR,maxC) + 1;
     return edgeArray<intT>(E, maxrc, maxrc, n);
+  }
+
+  template <class intT>
+  wghEdgeArray<intT> readWghSNAP(char* fname) {
+    _seq<char> S = readStringFromFile(fname);
+    char* S2 = newA(char,S.n);
+    //ignore starting lines with '#' and find where to start in file 
+    long k=0;
+    while(1) {
+      if(S.A[k] == '#') {
+	while(S.A[k++] != '\n') continue;
+      }
+      if(k >= S.n || S.A[k] != '#') break; 
+    }
+    parallel_for(long i=0;i<S.n-k;i++) S2[i] = S.A[k+i];
+    S.del();
+
+    words W = stringToWords(S2, S.n-k);
+    long n = W.m/3;
+    wghEdge<intT> *E = newA(wghEdge<intT>,n);
+    {parallel_for(long i=0; i < n; i++)
+      E[i] = wghEdge<intT>(atol(W.Strings[3*i]), 
+			atol(W.Strings[3*i + 1]),
+			atol(W.Strings[3*i + 2]));}
+    W.del();
+
+    long maxR = 0;
+    long maxC = 0;
+    for (long i=0; i < n; i++) {
+      maxR = max<intT>(maxR, E[i].u);
+      maxC = max<intT>(maxC, E[i].v);
+    }
+    long maxrc = max<intT>(maxR,maxC) + 1;
+    return wghEdgeArray<intT>(E, maxrc, maxrc, n);
   }
 
   template <class intT>
