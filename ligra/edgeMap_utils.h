@@ -8,49 +8,39 @@
 
 #include "binary_search.h"
 
-// For template meta-programming
-enum class enabler_t {};
-
-template<typename T>
-using EnableIf = typename std::enable_if<T::value, enabler_t>::type;
-
-template<typename T>
-using DisableIf = typename std::enable_if<!T::value, enabler_t>::type;
-
-template <typename data>
-using EnableIfEmpty = EnableIf<std::is_same<data, pbbs::empty>>;
-
-template <typename data>
-using DisableIfEmpty = DisableIf<std::is_same<data, pbbs::empty>>;
-
 // Standard version of edgeMapDense.
-template <class data, EnableIfEmpty<data>...>
+template <typename data, typename std::enable_if<
+  std::is_same<data, pbbs::empty>::value, int>::type=0 >
 auto get_emdense_gen(tuple<bool, data>* next) {
   return [&] (uintE ngh, bool m=false) {
     if (m) next[ngh] = make_tuple(1, pbbs::empty()); };
 }
 
-template <class data, DisableIfEmpty<data>...>
+template <typename data, typename std::enable_if<
+  !std::is_same<data, pbbs::empty>::value, int>::type=0 >
 auto get_emdense_gen(tuple<bool, data>* next) {
   return [&] (uintE ngh, Maybe<data> m=Maybe<data>()) {
     if (m.exists) next[ngh] = make_tuple(1, m.t); };
 }
 
 // Standard version of edgeMapDenseForward.
-template <class data, EnableIfEmpty<data>...>
+template <typename data, typename std::enable_if<
+  std::is_same<data, pbbs::empty>::value, int>::type=0 >
 auto get_emdense_forward_gen(tuple<bool, data>* next) {
   return [&] (uintE ngh, bool m=false) {
     if (m) next[ngh] = make_tuple(1, pbbs::empty()); };
 }
 
-template <class data, DisableIfEmpty<data>...>
+template <typename data, typename std::enable_if<
+  !std::is_same<data, pbbs::empty>::value, int>::type=0 >
 auto get_emdense_forward_gen(tuple<bool, data>* next) {
   return [&] (uintE ngh, Maybe<data> m=Maybe<data>()) {
     if (m.exists) next[ngh] = make_tuple(1, m.t); };
 }
 
 // Standard version of edgeMapSparse.
-template <class data, EnableIfEmpty<data>...>
+template <typename data, typename std::enable_if<
+  std::is_same<data, pbbs::empty>::value, int>::type=0 >
 auto get_emsparse_gen(tuple<uintE, data>* outEdges) {
   return [&] (uintE ngh, uintE offset, bool m=false) {
     if (m) {
@@ -61,7 +51,8 @@ auto get_emsparse_gen(tuple<uintE, data>* outEdges) {
   };
 }
 
-template <class data, DisableIfEmpty<data>...>
+template <typename data, typename std::enable_if<
+  !std::is_same<data, pbbs::empty>::value, int>::type=0 >
 auto get_emsparse_gen(tuple<uintE, data>* outEdges) {
   return [&] (uintE ngh, uintE offset, Maybe<data> m=Maybe<data>()) {
     if (m.exists) {
@@ -73,12 +64,14 @@ auto get_emsparse_gen(tuple<uintE, data>* outEdges) {
 }
 
 // An edgeMapSparse that just maps over the out-edges.
-template <class data, EnableIfEmpty<data>...>
+template <typename data, typename std::enable_if<
+  std::is_same<data, pbbs::empty>::value, int>::type=0 >
 auto get_emsparse_nooutput_gen() {
   return [&] (uintE ngh, uintE offset, bool m=false) { };
 }
 
-template <class data, DisableIfEmpty<data>...>
+template <typename data, typename std::enable_if<
+  !std::is_same<data, pbbs::empty>::value, int>::type=0 >
 auto get_emsparse_nooutput_gen() {
   return [&] (uintE ngh, uintE offset, Maybe<data> m=Maybe<data>()) { };
 }
@@ -97,7 +90,8 @@ void edgeMapSparseNoOutput(vertex* frontierVertices, vs &indices, uintT m, F &f)
 // edgeMapSparse_no_filter
 // Version of edgeMapSparse that binary-searches and packs out blocks of the
 // next frontier.
-template <class data, EnableIfEmpty<data>...>
+template <typename data, typename std::enable_if<
+  std::is_same<data, pbbs::empty>::value, int>::type=0 >
 auto get_emsparse_no_filter_gen(tuple<uintE, data>* outEdges) {
   return [&] (uintE ngh, uintE offset, bool m=false) {
     if (m) {
@@ -108,7 +102,8 @@ auto get_emsparse_no_filter_gen(tuple<uintE, data>* outEdges) {
   };
 }
 
-template <class data, DisableIfEmpty<data>...>
+template <typename data, typename std::enable_if<
+  !std::is_same<data, pbbs::empty>::value, int>::type=0 >
 auto get_emsparse_no_filter_gen(tuple<uintE, data>* outEdges) {
   return [&] (uintE ngh, uintE offset, Maybe<data> m=Maybe<data>()) {
     if (m.exists) {

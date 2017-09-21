@@ -280,7 +280,8 @@ vertexSubsetData<uintE> edgeMapFilter(graph<vertex>& GA, vertexSubset& vs, P& p,
 
 //*****VERTEX FUNCTIONS*****
 
-template <class VS, class F, DisableIf<std::is_same<VS, vertexSubset>>...>
+template <class F, class VS, typename std::enable_if<
+  !std::is_same<VS, vertexSubset>::value, int>::type=0 >
 void vertexMap(VS& V, F f) {
   size_t n = V.numRows(), m = V.numNonzeros();
   if(V.dense()) {
@@ -296,7 +297,8 @@ void vertexMap(VS& V, F f) {
   }
 }
 
-template <class VS, class F, EnableIf<std::is_same<VS, vertexSubset>>...>
+template <class VS, class F, typename std::enable_if<
+  std::is_same<VS, vertexSubset>::value, int>::type=0 >
 void vertexMap(VS& V, F f) {
   size_t n = V.numRows(), m = V.numNonzeros();
   if(V.dense()) {
