@@ -60,12 +60,6 @@ struct EdgeMap {
     if (m == 0) {
       return vertexSubsetData<O>(vs.numNonzeros());
     }
-    vertex* frontierVertices = newA(vertex, m);
-    uintT* degrees = newA(uintT, m);
-    granular_for(i, 0, m, (m > 1000), {
-      frontierVertices[i] = G.V[vs.vtx(i)];
-      degrees[i] = frontierVertices[i].getOutDegree();
-    });
 
     auto oneHop = edgeMapInduced<M, vertex, VS, Map>(G, vs, map_f);
     oneHop.toSparse();
