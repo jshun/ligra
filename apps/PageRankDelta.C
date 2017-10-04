@@ -54,7 +54,7 @@ struct PR_Vertex_F_FirstRound {
     addedConstant((1-_damping)*_one_over_n),
     epsilon2(_epsilon2) {}
   inline bool operator () (uintE i) {
-    Delta[i] = damping*(p[i]+nghSum[i])+addedConstant-p[i];
+    Delta[i] = damping*nghSum[i]+addedConstant;
     p[i] += Delta[i];
     Delta[i]-=one_over_n; //subtract off delta from initialization
     return (fabs(Delta[i]) > epsilon2 * p[i]);
