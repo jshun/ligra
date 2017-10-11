@@ -85,7 +85,7 @@ void Compute(graph<vertex>& GA, commandLine P) {
   vertexSubset Frontier(n,n,frontier); //frontier contains all vertices
 
   vertexMap(Frontier,initF<vertex>(GA.V,counts));
-  edgeMap(GA,Frontier,countF<vertex>(GA.V,counts));
+  edgeMap(GA,Frontier,countF<vertex>(GA.V,counts), -1, no_output);
   long count = sequence::plusReduce(counts,n);
   cout << "triangle count = " << count << endl;
   Frontier.del(); free(counts);

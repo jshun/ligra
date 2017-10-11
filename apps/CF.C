@@ -122,7 +122,7 @@ void Compute(graph<vertex>& GA, commandLine P) {
 
   for (int iter = 0; iter < numIter; iter++){
     //edgemap to accumulate error for each node
-    edgeMap(GA, Frontier, CF_Edge_F<vertex>(GA.V,latent_curr,error,K));
+    edgeMap(GA, Frontier, CF_Edge_F<vertex>(GA.V,latent_curr,error,K), -1, no_output);
 
 #ifdef COMPUTE_ERROR
     cout << "sum of squared error: " << sequence::plusReduce(squaredErrors,n)/2 << " for iter: " << iter << endl;

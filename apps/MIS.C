@@ -116,7 +116,7 @@ void Compute(graph<vertex>& GA, commandLine P) {
   long round = 0;
   vertexSubset Frontier(n, frontier_data);
   while (!Frontier.isEmpty()) {
-    edgeMap(GA, Frontier, MIS_Update(flags));
+    edgeMap(GA, Frontier, MIS_Update(flags), -1, no_output);
     vertexSubset output = vertexFilter(Frontier, MIS_Filter(flags));
     Frontier.del();
     Frontier = output;

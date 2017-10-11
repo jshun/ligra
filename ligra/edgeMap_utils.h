@@ -63,30 +63,6 @@ auto get_emsparse_gen(tuple<uintE, data>* outEdges) {
   };
 }
 
-// An edgeMapSparse that just maps over the out-edges.
-template <typename data, typename std::enable_if<
-  std::is_same<data, pbbs::empty>::value, int>::type=0 >
-auto get_emsparse_nooutput_gen() {
-  return [&] (uintE ngh, uintE offset, bool m=false) { };
-}
-
-template <typename data, typename std::enable_if<
-  !std::is_same<data, pbbs::empty>::value, int>::type=0 >
-auto get_emsparse_nooutput_gen() {
-  return [&] (uintE ngh, uintE offset, Maybe<data> m=Maybe<data>()) { };
-}
-
-// enabled only when <data != pbbs:empty>
-template <class data, class vertex, class vs, class F>
-void edgeMapSparseNoOutput(vertex* frontierVertices, vs &indices, uintT m, F &f) {
-  auto g = get_emsparse_nooutput_gen<data>();
-  parallel_for (size_t i = 0; i < m; i++) {
-    uintT v = indices.vtx(i), o = 0;
-    vertex vert = frontierVertices[i];
-    vert.decodeOutNghSparse(v, o, f, g);
-  }
-}
-
 // edgeMapSparse_no_filter
 // Version of edgeMapSparse that binary-searches and packs out blocks of the
 // next frontier.
@@ -114,10 +90,51 @@ auto get_emsparse_no_filter_gen(tuple<uintE, data>* outEdges) {
   };
 }
 
-template <class data, class vertex, class vs, class F>
-pair<size_t, tuple<uintE, data>*> edgeMapSparse_no_filter(vertex* frontierVertices, vs& indices,
+
+
+
+// Gen-functions that produce no output
+template <typename data, typename std::enable_if<
+  std::is_same<data, pbbs::empty>::value, int>::type=0 >
+auto get_emsparse_nooutput_gen() {
+  return [&] (uintE ngh, uintE offset, bool m=false) { };
+}
+
+template <typename data, typename std::enable_if<
+  !std::is_same<data, pbbs::empty>::value, int>::type=0 >
+auto get_emsparse_nooutput_gen() {
+  return [&] (uintE ngh, uintE offset, Maybe<data> m=Maybe<data>()) { };
+}
+
+template <typename data, typename std::enable_if<
+  std::is_same<data, pbbs::empty>::value, int>::type=0 >
+auto get_emdense_nooutput_gen() {
+  return [&] (uintE ngh, bool m=false) { };
+}
+
+template <typename data, typename std::enable_if<
+  !std::is_same<data, pbbs::empty>::value, int>::type=0 >
+auto get_emdense_nooutput_gen() {
+  return [&] (uintE ngh, Maybe<data> m=Maybe<data>()) { };
+}
+
+template <typename data, typename std::enable_if<
+  std::is_same<data, pbbs::empty>::value, int>::type=0 >
+auto get_emdense_forward_nooutput_gen() {
+  return [&] (uintE ngh, bool m=false) { };
+}
+
+template <typename data, typename std::enable_if<
+  !std::is_same<data, pbbs::empty>::value, int>::type=0 >
+auto get_emdense_forward_nooutput_gen() {
+  return [&] (uintE ngh, Maybe<data> m=Maybe<data>()) { };
+}
+
+template <class data, class vertex, class VS, class F>
+vertexSubsetData<data> edgeMapSparse_no_filter(vertex* frontierVertices, VS& indices,
       uintT* offsets, uintT m, F& f) {
   using S = tuple<uintE, data>;
+  long n = indices.n;
   long outEdgeCount = sequence::plusScan(offsets, offsets, m);
   S* outEdges = newA(S, outEdgeCount);
 
@@ -172,5 +189,5 @@ pair<size_t, tuple<uintE, data>*> edgeMapSparse_no_filter(vertex* frontierVertic
     }
   }
   free(outEdges); free(cts); free(block_offs);
-  return make_pair(outSize, out);
+  return vertexSubsetData<data>(n, outSize, out);
 }

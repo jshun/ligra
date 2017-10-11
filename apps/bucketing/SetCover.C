@@ -39,7 +39,7 @@ dyn_arr<uintE> SetCover(graph<vertex>& G, size_t num_buckets=128) {
     // 1. sets -> elements (Pack out sets and update their degree)
     auto pack_predicate = [&] (const uintE& u, const uintE& ngh) { return Elms[ngh] != COVERED; };
     auto pack_apply = [&] (uintE v, size_t ct) { D[v] = ct; };
-    auto packed_vtxs = edgeMapFilter(G, active, pack_predicate, output | pack_edges);
+    auto packed_vtxs = edgeMapFilter(G, active, pack_predicate, pack_edges);
     vertexMap(packed_vtxs, pack_apply);
 
     // Calculate the sets which still have sufficient degree (degree >= threshold)
@@ -49,7 +49,7 @@ dyn_arr<uintE> SetCover(graph<vertex>& G, size_t num_buckets=128) {
     packed_vtxs.del();
 
     // 2. sets -> elements (writeMin to acquire neighboring elements)
-    edgeMap(G, still_active, Visit_Elms(Elms.s), -1, DENSE_FORWARD, no_output);
+    edgeMap(G, still_active, Visit_Elms(Elms.s), -1, no_output | dense_forward);
 
     // 3. sets -> elements (count and add to cover if enough elms were won)
     const size_t low_threshold = std::max((size_t)ceil(pow(1.0+epsilon,cur_bkt-1)), (size_t)1);
@@ -72,7 +72,7 @@ dyn_arr<uintE> SetCover(graph<vertex>& G, size_t num_buckets=128) {
         else Elms[v] = UINT_E_MAX;
       } return false;
     };
-    edgeMap(G, still_active, EdgeMap_F<decltype(reset_f)>(reset_f), -1, DENSE_FORWARD, no_output);
+    edgeMap(G, still_active, EdgeMap_F<decltype(reset_f)>(reset_f), -1, no_output | dense_forward);
 
     // Rebucket the active sets. Ignore those that joined the cover.
     active.toSparse();

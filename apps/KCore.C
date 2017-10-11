@@ -96,8 +96,8 @@ void Compute(graph<vertex>& GA, commandLine P) {
         break;
       }
       else {
-	vertexSubset output = edgeMap(GA,toRemove,Update_Deg(Degrees));
-	toRemove.del(); output.del();
+	edgeMap(GA,toRemove,Update_Deg(Degrees), -1, no_output);
+	toRemove.del();
       }
     }
     if(Frontier.numNonzeros() == 0) { largestCore = k-1; break; }
