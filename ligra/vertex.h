@@ -30,9 +30,9 @@ namespace decode_uncompressed {
         uintE ngh = v->getInNeighbor(j);
         if (vertexSubset.isIn(ngh)) {
 #ifndef WEIGHTED
-          auto m = f.update(ngh, v_id);
+          auto m = f.updateAtomic(ngh, v_id);
 #else
-          auto m = f.update(ngh, v_id, v->getInWeight(j));
+          auto m = f.updateAtomic(ngh, v_id, v->getInWeight(j));
 #endif
           g(v_id, m);
         }

@@ -110,9 +110,8 @@ void Compute(graph<vertex>& GA, commandLine P) {
   vertexSubset All(n,n,all); //all vertices
 
   long round = 0;
-  while(round++ < maxIters){
-    vertexSubset output = edgeMap(GA,Frontier,PR_F<vertex>(GA.V,Delta,nghSum),GA.m/20,DENSE_FORWARD);
-    output.del();
+  while(round++ < maxIters) {
+    edgeMap(GA,Frontier,PR_F<vertex>(GA.V,Delta,nghSum),GA.m/20,dense_forward); // no_output
     vertexSubset active 
       = (round == 1) ? 
       vertexFilter(All,PR_Vertex_F_FirstRound(p,Delta,nghSum,damping,one_over_n,epsilon2)) :
