@@ -95,7 +95,6 @@ void Compute(graph<vertex>& GA, commandLine P) {
     //reset p_curr
     vertexMap(Frontier,PR_Vertex_Reset(p_curr));
     swap(p_curr,p_next);
-    cout << "fsize = " << Frontier.m << endl;
   }
   Frontier.del(); free(p_curr); free(p_next); 
 }
