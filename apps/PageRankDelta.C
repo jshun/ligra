@@ -111,7 +111,7 @@ void Compute(graph<vertex>& GA, commandLine P) {
 
   long round = 0;
   while(round++ < maxIters) {
-    edgeMap(GA,Frontier,PR_F<vertex>(GA.V,Delta,nghSum),GA.m/20,dense_forward); // no_output
+    edgeMap(GA,Frontier,PR_F<vertex>(GA.V,Delta,nghSum),GA.m/20, no_output | dense_forward);
     vertexSubset active 
       = (round == 1) ? 
       vertexFilter(All,PR_Vertex_F_FirstRound(p,Delta,nghSum,damping,one_over_n,epsilon2)) :

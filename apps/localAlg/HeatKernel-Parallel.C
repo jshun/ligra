@@ -163,8 +163,8 @@ void Compute(graph<vertex>& GA, commandLine P) {
 	x = new_x;
       }
       vertexMap(Frontier,Local_Update(x,r));
-      vertexSubset output = edgeMap(GA, Frontier, HK_Last_F<vertex>(x,r,GA.V));
-      Frontier.del(); output.del();
+      edgeMap(GA, Frontier, HK_Last_F<vertex>(x,r,GA.V), -1, no_output);
+      Frontier.del();
       j++;
       break;
     }

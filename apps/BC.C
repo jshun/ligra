@@ -131,8 +131,8 @@ void Compute(graph<vertex>& GA, commandLine P) {
   //tranpose graph
   GA.transpose();
   for(long r=round-2;r>=0;r--) { //backwards phase
-    vertexSubset output = edgeMap(GA, Frontier, BC_Back_F(Dependencies,Visited));
-    output.del(); Frontier.del();
+    edgeMap(GA, Frontier, BC_Back_F(Dependencies,Visited), -1, no_output);
+    Frontier.del();
     Frontier = Levels[r]; //gets frontier from Levels array
     //vertex map to mark visited and update Dependencies scores
     vertexMap(Frontier,BC_Back_Vertex_F(Visited,Dependencies,inverseNumPaths));
