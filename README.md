@@ -92,8 +92,8 @@ filenames, and for weighted graphs, the flag "-w" should be passed
 before the filenames. For example:
 
 ```
-$ ./encoder -s ../inputs/rMatGraph_J_5_100 inputs/rMatGraph_J_5_100.compressed
-$ ./encoder -s -w ../inputs/rMatGraph_WJ_5_100 inputs/rMatGraph_WJ_5_100.compressed
+$ ./encoder -s ../inputs/rMatGraph_J_5_100 ../inputs/rMatGraph_J_5_100.compressed
+$ ./encoder -s -w ../inputs/rMatGraph_WJ_5_100 ../inputs/rMatGraph_WJ_5_100.compressed
 ```
  
 After compressing the graphs, the applications can be run in the same
