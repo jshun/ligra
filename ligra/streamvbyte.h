@@ -10,34 +10,42 @@
 #include <stdlib.h>
 #include <cmath>
 
+// to use this compression scheme, compile with STREAMVBYTE=1 make -j
+
 typedef unsigned char uchar;
 
+// decode weights
 inline intE eatWeight(uchar* &start, uchar* &dOffset, intT shift){
 	uchar fb = *start;
+	// check two bit code in control stream
 	uintT checkCode = (fb >> shift) & 0x3;
 	intE edgeRead = 0;
 	intE *edgeReadPtr = &edgeRead;
-//	cout << "eatWeight" << endl;
 	uchar signBit = 0;
+	// 1 byte
 	if(checkCode == 0){
 		edgeRead = *dOffset;
 		// check sign bit and then get rid of it from actual value 
 		signBit =(uchar)(((edgeRead) & 0x80) >> 7);
 		edgeRead &= 0x7F;
+		// incrememnt the offset to data by 1 byte
 		dOffset += 1;
 	}
+	// 2 bytes
 	else if(checkCode == 1){
 		memcpy(&edgeReadPtr, dOffset, 2);
 		signBit = (uchar)(((1 << 15) & edgeRead) >> 15);
 		edgeRead = edgeRead & 0x7FFF; 
 		dOffset += 2;
 	}
+	// 3 bytes
 	else if(checkCode == 2){
 		memcpy(&edgeReadPtr, dOffset, 3);
 		signBit = (uchar)(((edgeRead) & (1 <<23)) >> 23);
 		edgeRead = edgeRead & 0x7FFFFF;
 		dOffset += 3;
 	}
+	// 4 bytes
 	else{
 		memcpy(&edgeReadPtr, dOffset, 4);
 		signBit = (uchar)(((edgeRead) & (1 << 31)) >> 31);
@@ -45,17 +53,18 @@ inline intE eatWeight(uchar* &start, uchar* &dOffset, intT shift){
 		dOffset += 4;
 	}
 
-//	cout << "sign bit: " << signBit << endl;
 	return (signBit) ? -edgeRead : edgeRead;
-
 }
 
+// decode first edge
 inline intE eatFirstEdge(uchar* &start, uintE source, uchar* &dOffset){
 	uchar fb = *start;
+	// check the two bit code in control stream
 	uintT checkCode = (fb) & 0x3;
 	intE edgeRead = 0;
 	intE *edgeReadPtr = &edgeRead;
 	uchar signBit = 0;
+	// 1 byte
 	if(checkCode == 0){
 		edgeRead = *dOffset;
 		// check sign bit and then get rid of it from actual value 
@@ -63,49 +72,53 @@ inline intE eatFirstEdge(uchar* &start, uintE source, uchar* &dOffset){
 		edgeRead &= 0x7F;
 		dOffset += 1;
 	}
+	// 2 bytes
 	else if(checkCode == 1){
 		memcpy(&edgeReadPtr, dOffset, 2);
 		signBit =(uchar) (((1 << 15) & edgeRead) >> 15);
 		edgeRead = edgeRead & 0x7FFF; 
 		dOffset += 2;
 	}
+	// 3 bytes
 	else if(checkCode == 2){
 		memcpy(&edgeReadPtr, dOffset, 3);
 		signBit = (uchar)(((edgeRead) & (1 <<23)) >> 23);
 		edgeRead = edgeRead & 0x7FFFFF;
 		dOffset += 3;
 	}
+	// 4 bytes
 	else{
 		memcpy(&edgeReadPtr, dOffset, 4);
 		signBit = (uchar)((edgeRead) & (1 << 31)) >> 31;
 		edgeRead = (edgeRead) & 0x7FFFFFFF; 
 		dOffset += 4;
 	}
-//	cout << "signBit: " << signBit << endl;
-//	cout << "source: " << source << " edgeRead: " << edgeRead << "sign bit: " << signBit << endl;
 	return (signBit) ? source - edgeRead : source + edgeRead;
-
 }
 
+// decode remaining edges
 inline uintE eatEdge(uchar* &start, uchar* &dOffset, intT shift){
-	// check if should be start++ or start
-//	cout << "eat edge" << endl;
 	uchar fb = *start;
+	// check two bit code in control stream
 	uintT checkCode = (fb >> shift) & 0x3;
 	uintE edgeRead = 0;
 	uintE *edgeReadPtr = &edgeRead;
+	// 1 byte
 	if(checkCode == 0){
 		edgeRead = *dOffset; 
 		dOffset += 1;
 	}
+	// 2 bytes
 	else if(checkCode == 1){
 		memcpy(&edgeReadPtr, dOffset, 2);
 		dOffset += 2;
 	}
+	// 3 bytes
 	else if(checkCode == 2){
 		memcpy(&edgeReadPtr, dOffset, 3);
 		dOffset += 3;
 	}
+	// 4 bytes
 	else{
 		memcpy(&edgeReadPtr, dOffset, 4);
 		dOffset += 4;
@@ -115,19 +128,16 @@ inline uintE eatEdge(uchar* &start, uchar* &dOffset, intT shift){
 }
 
 intT compressFirstEdge(uchar *start, long controlOffset, long dataOffset, uintE source, uintE target){
-	// Check if I need to do this for my scheme as well.. I think I do..
 	uchar* saveStart = start;
 	long saveOffset = dataOffset;
 	
 	intE preCompress = (intE) target - source;
-	// need to figure out how to deal with/store sign bit..
-
-	// Check if positive or negative -- change code to incorporate one extra bit -- MSB for first edge will be designated as a sign bit and should be handled by the decoding function accordingly
 	intE toCompress = abs(preCompress);
 	intT signBit = (preCompress < 0) ? 1:0;
 	intT code; 
 	// check how many bytes is required to store the data and a sign bit (MSB)
 	if(toCompress < (1 << 7)) {
+		// concatenate sign bit with data and store
 		start[dataOffset] = (signBit << 7) | toCompress;
 		code = 0;
 	}
@@ -143,15 +153,14 @@ intT compressFirstEdge(uchar *start, long controlOffset, long dataOffset, uintE 
 		start[dataOffset] = (signBit << 31) | toCompress;
 		code = 3;
 	}
-	
-	// testing 
-//	cout << "Compressing first edge: " << toCompress << endl;
+
 	return code;
 }
 
+// store compressed data
 uintT encode_data(uintE d, long dataCurrentOffset, uchar*start){
 	uintT code;
-//	cout << "difference: " << d << endl;
+	// figure out how many bytes needed to store value and set code accordingly
 	if(d < (1 << 8)){
 		start[dataCurrentOffset] = d;
 		code = 0;
@@ -179,29 +188,34 @@ long compressWeightedEdge(uchar *start, long currentOffset, intEPair *savedEdges
 	uintT storeKey = key;
 	long storeDOffset = dataCurrentOffset;
 	long storeCurrentOffset = currentOffset;
+	// shift 0 and shift 2 used by first edge and first weight
 	uintT shift = 4;
 	uintE difference;
 
 		for (uintT edgeI = 1; edgeI < degree; edgeI++){
+			// differential encoding
 			difference = savedEdges[edgeI].first - savedEdges[edgeI - 1].first;
+			// if finished filling byte in control stream, reset variables and increment control pointer
 			if(shift == 8){
 				shift = 0;
 				start[storeCurrentOffset] = storeKey;
 				storeCurrentOffset+= sizeof(uchar);
 				storeKey = 0;
 			}		
-			// figure out control 
+			// encode and store data in the data stream
 			code = encode_data(difference, storeDOffset, start);
 			storeDOffset += (code + 1)*sizeof(uchar); 
+			// add code to current byte in control stream
 			storeKey |= (code << shift);
 			shift += 2;
+			// must check again if at end of the byte in control stream
 			if(shift == 8){
 				shift = 0;
 				start[storeCurrentOffset] = storeKey;
 				storeCurrentOffset+= sizeof(uchar);
 				storeKey = 0;
 			}		
-			// figure out control 
+			// compress the weights in same manner as first edge (ie with sign bit)
 			code = compressFirstEdge(start, storeCurrentOffset, storeDOffset, 0, savedEdges[edgeI].second);
 			storeDOffset += (code + 1)*sizeof(uchar); 
 			storeKey |= (code << shift);
@@ -216,18 +230,20 @@ long compressEdge(uchar *start, long currentOffset, uintE *savedEdges, uintT key
 	uintT storeKey = key;
 	long storeDOffset = dataCurrentOffset;
 	long storeCurrentOffset = currentOffset;
+	// shift 0 used by first edge
 	uintT shift = 2;
 	uintE difference;
 	for (uintT edgeI = 1; edgeI < degree; edgeI++){
+			// differential encoding
 			difference = savedEdges[edgeI] - savedEdges[edgeI - 1];
-	//		cout << "edge, edge, difference: " << savedEdges[edgeI] << " " << savedEdges[edgeI - 1] << " " << difference << endl;
+			// check if used full byte in control stream; if yes, increment and reset vars
 			if(shift == 8){
 				shift = 0;
 				start[storeCurrentOffset] = storeKey;
 				storeCurrentOffset += sizeof(uchar);
 				storeKey = 0;
 			}		
-			// figure out control 
+			// encode and store data in data stream
 			code = encode_data(difference, storeDOffset, start);
 			storeDOffset += (code + 1)*sizeof(uchar); 
 			storeKey |= (code << shift);
@@ -239,21 +255,20 @@ long compressEdge(uchar *start, long currentOffset, uintE *savedEdges, uintT key
 
 
 long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degree, uintE vertexNum, uintE *savedEdges){
-	// First save offset of first edge compression, then loop through the vertex's degree number - 1 edges
-	// Return offset of last int
 	if(degree > 0){
-		// number of bytes needed for control bits
+		// number of bytes needed for control stream
 		uintT controlLength = (degree + 3)/4;
 		// offset where to start storing data (after control bytes)
 		long dataCurrentOffset = currentOffset + controlLength;
 		// shift and key always = 0 for first edge
 		uintT key = compressFirstEdge(edgeArray, currentOffset, dataCurrentOffset, vertexNum, savedEdges[0]);
+		// offset data pointer by amount of space required by first edge
 		dataCurrentOffset += (1 + key)*sizeof(uchar);
 		if(degree == 1){
 			edgeArray[currentOffset] = key;
 			return dataCurrentOffset;
 		}
-		// scalar version:
+		// scalar version: compress the rest of the edges
 		return  compressEdge(edgeArray, currentOffset, savedEdges, key, dataCurrentOffset, degree);
 	}
 	else{
@@ -270,7 +285,6 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 	long *compressionStarts = newA(long, n+1);
 	{parallel_for(long i=0;i<n;i++){
 		degrees[i] = Degrees[i];
-	//	charsUsedArr[i] = ceil((degrees[i]*9)/8)+4;
 		charsUsedArr[i] = (degrees[i] + 3)/4 + degrees[i]*4;
 	}}
 	degrees[n] = 0;
@@ -310,15 +324,16 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 	return ((uintE *)finalArr);
 }
 
-// skeleton of decoding functions
+
 template <class T>
 	inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degree, const bool par=true){
 	size_t edgesRead = 0;
 	if(degree > 0) {
+	// space used by control stream
 	uchar controlLength = (degree + 3)/4;
+	// set data pointer to location after control stream (ie beginning of data stream)
 	uchar *dataOffset = edgeStart + controlLength;
 		uintE startEdge = eatFirstEdge(edgeStart, source, dataOffset);
-//		cout << "first decompressed edge: " << startEdge << endl;
 		if(!t.srcTarg(source,startEdge,edgesRead)){
 			return;
 		}
@@ -330,10 +345,9 @@ template <class T>
 			edgeStart++;
 			shift = 0;
 		}
-		// need to figure out how much to increment dataOffset by
+		// decode stored value and add to previous edge value (stored using differential encoding)
 		uintE edgeRead = eatEdge(edgeStart, dataOffset, shift);
 		edge = edge + edgeRead;
-//		cout << "decompressed edgeread and edge value : " << edgeRead << " " << edge << endl;
 		startEdge = edge;
 		if (!t.srcTarg(source, edge, edgesRead)){
 			break;
@@ -347,11 +361,11 @@ template <class T>
 	inline void decodeWgh(T t, uchar* edgeStart, const uintE &source, const uintT &degree, const bool par=true){
 		size_t edgesRead = 0;
 		if (degree > 0){
-			// add 2* inside parantheses or outside?
+			// space needed for control stream
 			uchar controlLength = (2*degree+3)/4;
+			// set data pointer at beginning of data stream
 			uchar *dataOffset = edgeStart + controlLength;
 			uintE startEdge = eatFirstEdge(edgeStart, source, dataOffset);	
-			//cout << "decode Wgh" << endl;	
 			intE weight = eatWeight(edgeStart, dataOffset, 2);	
 			if (!t.srcTarg(source, startEdge, weight, edgesRead)){
 				return;
@@ -359,13 +373,13 @@ template <class T>
 			uintT shift = 4;
 			uintE edge = startEdge;
 			for (edgesRead = 1; edgesRead < degree; edgesRead++){
+				// if finished reading byte in control stream, increment and reset shift
 				if(shift == 8){
 					edgeStart++;
 					shift = 0;
 				}
 				uintE edgeRead = eatEdge(edgeStart, dataOffset, shift);
 				edge = edge + edgeRead;
-				//startEdge = edge;
 				shift += 2;
 
 				if(shift == 8){
@@ -385,13 +399,12 @@ template <class T>
 
 long sequentialCompressWeightedEdgeSet(uchar *edgeArray, long currentOffset, uintT degree, uintE vertexNum, intEPair *savedEdges){
 	if (degree > 0){
-		// add 2* inside or outwside parantheses
+		// space needed by control stream
 		uintT controlLength = (2*degree + 3)/4;
 		long dataCurrentOffset = currentOffset + controlLength;
-		// target ID
 		uintT key = compressFirstEdge(edgeArray, currentOffset, dataCurrentOffset, vertexNum, savedEdges[0].first);
 		dataCurrentOffset += (1 + key)*sizeof(uchar); 
-		// weight
+		// compress weight of first edge
 		uintT temp_key = compressFirstEdge(edgeArray, currentOffset, dataCurrentOffset, 0, savedEdges[0].second);
 		dataCurrentOffset += (temp_key + 1)*sizeof(uchar);
 		key |= temp_key << 2;
@@ -417,7 +430,6 @@ uchar *parallelCompressWeightedEdges(intEPair *edges, uintT *offsets, long n, lo
 	long *compressionStarts = newA(long, n+1);
 	{parallel_for(long i=0; i<n; i++){
 		degrees[i] = Degrees[i];
-	//	charsUsedArr[i] = 2*(ceil((degrees[i]*9)/8) + 4);
 		charsUsedArr[i] = (2*degrees[i]+3)/4 + 8*degrees[i];
 
 	}}
@@ -465,7 +477,6 @@ inline size_t pack(P pred, uchar* edge_start, const uintE &source, const uintE &
 	uchar* cur = edge_start;
 	cout << "pack" << endl;
 	if (degree > 0) {
-		// not sure that this is correct...
 		uchar controlLength  = (degree + 3)/4;
 		uchar *dataOffset  = edge_start + controlLength;	
 		uintE start_edge = eatFirstEdge(cur, source, dataOffset);
