@@ -160,29 +160,6 @@ words stringToWords(char *Str, long n) {
 }
 
 template <class vertex>
-struct Uncompressed_Mem : public Deletable {
-public:
-
-  vertex* V;
-  long n;
-  long m;
-  void* allocatedInplace, * inEdges;
-  uintE* flags;
-
-  Uncompressed_Mem(vertex* VV, long nn, long mm, void* ai, void* _inEdges = NULL)
-  : V(VV), n(nn), m(mm), allocatedInplace(ai), inEdges(_inEdges),  flags(NULL) {}
-
-  void del() {
-    if (flags != NULL) free(flags);
-    if (allocatedInplace == NULL)
-      for (long i=0; i < n; i++) V[i].del();
-    else free(allocatedInplace);
-    free(V);
-    if(inEdges != NULL) free(inEdges);
-  }
-};
-
-template <class vertex>
 graph<vertex> readGraphFromFile(char* fname, bool isSymmetric, bool mmap) {
   words W;
   if (mmap) {
@@ -479,30 +456,6 @@ graph<vertex> readGraph(char* iFile, bool compressed, bool symmetric, bool binar
 }
 
 template <class vertex>
-struct Compressed_Mem : public Deletable {
-public:
-  vertex* V;
-  long n;
-  long m;
-  uintT* inOffsets;
-  uintT* offsets;
-  uchar* inEdges;
-  uchar* edges;
-  uintE* inDegrees;
-  uintE* Degrees;
-  char* s;
-
-  Compressed_Mem(vertex* _V, long _n, long _m, uintT* _inOffsets, uintT* _offsets, uchar* _inEdges,
-                 uchar* _edges, uintE* _inDegrees, uintE* _Degrees, char* _s) :
-                 V(_V), inOffsets(_inOffsets), offsets(_offsets), inEdges(_inEdges),
-                 edges(_edges), inDegrees(_inDegrees), Degrees(_Degrees), s(_s) {}
-
-  void del() {
-    free(s);
-  }
-};
-
-template <class vertex>
 graph<vertex> readCompressedGraph(char* fname, bool isSymmetric, bool mmap) {
   char* s;
   if (mmap) {
@@ -580,8 +533,7 @@ graph<vertex> readCompressedGraph(char* fname, bool isSymmetric, bool mmap) {
   }
 
   cout << "creating graph..."<<endl;
-  Compressed_Mem<vertex>* mem = new Compressed_Mem<vertex>(V, n, m, inOffsets, offsets,
-                                  inEdges, edges, inDegrees, Degrees, s);
+  Compressed_Mem<vertex>* mem = new Compressed_Mem<vertex>(V, s);
 
   graph<vertex> G(V,n,m,mem);
   return G;
