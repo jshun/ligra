@@ -51,6 +51,7 @@ const flags pack_edges = 2;
 const flags sparse_no_filter = 4;
 const flags dense_forward = 8;
 const flags dense_parallel = 16;
+const flags remove_duplicates = 32;
 inline bool should_output(const flags& fl) { return !(fl & no_output); }
 
 template <class data, class vertex, class VS, class F>
@@ -106,7 +107,7 @@ vertexSubsetData<data> edgeMapDenseForward(graph<vertex> GA, VS& vertexSubset, F
 }
 
 template <class data, class vertex, class VS, class F>
-vertexSubsetData<data> edgeMapSparse(vertex* frontierVertices, VS& indices,
+vertexSubsetData<data> edgeMapSparse(graph<vertex>& GA, vertex* frontierVertices, VS& indices,
         uintT* degrees, uintT m, F &f, const flags fl) {
   using S = tuple<uintE, data>;
   long n = indices.n;
@@ -134,6 +135,14 @@ vertexSubsetData<data> edgeMapSparse(vertex* frontierVertices, VS& indices,
 
   if (should_output(fl)) {
     S* nextIndices = newA(S, outEdgeCount);
+    if (fl & remove_duplicates) {
+      if (GA.flags == NULL) {
+        GA.flags = newA(uintE, n);
+        parallel_for(long i=0;i<n;i++) { GA.flags[i]=UINT_E_MAX; }
+      }
+      auto get_key = [&] (size_t i) -> uintE& { return std::get<0>(outEdges[i]); };
+      remDuplicates(get_key, GA.flags, outEdgeCount, n);
+    }
     auto p = [] (tuple<uintE, data>& v) { return std::get<0>(v) != UINT_E_MAX; };
     size_t nextM = pbbs::filterf(outEdges, nextIndices, outEdgeCount, p);
     free(outEdges);
@@ -143,9 +152,86 @@ vertexSubsetData<data> edgeMapSparse(vertex* frontierVertices, VS& indices,
   }
 }
 
+template <class data, class vertex, class VS, class F>
+vertexSubsetData<data> edgeMapSparse_no_filter(graph<vertex>& GA,
+    vertex* frontierVertices, VS& indices, uintT* offsets, uintT m, F& f,
+    const flags fl) {
+  using S = tuple<uintE, data>;
+  long n = indices.n;
+  long outEdgeCount = sequence::plusScan(offsets, offsets, m);
+  S* outEdges = newA(S, outEdgeCount);
+
+  auto g = get_emsparse_no_filter_gen<data>(outEdges);
+
+  // binary-search into scan to map workers->chunks
+  size_t b_size = 10000;
+  size_t n_blocks = nblocks(outEdgeCount, b_size);
+
+  uintE* cts = newA(uintE, n_blocks+1);
+  size_t* block_offs = newA(size_t, n_blocks+1);
+
+  auto offsets_m = make_in_imap<uintT>(m, [&] (size_t i) { return offsets[i]; });
+  auto lt = [] (const uintT& l, const uintT& r) { return l < r; };
+  parallel_for(size_t i=0; i<n_blocks; i++) {
+    size_t s_val = i*b_size;
+    block_offs[i] = pbbs::binary_search(offsets_m, s_val, lt);
+  }
+  block_offs[n_blocks] = m;
+  parallel_for (size_t i=0; i<n_blocks; i++) {
+    if ((i == n_blocks-1) || block_offs[i] != block_offs[i+1]) {
+      // start and end are offsets in [m]
+      size_t start = block_offs[i];
+      size_t end = block_offs[i+1];
+      uintT start_o = offsets[start];
+      uintT k = start_o;
+      for (size_t j=start; j<end; j++) {
+        uintE v = indices.vtx(j);
+        size_t num_in = frontierVertices[j].decodeOutNghSparseSeq(v, k, f, g);
+        k += num_in;
+      }
+      cts[i] = (k - start_o);
+    } else {
+      cts[i] = 0;
+    }
+  }
+
+  long outSize = sequence::plusScan(cts, cts, n_blocks);
+  cts[n_blocks] = outSize;
+
+  S* out = newA(S, outSize);
+
+  parallel_for (size_t i=0; i<n_blocks; i++) {
+    if ((i == n_blocks-1) || block_offs[i] != block_offs[i+1]) {
+      size_t start = block_offs[i];
+      size_t start_o = offsets[start];
+      size_t out_off = cts[i];
+      size_t block_size = cts[i+1] - out_off;
+      for (size_t j=0; j<block_size; j++) {
+        out[out_off + j] = outEdges[start_o + j];
+      }
+    }
+  }
+  free(outEdges); free(cts); free(block_offs);
+
+  if (fl & remove_duplicates) {
+    if (GA.flags == NULL) {
+      GA.flags = newA(uintE, n);
+      parallel_for(size_t i=0;i<n;i++) { GA.flags[i]=UINT_E_MAX; }
+    }
+    auto get_key = [&] (size_t i) -> uintE& { return std::get<0>(out[i]); };
+    remDuplicates(get_key, GA.flags, outSize, n);
+    S* nextIndices = newA(S, outSize);
+    auto p = [] (tuple<uintE, data>& v) { return std::get<0>(v) != UINT_E_MAX; };
+    size_t nextM = pbbs::filterf(out, nextIndices, outSize, p);
+    free(out);
+    return vertexSubsetData<data>(n, nextM, nextIndices);
+  }
+  return vertexSubsetData<data>(n, outSize, out);
+}
+
 // Decides on sparse or dense base on number of nonzeros in the active vertices.
 template <class data, class vertex, class VS, class F>
-vertexSubsetData<data> edgeMapData(const graph<vertex>& GA, VS &vs, F f,
+vertexSubsetData<data> edgeMapData(graph<vertex>& GA, VS &vs, F f,
     intT threshold = -1, const flags& fl=0) {
   long numVertices = GA.n, numEdges = GA.m, m = vs.numNonzeros();
   if(threshold == -1) threshold = numEdges/20; //default threshold
@@ -176,8 +262,8 @@ vertexSubsetData<data> edgeMapData(const graph<vertex>& GA, VS &vs, F f,
   } else {
     auto vs_out =
       (should_output(fl) && fl & sparse_no_filter) ? // only call snof when we output
-      edgeMapSparse_no_filter<data, vertex, VS, F>(frontierVertices, vs, degrees, vs.numNonzeros(), f) :
-      edgeMapSparse<data, vertex, VS, F>(frontierVertices, vs, degrees, vs.numNonzeros(), f, fl);
+      edgeMapSparse_no_filter<data, vertex, VS, F>(GA, frontierVertices, vs, degrees, vs.numNonzeros(), f, fl) :
+      edgeMapSparse<data, vertex, VS, F>(GA, frontierVertices, vs, degrees, vs.numNonzeros(), f, fl);
     free(degrees); free(frontierVertices);
     return vs_out;
   }
