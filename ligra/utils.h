@@ -32,7 +32,7 @@ using namespace std;
 // Needed to make frequent large allocations efficient with standard
 // malloc implementation.  Otherwise they are allocated directly from
 // vm.
-#ifndef __APPLE__
+#if !defined __APPLE__ && !defined LOWMEM
 #include <malloc.h>
 //comment out the following two lines if running out of memory
 static int __ii =  mallopt(M_MMAP_MAX,0);

@@ -34,6 +34,7 @@
 
 #include "parallel.h"
 #include "blockRadixSort.h"
+#include "quickSort.h"
 #include "utils.h"
 #include "graph.h"
 using namespace std;
@@ -252,9 +253,17 @@ graph<vertex> readGraphFromFile(char* fname, bool isSymmetric, bool mmap) {
     free(offsets);
 
 #ifndef WEIGHTED
+#ifndef LOWMEM
     intSort::iSort(temp,m,n+1,getFirst<uintE>());
 #else
+    quickSort(temp,m,pairFirstCmp<uintE>());
+#endif
+#else
+#ifndef LOWMEM
     intSort::iSort(temp,m,n+1,getFirst<intPair>());
+#else
+    quickSort(temp,m,pairFirstCmp<intPair>());
+#endif
 #endif
 
     tOffsets[temp[0].first] = 0;
@@ -392,9 +401,17 @@ graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
       }}
     free(offsets);
 #ifndef WEIGHTED
+#ifndef LOWMEM
     intSort::iSort(temp,m,n+1,getFirst<uintE>());
 #else
+    quickSort(temp,m,pairFirstCmp<uintE>());
+#endif
+#else
+#ifndef LOWMEM
     intSort::iSort(temp,m,n+1,getFirst<intPair>());
+#else
+    quickSort(temp,m,pairFirstCmp<intPair>());
+#endif
 #endif
     tOffsets[temp[0].first] = 0;
 #ifndef WEIGHTED
