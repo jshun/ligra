@@ -158,6 +158,7 @@ intT compressFirstEdge(uchar *start, long controlOffset, long dataOffset, uintE 
 	return code;
 }
 
+
 uintT encode_data(uintE d,  long dataOffset, uchar* &edgeArray){
 	uintT code;
 //	cout << "difference: " << d << endl;
@@ -236,13 +237,7 @@ long compressEdge(uchar *start, long currentOffset, uintE *savedEdges, uintT key
 		difference[i] = savedEdges[i] - savedEdges[i-1];
 	}
 	for (uintT edgeI = 1; edgeI < count; edgeI++){
-//			__m128i vin = _mm_loadu_si128((__m128i *)(difference  + 4*count));
-//			storeDOffet += encode_data(vin, storeCurrentOffset, start);
-//			storeDOffset += (code + 1)*sizeof(uchar); 
-//			storeKey |= (code << shift);
-//			shift +=2;
-//		storeCurrentOffset++;
-	}
+
 	// the dataCurrentOffset should point to same place as currentOffset to begin with?
 	
 	return storeDOffset;
@@ -252,7 +247,6 @@ long compressEdge(uchar *start, long currentOffset, uintE *savedEdges, uintT key
 long svb_encode_scalar(const uint32_t *in, long controlOff, long dataOff, uintT countLeft, uchar* &start){
 	if (countLeft = 0){
 		return dataOff;
-	}
 	
 	uintT shift = 0;
 	uintT key = 0;
@@ -274,7 +268,8 @@ long svb_encode_scalar(const uint32_t *in, long controlOff, long dataOff, uintT 
 }
 
 // This function writes the control bits and returns the length of data needd by these four elements
-size_t streamvbyte_encode4(__m128i in, long outData, long outCode, uchar* &start){
+size_t streamvbyte_encode4(__m128i in, long outData, long outCode);
+
 	const u128 Ones = {.i8 = {1, 1, 1, 1, 1, 1, 1, 1,1, 1, 1, 1, 1, 1, 1, 1}};
 
 	#define shifter (1 | 1 << 9| 1 << 18)
@@ -285,7 +280,6 @@ size_t streamvbyte_encode4(__m128i in, long outData, long outCode, uchar* &start
 
 	#define concat (1 | 1 << 10 | 1 << 20 | 1 << 30)
 	#define sum (1 | 1 << 8 | 1 << 16 | 1 << 24)
-//	const u128 Aggregators = {.u32 = {concat, sum, 0, 0}};
 	const u128 Aggregators = {.u32 = {concat, sum, 0, 0}};	
 	__m128i mins = _mm_min_epu8(in, Ones.i128);
 	__m128i bytemaps = _mm_mullo_epi32(mins, Shifts.i128);
@@ -335,6 +329,7 @@ long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degre
 			difference[i] = savedEdges[i] - savedEdges[i-1];
 		}
 		for(uintT edgeI = 0; edgeI < count; edgeI++){
+<<<<<<< HEAD
 			__m128i vin = _mm_loadu_si128((__m128i *)(difference + 4*edgeI));
 			dataOffset += streamvbyte_encode4(vin, dataOffset, currentOffset, edgeArray);
 			currentOffset++;
@@ -343,6 +338,16 @@ long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degre
 		dataOffset = svb_encode_scalar(difference + 4*count, currentOffset, dataOffset, degree - 4*count, edgeArray); // need to change what this is assigned to..
 	//	return dataPtr;
 		return dataOffset; 
+=======
+			__m128i vin = _mm_loadu_si128((__m128i *)(difference + 4*count));
+			dataPtr += streamvbyte_encode4(vin, dataPtr, controlPtr);
+			controlPtr++;
+		}
+		// encode any leftovers (count) mod 4
+		dataPtr = svb_encode_scalar(difference + 4*count, controlPtr, dataPtr, degree - 4*count); // need to change what this is assigned to..
+	//	return dataPtr;
+		return (dataPtr - edgeArray); 
+>>>>>>> 8230330b003745994768532145f1ae9914ffb186
 	}
 	else{
 		return currentOffset;
@@ -356,13 +361,14 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 	uintT *degrees = newA(uintT, n+1); 
 	long *charsUsedArr = newA(long, n);
 	long *compressionStarts = newA(long, n+1);
-	cout << "before for loop" << endl;
 	{parallel_for(long i=0;i<n;i++){
 		degrees[i] = Degrees[i];
 	//	charsUsedArr[i] = ceil((degrees[i]*9)/8)+4;
 		charsUsedArr[i] = (degrees[i] + 3)/4 + degrees[i]*4;
 	}}
+
 	cout << "after for loop " << endl;
+
 	degrees[n] = 0;
 	sequence::plusScan(degrees, degrees, n+1);
 	long toAlloc = sequence::plusScan(charsUsedArr, charsUsedArr, n);
@@ -403,6 +409,7 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 	return ((uintE *)finalArr);
 }
 
+
 static inline __m128i _decode_avx(uintT key, const uint8_t *dataPtrPtr){
 	uint8_t len = lengthTable[key];
 	__m128i Data = _mm_loadu_si128((__m128i *)*dataPtrPtr);
@@ -417,7 +424,6 @@ static inline __m128i _decode_avx(uintT key, const uint8_t *dataPtrPtr){
 static inline void _write_avx(uintT *out, __m128i Vec){
 	_mm_storeu_si128((__m128i *)out, Vec);
 }
-
 // skeleton of decoding functions
 template <class T>
 	inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degree, const bool par=true){
@@ -442,6 +448,7 @@ template <class T>
 		
 	}
 	/*
+
 		uintE startEdge = eatFirstEdge(edgeStart, source, dataOffset);
 //		cout << "first decompressed edge: " << startEdge << endl;
 		if(!t.srcTarg(source,startEdge,edgesRead)){
@@ -516,7 +523,6 @@ long sequentialCompressWeightedEdgeSet(uchar *edgeArray, long currentOffset, uin
 		// target ID
 		uintT key = compressFirstEdge(edgeArray, currentOffset, dataCurrentOffset, vertexNum, savedEdges[0].first);
 		dataCurrentOffset += (1 + key)*sizeof(uchar); 
-	//	// weight
 		uintT temp_key = compressFirstEdge(edgeArray, currentOffset, dataCurrentOffset, 0, savedEdges[0].second);
 		dataCurrentOffset += (temp_key + 1)*sizeof(uchar);
 		key |= temp_key << 2;
