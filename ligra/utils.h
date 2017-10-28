@@ -32,7 +32,7 @@ using namespace std;
 // Needed to make frequent large allocations efficient with standard
 // malloc implementation.  Otherwise they are allocated directly from
 // vm.
-#ifndef __APPLE__
+#if !defined __APPLE__ && !defined LOWMEM
 #include <malloc.h>
 //comment out the following two lines if running out of memory
 //static int __ii =  mallopt(M_MMAP_MAX,0);
@@ -351,22 +351,26 @@ inline ulong hashInt(ulong a) {
    return a;
 }
 
-//remove duplicate integers in [0,...,n-1]
-void remDuplicates(uintE* indices, uintE* flags, long m, long n) {
-  //make flags for first time
-  if(flags == NULL) {flags = newA(uintE,n);
-    {parallel_for(long i=0;i<n;i++) flags[i]=UINT_E_MAX;}}
-  {parallel_for(uintE i=0;i<m;i++)
-      if(indices[i] != UINT_E_MAX && flags[indices[i]] == UINT_E_MAX)
-	CAS(&flags[indices[i]],(uintE)UINT_E_MAX,i);
+// Remove duplicate integers in [0,...,n-1].
+// Assumes that flags is already allocated and cleared to UINT_E_MAX.
+// Sets all duplicate values in the array to UINT_E_MAX and resets flags to
+// UINT_E_MAX.
+template <class G>
+void remDuplicates(G& get_key, uintE* flags, long m, long n) {
+  parallel_for(size_t i=0; i<m; i++) {
+    uintE key = get_key(i);
+    if(key != UINT_E_MAX && flags[key] == UINT_E_MAX) {
+      CAS(&flags[key],(uintE)UINT_E_MAX,static_cast<uintE>(i));
+    }
   }
   //reset flags
-  {parallel_for(long i=0;i<m;i++){
-      if(indices[i] != UINT_E_MAX){
-	if(flags[indices[i]] == i){ //win
-	  flags[indices[i]] = UINT_E_MAX; //reset
-	}
-	else indices[i] = UINT_E_MAX; //lost
+  parallel_for(size_t i=0; i<m; i++) {
+    uintE key = get_key(i);
+    if(key != UINT_E_MAX) {
+    	if(flags[key] == i) { //win
+    	  flags[key] = UINT_E_MAX; //reset
+    	} else {
+        get_key(i) = UINT_E_MAX; //lost
       }
     }
   }
