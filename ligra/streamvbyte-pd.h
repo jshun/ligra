@@ -20,22 +20,7 @@ typedef union M128{
 	__m128i i128;
 
 } u128;
-/*
-#if defined(_MSC_VER)
-	cout << "1" << endl;
-#elif defined(__GNUC__) && (defined(__x86_64__) || defined(__i386))
-	cout << "2" << endl;
-#elif defined(__GNUC__) && defined(__ARM_NEON__)
-	cout << "3" << endl;
-#elif defined(__GNC__) && defined(__IWMMXT__)
-	cout << "4" << endl;
-#elif (defined(__GNUC__) || defined(__xlC)) && (defined(__VEC__) || defined(__ALTIVVEC__))
-	cout << "5" << endl;
-#elif defined(__GNUC__) && defined(__SPE__)
-	cout << "6" << endl;
-#endif
 
-*/
 inline intE eatWeight(uchar* &start, uchar* &dOffset, intT shift){
 	uchar fb = *start;
 	uintT checkCode = (fb >> shift) & 0x3;
@@ -178,21 +163,21 @@ uintT encode_data(uintE d,  long dataOffset, uchar* &edgeArray){
 	uintT code;
 //	cout << "difference: " << d << endl;
 	if(d < (1 << 8)){
-		memcpy((edgeArray+dataOffset),&d,1);
+		memcpy((&edgeArray[dataOffset]),&d,1);
 		code = 0;
 	}
 	else if( d < (1 << 16)){
-		memcpy((edgeArray+dataOffset),&d,2);
+		memcpy((&edgeArray[dataOffset]),&d,2);
 		//edgeArray[dataOffset] = d;
 		code = 1;
 	}
 	else if (d < (1 << 24)){
-		memcpy((edgeArray+dataOffset),&d,3);
+		memcpy((&edgeArray[dataOffset]),&d,3);
 		//edgeArray[dataOffset] = d;
 		code = 2;
 	}
 	else{
-		memcpy((edgeArray+dataOffset),&d,4);
+		memcpy((&edgeArray[dataOffset]),&d,4);
 		//edgeArray[dataOffset] = d; 
 		code = 3;
 	}
@@ -281,7 +266,7 @@ long svb_encode_scalar(const uint32_t *in, long controlOff, long dataOff, uintT 
 }
 
 // This function writes the control bits and returns the length of data needd by these four elements
-size_t streamvbyte_encode4(__m128i in, long outData, long outCode, uchar *start){
+size_t streamvbyte_encode4(__m128i in, long outData, long outCode, uchar* &start){
 
 	const u128 Ones = {.i8 = {1, 1, 1, 1, 1, 1, 1, 1,1, 1, 1, 1, 1, 1, 1, 1}};
 
@@ -306,10 +291,10 @@ size_t streamvbyte_encode4(__m128i in, long outData, long outCode, uchar *start)
 	__m128i Shuf = *(__m128i *)&encodingShuffleTable[code]; 
 	__m128i outAligned = _mm_shuffle_epi8(in, Shuf);
 	
-	_mm_storeu_si128((__m128i *)(start + outData), outAligned);
-	cout << "code: " << code << endl;
+	_mm_storeu_si128((__m128i *)(start + sizeof(uchar)*outData), outAligned);
+//	cout << "code: " << code << endl;
 	start[outCode] = code;
-	cout << "length: " << length << endl;
+//	cout << "length: " << length << endl;
 	return length;
 }
 

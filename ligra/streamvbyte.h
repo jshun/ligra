@@ -155,7 +155,7 @@ intT compressFirstEdge(uchar *start, long controlOffset, long dataOffset, uintE 
 	}
 //	cout << "first edge" << endl;
 	return code;
-
+}
 
 // store compressed data
 uintT encode_data(uintE d, long dataCurrentOffset, uchar*start){
@@ -266,7 +266,7 @@ long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degre
 		if(degree == 1){
 			edgeArray[currentOffset] = key;
 			return dataCurrentOffset;
-		
+		}
 		// scalar version: compress the rest of the edges
 		return  compressEdge(edgeArray, currentOffset, savedEdges, key, dataCurrentOffset, degree);
 	}
@@ -295,7 +295,7 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 		edgePts[i] = iEdges+charsUsedArr[i];
 		long charsUsed = sequentialCompressEdgeSet((uchar *)(iEdges+charsUsedArr[i]), 0, degrees[i+1]-degrees[i], i, edges + offsets[i]);
 		charsUsedArr[i] = charsUsed;
-
+	}}
 	// produce the total space needed for all compressed lists in chars
 	long totalSpace = sequence::plusScan(charsUsedArr, compressionStarts, n);
 	compressionStarts[n] = totalSpace;

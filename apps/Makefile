@@ -47,8 +47,6 @@ endif
 COMMON= ligra.h graph.h compressedVertex.h vertex.h utils.h IO.h parallel.h gettime.h index_map.h maybe.h sequence.h edgeMap_utils.h binary_search.h quickSort.h blockRadixSort.h transpose.h parseCommandLine.h byte.h byteRLE.h nibble.h streamvbyte.h byte-pd.h byteRLE-pd.h nibble-pd.h streamvbyte-pd.h vertexSubset.h streamvbyte_shuffle_tables.h encoder.C decoder.C
 ALL= decoder encoder BFS BC BellmanFord Components Radii PageRank PageRankDelta BFSCC BFS-Bitvector KCore MIS Triangle CF
 
-REMOVE= ligra.h graph.h compressedVertex.h vertex.h utils.h IO.h parallel.h gettime.h index_map.h maybe.h sequence.h edgeMap_utils.h binary_search.h quickSort.h blockRadixSort.h transpose.h parseCommandLine.h byte.h byteRLE.h nibble.h streamvbyte.h byte-pd.h byteRLE-pd.h nibble-pd.h streamvbyte-pd.h vertexSubset.h streamvbyte_shuffle_tables.h 
-
 all: $(ALL)
 
 % : %.C $(COMMON)
@@ -61,7 +59,7 @@ $(COMMON):
 
 clean :
 	rm -f *.o $(ALL)
-	git rm -f *.h $(REMOVE)
+	git rm -f *.C *.h $(REMOVE)
 cleansrc :
 	rm -f *.o $(ALL)
 	rm $(COMMON)
