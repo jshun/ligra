@@ -20,7 +20,22 @@ typedef union M128{
 	__m128i i128;
 
 } u128;
+/*
+#if defined(_MSC_VER)
+	cout << "1" << endl;
+#elif defined(__GNUC__) && (defined(__x86_64__) || defined(__i386))
+	cout << "2" << endl;
+#elif defined(__GNUC__) && defined(__ARM_NEON__)
+	cout << "3" << endl;
+#elif defined(__GNC__) && defined(__IWMMXT__)
+	cout << "4" << endl;
+#elif (defined(__GNUC__) || defined(__xlC)) && (defined(__VEC__) || defined(__ALTIVVEC__))
+	cout << "5" << endl;
+#elif defined(__GNUC__) && defined(__SPE__)
+	cout << "6" << endl;
+#endif
 
+*/
 inline intE eatWeight(uchar* &start, uchar* &dOffset, intT shift){
 	uchar fb = *start;
 	uintT checkCode = (fb >> shift) & 0x3;
@@ -236,8 +251,6 @@ long compressEdge(uchar *start, long currentOffset, uintE *savedEdges, uintT key
 	for(uintT i = 1; i < degree; i++){
 		difference[i] = savedEdges[i] - savedEdges[i-1];
 	}
-	for (uintT edgeI = 1; edgeI < count; edgeI++){
-
 	// the dataCurrentOffset should point to same place as currentOffset to begin with?
 	
 	return storeDOffset;
@@ -247,7 +260,7 @@ long compressEdge(uchar *start, long currentOffset, uintE *savedEdges, uintT key
 long svb_encode_scalar(const uint32_t *in, long controlOff, long dataOff, uintT countLeft, uchar* &start){
 	if (countLeft = 0){
 		return dataOff;
-	
+	}	
 	uintT shift = 0;
 	uintT key = 0;
 	for(uintT c = 0; c < countLeft; c++){
@@ -268,7 +281,7 @@ long svb_encode_scalar(const uint32_t *in, long controlOff, long dataOff, uintT 
 }
 
 // This function writes the control bits and returns the length of data needd by these four elements
-size_t streamvbyte_encode4(__m128i in, long outData, long outCode);
+size_t streamvbyte_encode4(__m128i in, long outData, long outCode, uchar *start){
 
 	const u128 Ones = {.i8 = {1, 1, 1, 1, 1, 1, 1, 1,1, 1, 1, 1, 1, 1, 1, 1}};
 
@@ -329,7 +342,6 @@ long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degre
 			difference[i] = savedEdges[i] - savedEdges[i-1];
 		}
 		for(uintT edgeI = 0; edgeI < count; edgeI++){
-<<<<<<< HEAD
 			__m128i vin = _mm_loadu_si128((__m128i *)(difference + 4*edgeI));
 			dataOffset += streamvbyte_encode4(vin, dataOffset, currentOffset, edgeArray);
 			currentOffset++;
@@ -338,16 +350,6 @@ long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degre
 		dataOffset = svb_encode_scalar(difference + 4*count, currentOffset, dataOffset, degree - 4*count, edgeArray); // need to change what this is assigned to..
 	//	return dataPtr;
 		return dataOffset; 
-=======
-			__m128i vin = _mm_loadu_si128((__m128i *)(difference + 4*count));
-			dataPtr += streamvbyte_encode4(vin, dataPtr, controlPtr);
-			controlPtr++;
-		}
-		// encode any leftovers (count) mod 4
-		dataPtr = svb_encode_scalar(difference + 4*count, controlPtr, dataPtr, degree - 4*count); // need to change what this is assigned to..
-	//	return dataPtr;
-		return (dataPtr - edgeArray); 
->>>>>>> 8230330b003745994768532145f1ae9914ffb186
 	}
 	else{
 		return currentOffset;
@@ -410,7 +412,7 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 }
 
 
-static inline __m128i _decode_avx(uintT key, const uint8_t *dataPtrPtr){
+static inline __m128i _decode_avx(uintT key, uint8_t *dataPtrPtr){
 	uint8_t len = lengthTable[key];
 	__m128i Data = _mm_loadu_si128((__m128i *)*dataPtrPtr);
 	__m128i Shuf = *(__m128i *)&shuffleTable[key];
@@ -442,38 +444,13 @@ template <class T>
 		memcpy(&nextkeys, keyPtr64 + Offset + 1, sizeof(nextkeys));
 		// need to figure out where first edge is & check sign bit...may want to come up with different method for decoding sign..
 
-		Data = _decode_avx((keys & 0xFF), &dataPtr		
+	//	Data = _decode_avx((keys & 0xFF), &dataPtr		
 	}
 
 		
 	}
-	/*
-
-		uintE startEdge = eatFirstEdge(edgeStart, source, dataOffset);
-//		cout << "first decompressed edge: " << startEdge << endl;
-		if(!t.srcTarg(source,startEdge,edgesRead)){
-			return;
-		}
-	
-	uintT shift = 2;
-	uintE edge = startEdge;
-	for (edgesRead = 1; edgesRead < degree; edgesRead++){
-		if(shift == 8){
-			edgeStart++;
-			shift = 0;
-		}
-		// need to figure out how much to increment dataOffset by
-		uintE edgeRead = eatEdge(edgeStart, dataOffset, shift);
-		edge = edge + edgeRead;
-//		cout << "decompressed edgeread and edge value : " << edgeRead << " " << edge << endl;
-		startEdge = edge;
-		if (!t.srcTarg(source, edge, edgesRead)){
-			break;
-		}
-		shift += 2;
 	}
-	}*/
-};
+}
 
 template <class T>
 	inline void decodeWgh(T t, uchar* edgeStart, const uintE &source, const uintT &degree, const bool par=true){
