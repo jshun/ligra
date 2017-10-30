@@ -94,7 +94,36 @@ inline intE eatFirstEdge(uchar* &start, uintE source, uchar* &dOffset){
 //	cout << "source: " << source << " edgeRead: " << edgeRead << "sign bit: " << signBit << endl;
 	return (signBit) ? source - edgeRead : source + edgeRead;
 
-}i
+}
+
+static inline uintT _decode_data(uint8_t **dataPtrPtr, uint8_t code){
+	uint8_t *dataPtr = *dataPtrPtr;
+	uintT val;
+
+	if(code ==0){
+		val = (uint32_t)*dataPtr;
+		dataPtr += 1;
+	}
+	else if(code ==1){
+		val = 0;
+		memcpy(&val, dataPtr, 2);
+		dataPtr +=2;
+	}
+	else if(code ==2){
+		val = 0;
+		memcpy(&val, dataPtr, 3);
+		dataPtr +=3;
+	}
+	else{
+		memcpy(&val, dataPtr, 4);
+		dataPtr += 4;
+	}
+	
+	*dataPtrPtr = dataPtr;
+	return val;
+}
+
+
 
 uchar* svb_decode_scalar(uchar* &start, uchar* dataPointer, uchar* controlPointer, uintT degree){
 	if(degree == 0){
@@ -108,20 +137,17 @@ uchar* svb_decode_scalar(uchar* &start, uchar* dataPointer, uchar* controlPointe
 			key = *controlPointer++;
 		}
 		uintT val = _decode_data(&dataPointer, (key >> shift) & 0x3);
-		*
-	
+		// do someting with value... Pass in t and call t.Src? need to "undo" differential encoding
+		shift+= 2;	
 	}
 	
-	
+	return dataPointer;
 }
 
-inline uchar *eatEdge(uchar* &start, uchar* dataPointer, uchar* controlPointer, uintT degree){
+inline uintE eatEdge(uchar* &start, uchar* &dOffset, intT shift){
 	// check if should be start++ or start
 //	cout << "eat edge" << endl;
-
-	if (degree == 0){
-		return dataPointer;
-	}
+	
 	uchar fb = *start;
 	uintT checkCode = (fb >> shift) & 0x3;
 	uintE edgeRead = 0;
@@ -357,10 +383,9 @@ long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degre
 		degree -= 4*count;
 		uintT length = 0;
 		for(uintT i = 0; i < count; i++){
-			length = streamvbyte_encode_quad(difference, dataOffset, currentOffset, edgeArray);
-			dataOffste += sizeof(uchar)*length;
+			length = streamvbyte_encode_quad(difference + 4*i, dataOffset, currentOffset, edgeArray);
+			dataOffset += sizeof(uchar)*length;
 			currentOffset += sizeof(uchar);
-			difference += 4;
 		}
 
 	/*	for(uintT edgeI = 0; edgeI < count; edgeI++){
@@ -434,7 +459,7 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 }
 
 
-static inline __m128i _decode_avx(uintT key, uint8_t *dataPtrPtr){
+static inline __m128i _decode_avx(uintT key, uchar **dataPtrPtr){
 	uint8_t len = lengthTable[key];
 	__m128i Data = _mm_loadu_si128((__m128i *)*dataPtrPtr);
 	__m128i Shuf = *(__m128i *)&shuffleTable[key];
@@ -444,8 +469,8 @@ static inline __m128i _decode_avx(uintT key, uint8_t *dataPtrPtr){
 	return Data; 
 }
 
-
-static inline void _write_avx(uintT *out, __m128i Vec){
+//figure out what "out" should be
+static inline void _write_avx(uchar *out, __m128i Vec){
 	_mm_storeu_si128((__m128i *)out, Vec);
 }
 // skeleton of decoding functions
@@ -453,77 +478,104 @@ template <class T>
 	inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degree, const bool par=true){
 	size_t edgesRead = 0;
 	if(degree > 0) {
-	uchar controlLength = (degree + 3)/4;
-	uchar *dataPtr = edgeStart + controlLength;
-	uchar *controlPtr = edgeStart;
-	if (controlLength >= 8){
-		int64_t Offset = -(int64_t)controlLength /8 + 1; 
-		const uint64_t *keyPtr64  = (const uint64_t *)edgeStart - Offset;
-		uint64_t nextkeys;
-		memcpy(&nextkeys, keyPtr64+Offset, sizeof(nextkeys));
-		uint64_t keys;
-	for(; Offset !=0 ; ++Offset){
-		keys = nextkeys;
-		memcpy(&nextkeys, keyPtr64 + Offset + 1, sizeof(nextkeys));
-		// need to figure out where first edge is & check sign bit...may want to come up with different method for decoding sign..
-      Data = _decode_avx((keys & 0xFF), &dataPtr);
-      _write_avx(edgeStart, Data);
-      Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
-      _write_avx(edgeStart + 4, Data);
+		uchar keybytes = (degree + 3)/4;
+		uchar *dataPtr = edgeStart + keybytes;
+		uchar *controlPtr = edgeStart;
+		__m128i Data;
+		bool firstEdge = 1;
+		if (keybytes >= 8){
+			int64_t Offset = -(int64_t) keybytes /8 + 1; 
+			const uint64_t *keyPtr64  = (const uint64_t *)edgeStart - Offset;
+			uint64_t nextkeys;
+			memcpy(&nextkeys, keyPtr64+Offset, sizeof(nextkeys));
+			uint64_t keys;
+			for(; Offset !=0 ; ++Offset){
+				keys = nextkeys;
+				memcpy(&nextkeys, keyPtr64 + Offset + 1, sizeof(nextkeys));
+				// need to figure out where first edge is & check sign bit...may want to come up with different method for decoding sign..
+				Data = _decode_avx((keys & 0xFF), &dataPtr);
+				if (firstEdge == 1){
+					uchar firstKey = keys & 0x3;
+					uchar signBit = 0;
+					if(firstKey == 0){
+						signBit = (uchar)(((Data[0]) & 0x80) >> 15);
+						Data[0] = Data[0] & 0x7F;
+					}
+					else if(firstKey == 1){
+						signBit = (uchar)(((1 << 15) & Data[0]) >> 15);
+						Data[0] = Data[0] & 0x7FFF;
+					}
+					else if(firstKey == 2){
+						signBit = (uchar)(((1 << 23) & Data[0]) >> 23);
+						Data[0] = Data[0] & 0x7FFFFF;
+					}
+					else{
+						signBit = (uchar)(((1 << 31) & Data[0]) >> 31);
+						Data[0] = Data[0] & 0x7FFFFFFF;
+					}
+					Data[0] = (signBit) ? source - Data[0] : source + Data[0];	
+					firstEdge = 0;
+				}
+				_write_avx(edgeStart, Data);
+				Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
+				_write_avx(edgeStart + 4, Data);
 
-      keys >>= 16;
-      Data = _decode_avx((keys & 0xFF), &dataPtr);
-      _write_avx(edgeStart + 8, Data);
-      Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
-      _write_avx(edgeStart + 12, Data);
+				keys >>= 16;
+				Data = _decode_avx((keys & 0xFF), &dataPtr);
+				_write_avx(edgeStart + 8, Data);
+				Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
+				_write_avx(edgeStart + 12, Data);
 
-      keys >>= 16;
-      Data = _decode_avx((keys & 0xFF), &dataPtr);
-      _write_avx(edgeStart + 16, Data);
-      Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
-      _write_avx(edgeStart + 20, Data);
+				keys >>= 16;
+				Data = _decode_avx((keys & 0xFF), &dataPtr);
+				_write_avx(edgeStart + 16, Data);
+				Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
+				_write_avx(edgeStart + 20, Data);
 
-      keys >>= 16;
-      Data = _decode_avx((keys & 0xFF), &dataPtr);
-      _write_avx(edgeStart + 24, Data);
-      Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
-      _write_avx(edgeStart + 28, Data);
+				keys >>= 16;
+				Data = _decode_avx((keys & 0xFF), &dataPtr);
+				_write_avx(edgeStart + 24, Data);
+				Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
+				_write_avx(edgeStart + 28, Data);
 
-      edgeStart += 32;
-    }
-    {
-      uint64_t keys = nextkeys;
+				edgeStart += 32;
+    			}		
+	      keys = nextkeys;
 
-      Data = _decode_avx((keys & 0xFF), &dataPtr);
-      _write_avx(edgeStart, Data);
-      Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
-      _write_avx(edgeStart + 4, Data);
+	      Data = _decode_avx((keys & 0xFF), &dataPtr);
+	      _write_avx(edgeStart, Data);
+	      Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
+	      _write_avx(edgeStart + 4, Data);
 
-      keys >>= 16;
-      Data = _decode_avx((keys & 0xFF), &dataPtr);
-      _write_avx(edgeStart + 8, Data);
-      Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
-      _write_avx(edgeStart + 12, Data);
+	      keys >>= 16;
+	      Data = _decode_avx((keys & 0xFF), &dataPtr);
+	      _write_avx(edgeStart + 8, Data);
+	      Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
+	      _write_avx(edgeStart + 12, Data);
 
-      keys >>= 16;
-      Data = _decode_avx((keys & 0xFF), &dataPtr);
-      _write_avx(edgeStart + 16, Data);
-      Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
-      _write_avx(edgeStart + 20, Data);
+	      keys >>= 16;
+	      Data = _decode_avx((keys & 0xFF), &dataPtr);
+	      _write_avx(edgeStart + 16, Data);
+	      Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
+	      _write_avx(edgeStart + 20, Data);
 
-      keys >>= 16;
-      Data = _decode_avx((keys & 0xFF), &dataPtr);
-      _write_avx(edgeStart + 24, Data);
-      Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
-      _write_avx(edgeStart + 28, Data);
+	      keys >>= 16;
+	      Data = _decode_avx((keys & 0xFF), &dataPtr);
+	      _write_avx(edgeStart + 24, Data);
+	      Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
+	      _write_avx(edgeStart + 28, Data);
 
-	out += 32;
-     }
-}
+	//      out += 32;
+	}	
+
 	uint64_t consumedkeys = keybytes - (keybytes & 7);
-	return svb_decode_scalar(edgeStart, controlPtr + consumedkeys, dataPtr, degree & 31);
 
 	}
+}
+  
+
+//	return svb_decode_scalar(edgeStart, controlPtr + consumedkeys, dataPtr, degree & 31);
+
 
 
 template <class T>
