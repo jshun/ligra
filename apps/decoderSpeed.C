@@ -28,10 +28,6 @@
 #include "byte.h"
 #elif defined NIBBLE
 #include "nibble.h"
-#elif defined STREAMVBYTE
-#include "streamvbyte.h"
-#elif defined STREAMVEC
-#include "streamvbyte_vec.h"
 #else
 #include "byteRLE.h"
 #endif
@@ -40,98 +36,51 @@
 #include "byte-pd.h"
 #elif defined NIBBLE
 #include "nibble-pd.h"
-#elif defined STREAMVBYTE
-#include "streamvbyte.h"
-#elif defined STREAMVEC
-#include "streamvbyte_vec.h"
 #else
 #include "byteRLE-pd.h"
 #endif
 #endif
 
-#include <sstream>
-#include <iostream>
-#include <fstream>
 #include <stdlib.h>
 #include "parallel.h"
 #include "utils.h"
 #include "graph.h"
 #include "parseCommandLine.h"
 #include "IO.h"
+#include "gettime.h"
 using namespace std;
 
-struct printAdjT {
-  stringstream* ss;
-  printAdjT(stringstream *_ss) : ss(_ss) {}
-  bool srcTarg(uintE src, uintE target, uintT edgeNumber) {
-   	if(edgeNumber == 0){
-		*ss << "first edge: " << endl;
-	}
-	 *ss << target << endl;
+struct F {
+  inline bool srcTarg(uintE src, uintE target, uintT edgeNumber) {
     return true;
   }
-  bool srcTarg(uintE src, uintE target, intE weight, uintT edgeNumber) {
-    *ss << target << endl;
+  inline bool srcTarg(uintE src, uintE target, intE weight, uintT edgeNumber) {
     return true;
   }
 };
 
-struct printWghT {
-  stringstream* ss;
-  printWghT(stringstream *_ss) : ss(_ss) {}
-  bool srcTarg(uintE src, uintE target, intE weight, uintT edgeNumber) {
-    *ss << weight << endl;
-    return true;
-  }
-};
-
-void writeAdjGraph(graph<compressedSymmetricVertex> G, ofstream *of, bool weighted) {
+void decodeGraph(graph<compressedSymmetricVertex> G, bool weighted) {
   compressedSymmetricVertex *V = G.V;
-  for (long i = 0; i < G.n; i++) {
-    stringstream ss;
+  parallel_for (long i = 0; i < G.n; i++) {
     uchar *nghArr = V[i].getOutNeighbors();
     uintT d = V[i].getOutDegree();
     if(weighted)
-      decodeWgh(printAdjT(&ss), nghArr, i, d);
+      decodeWgh(F(), nghArr, i, d);
     else
-      decode(printAdjT(&ss), nghArr, i, d);
-    *of << ss.str();
-  }
-  if(weighted) {
-    cout << "writing weights..." << endl;
-    for (long i = 0; i < G.n; i++) {
-      stringstream ss;
-      uchar *nghArr = V[i].getOutNeighbors();
-      uintT d = V[i].getOutDegree();
-      decodeWgh(printWghT(&ss), nghArr, i, d);
-      *of << ss.str();    
-    }
+      decode(F(), nghArr, i, d);
   }
 }
 
 //Converts binary compressed graph to text format. For weighted
 //graphs, pass the "-w" flag.
 int parallel_main(int argc, char* argv[]) {  
-  commandLine P(argc,argv,"[-w] <inFile> <outFile>");
-  char* iFile = P.getArgument(1);
-  char* oFile = P.getArgument(0);
+  commandLine P(argc,argv,"[-w] <inFile>");
+  char* iFile = P.getArgument(0);
   bool weighted = P.getOptionValue("-w");
   graph<compressedSymmetricVertex> G = readCompressedGraph<compressedSymmetricVertex>(iFile,1,0);
-  long n = G.n, m = G.m;
-
-  ofstream out(oFile,ofstream::out);
-  if(weighted) out << "WeightedAdjacencyGraph\n" << n << endl << m << endl;
-  else out << "AdjacencyGraph\n" << n << endl << m << endl;
-  cout<<"writing offsets..."<<endl;
-  uintT* DegreesSum = newA(uintT,n);
-  parallel_for(long i=0;i<n;i++) DegreesSum[i] = G.V[i].getOutDegree();
-  sequence::plusScan(DegreesSum,DegreesSum,n);
-  stringstream ss;
-  setWorkers(1); //writing sequentially to file
-  for(long i=0;i<n;i++) ss << DegreesSum[i] << endl;
-  free(DegreesSum);
-  out << ss.str();
-  cout << "writing edges..."<<endl;
-  writeAdjGraph(G,&out,weighted);
-  out.close();
+  timer t;
+  decodeGraph(G,weighted);
+  t.start();
+  decodeGraph(G,weighted);
+  t.reportTotal("decoding time");
 }

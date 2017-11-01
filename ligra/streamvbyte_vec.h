@@ -1,5 +1,5 @@
-#ifndef STREAMVBYTE_H
-#define STREAMVBYTE_H
+#ifndef STREAMVBYTE_VEC_H
+#define STREAMVBYTE_VEC_H
 
 #include "parallel.h"
 #include "utils.h"
@@ -382,7 +382,7 @@ size_t streamvbyte_encode4(__m128i in, long outData, long outCode, uchar* &start
 	u128 codeAndLength = {.i128 = _mm_mullo_epi32(hibytes, Aggregators.i128)};
 	uint8_t code = codeAndLength.i8[3];
 	size_t length = codeAndLength.i8[7] + 4; 
-	
+	cout << "length: " << length << endl;	
 	__m128i Shuf = *(__m128i *)&encodingShuffleTable[code]; 
 	__m128i outAligned = _mm_shuffle_epi8(in, Shuf);
 	_mm_storeu_si128((__m128i *)(&start[outData]), outAligned);
@@ -404,10 +404,9 @@ long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degre
 	if(degree > 0){
 		uintT controlLength = (degree + 3)/4;
 		long dataOffset = currentOffset + controlLength;
-	//	uchar *dataPtr = edgeArray + ((degree + 3)/4);
 		uintT count = degree/4;
 		uintE difference[degree];
-	//	uintE *diffPtr = &difference;
+		uintE* diffPtr = difference;
 		intE preCompress = (intE)savedEdges[0] - vertexNum;
 		intE toCompress = abs(preCompress);
 		intE signBit = (preCompress < 0) ? 1:0;
@@ -427,6 +426,7 @@ long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degre
 		for(uintT i = 1; i < degree; i++){
 			difference[i] = savedEdges[i] - savedEdges[i-1];
 		}
+	
 		degree -= 4*count;
 		uintT length = 0;
 		for(uintT i = 0; i < count; i++){
@@ -434,12 +434,6 @@ long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degre
 			dataOffset += length;
 			currentOffset++;
 		}
-		uintE* diffPtr = difference;
-	/*	for(uintT edgeI = 0; edgeI < count; edgeI++){
-			__m128i vin = _mm_loadu_si128((__m128i *)(difference + 4*edgeI));
-			dataOffset += streamvbyte_encode4(vin, dataOffset, currentOffset, edgeArray);
-			currentOffset++;
-		}*/
 		// encode any leftovers (count) mod 4
 		dataOffset = svb_encode_scalar(diffPtr + 4*count, currentOffset, dataOffset, degree, edgeArray); // need to change what this is assigned to..
 	//	return dataPtr;
@@ -463,13 +457,13 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 		charsUsedArr[i] = (degrees[i] + 3)/4 + degrees[i]*4;
 	}}
 
-	cout << "after for loop " << endl;
+//	cout << "after for loop " << endl;
 
 	degrees[n] = 0;
 	sequence::plusScan(degrees, degrees, n+1);
 	long toAlloc = sequence::plusScan(charsUsedArr, charsUsedArr, n);
 	uintE* iEdges = newA(uintE, toAlloc);
-	cout << "second loop begin" << endl;	
+//	cout << "second loop begin" << endl;	
 	{parallel_for(long i=0;i<n;i++){
 //		cout << "i begin " << i << endl;
 		edgePts[i] = iEdges+charsUsedArr[i];
@@ -477,7 +471,7 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 		charsUsedArr[i] = charsUsed;
 	//	cout << "i end " << i << endl;
 	}}
-	cout << "after second loop" << endl;
+//	cout << "after second loop" << endl;
 
 	// produce the total space needed for all compressed lists in chars
 	long totalSpace = sequence::plusScan(charsUsedArr, compressionStarts, n);

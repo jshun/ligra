@@ -30,6 +30,8 @@
 #include "nibble.h"
 #elif defined STREAMVBYTE
 #include "streamvbyte.h"
+#elif defined STREAMVEC
+#include "streamvbyte_vec.h"
 #else
 #include "byteRLE.h"
 #endif
@@ -39,7 +41,9 @@
 #elif defined NIBBLE
 #include "nibble-pd.h"
 #elif defined STREAMVBYTE
-#include "streamvbyte-pd.h"
+#include "streamvbyte.h"
+#elif defined STREAMVEC
+#include "streamvbyte_vec.h"
 #else
 #include "byteRLE-pd.h"
 #endif
