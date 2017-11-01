@@ -60,7 +60,10 @@ struct printAdjT {
   stringstream* ss;
   printAdjT(stringstream *_ss) : ss(_ss) {}
   bool srcTarg(uintE src, uintE target, uintT edgeNumber) {
-    *ss << target << endl;
+   	if(edgeNumber == 0){
+		*ss << "first edge: " << endl;
+	}
+	 *ss << target << endl;
     return true;
   }
   bool srcTarg(uintE src, uintE target, intE weight, uintT edgeNumber) {
