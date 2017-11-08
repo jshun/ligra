@@ -63,9 +63,9 @@ $(COMMON):
 
 clean :
 	rm -f *.o $(ALL)
-	git rm -f *.h $(COMMON)
-	git rm -f encoder.C 
-	git rm -f decoder.C
+#	git rm -f *.h $(COMMON)
+#	git rm -f encoder.C 
+#	git rm -f decoder.C
 cleansrc :
 	rm -f *.o $(ALL)
 	rm $(COMMON)

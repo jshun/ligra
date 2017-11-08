@@ -318,12 +318,12 @@ long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degre
 		dataCurrentOffset += (1 + key);
 		if(degree == 1){
 			edgeArray[currentOffset] = key;
-			return dataCurrentOffset+1;
+			return dataCurrentOffset;
 //			return (dataCurrentOffset+1);
 		}
 		// scalar version: compress the rest of the edges
 		dataCurrentOffset= compressEdge(edgeArray, currentOffset, savedEdges, key, dataCurrentOffset, degree);
-		return dataCurrentOffset+1;
+		return dataCurrentOffset;
 //		return (dataCurrentOffset+1);
 	}
 	else{
@@ -335,29 +335,25 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 	// compresses edges for vertices in parallel & prints compression stats
 	cout << "parallel compressing, (n,m) = (" << n << "," << m << ")"  << endl;
 	uintE **edgePts = newA(uintE*, n);
-	uintT *degrees = newA(uintT, n+1); 
 	long *charsUsedArr = newA(long, n);
 	long *compressionStarts = newA(long, n+1);
-	{parallel_for(long i=0;i<n;i++){
-		degrees[i] = Degrees[i];
-		charsUsedArr[i] = 5*degrees[i];
+	{parallel_for(long i=0;i<n;i++){		
+		charsUsedArr[i] = 5*Degrees[i];
 //		charsUsedArr[i] = ceil((degrees[i]*9)/8) + 4;
 //		charsUsedArr[i] = (degrees[i] + 3)/4 + 4*degrees[i];
 	}}
-	degrees[n] = 0;
-	sequence::plusScan(degrees, degrees, n+1);
 	long toAlloc = sequence::plusScan(charsUsedArr, charsUsedArr, n);
 	uintE* iEdges = newA(uintE, toAlloc);
 
 	{parallel_for(long i=0;i<n;i++){
 		edgePts[i] = iEdges+charsUsedArr[i];
-		long charsUsed = sequentialCompressEdgeSet((uchar *)(iEdges+charsUsedArr[i]), 0, degrees[i+1]-degrees[i], i, edges + offsets[i]);
+		long charsUsed = sequentialCompressEdgeSet((uchar *)(iEdges+charsUsedArr[i]), 0, Degrees[i], i, edges + offsets[i]);
+		//cout << degrees[i] << " " << offsets[i] << " " << charsUsed << endl;
 		charsUsedArr[i] = charsUsed;
 	}}
 	// produce the total space needed for all compressed lists in chars
 	long totalSpace = sequence::plusScan(charsUsedArr, compressionStarts, n);
 	compressionStarts[n] = totalSpace;
-	free(degrees);
 	free(charsUsedArr);
 	
 	uchar *finalArr =  newA(uchar, totalSpace);
@@ -496,28 +492,23 @@ long sequentialCompressWeightedEdgeSet(uchar *edgeArray, long currentOffset, uin
 uchar *parallelCompressWeightedEdges(intEPair *edges, uintT *offsets, long n, long m, uintE* Degrees){
 	cout << "parallel compressing, (n,m) = (" << n << "," << m << ")" << endl;
 	uintE **edgePts = newA(uintE*, n);
-	uintT *degrees = newA(uintT, n+1);
 	long *charsUsedArr = newA(long, n);
 	long *compressionStarts = newA(long, n+1);
 	{parallel_for(long i=0; i<n; i++){
-		degrees[i] = Degrees[i];
 //		charsUsedArr[i] = (2*degrees[i]+3)/4 + 8*degrees[i];
-		charsUsedArr[i] = 5*degrees[i];
+		charsUsedArr[i] = 10*Degrees[i];
 	}}
 
-	degrees[n] = 0;
-	sequence::plusScan(degrees,degrees,n+1);
 	long toAlloc = sequence::plusScan(charsUsedArr, charsUsedArr, n);
 	uintE* iEdges = newA(uintE, toAlloc);
 	{parallel_for(long i = 0; i < n; i++){
 		edgePts[i] = iEdges + charsUsedArr[i];
-		long charsUsed = sequentialCompressWeightedEdgeSet((uchar *)(iEdges + charsUsedArr[i]), 0, degrees[i+1] - degrees[i], i, edges + offsets[i]);
+		long charsUsed = sequentialCompressWeightedEdgeSet((uchar *)(iEdges + charsUsedArr[i]), 0, Degrees[i], i, edges + offsets[i]);
 	charsUsedArr[i] = charsUsed;
 	}}
 	
 	long totalSpace = sequence::plusScan(charsUsedArr, compressionStarts, n);
 	compressionStarts[n] = totalSpace;
-	free(degrees);
 	free(charsUsedArr);
 	
 	uchar *finalArr = newA(uchar, totalSpace);
