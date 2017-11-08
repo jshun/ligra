@@ -28,6 +28,10 @@
 #include "byte.h"
 #elif defined NIBBLE
 #include "nibble.h"
+#elif defined STREAMVBYTE
+#include "streamvbyte.h"
+#elif defined STREAMCASE
+#include "streamvbyte_256.h"
 #else
 #include "byteRLE.h"
 #endif
@@ -36,6 +40,10 @@
 #include "byte-pd.h"
 #elif defined NIBBLE
 #include "nibble-pd.h"
+#elif defined STREAMVBYTE
+#include "streamvbyte.h"
+#elif defined STREAMCASE
+#include "streamvbyte_256.h"
 #else
 #include "byteRLE-pd.h"
 #endif

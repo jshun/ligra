@@ -34,7 +34,8 @@ wapplications = ["BellmanFord"]
 rapplications = ["PageRank"]
 #testfiles = [("randLocalGraph_J_5_10000000_ordered","1"),("3Dgrid_J_10000000_ordered","1"),("soc-LiveJournal1.txt_J_psep_ordered","10000"),("cit-Patents.txt_J_psep_ordered","3000000"),("com-lj.ungraph.txt_J_psep_ordered","3000000"),("com-orkut.ungraph.txt_J_psep_ordered","10000"),("nlpkkt_bfsR_J","1")]
 
-testfiles = [("twitter_J", "1")]
+
+btestfiles = [("uk-union-2006-06-2007-05_J","100"),("uk-union-2006-06-2007-05_J_reordered","100")]
 
 compression = [(".nibble"), (".byte"), (".rle"), (".streamvbyte")]
 
@@ -44,7 +45,6 @@ compression = [(".nibble"), (".byte"), (".rle"), (".streamvbyte")]
 
 #wtestfiles = [("randLocalGraph_WJ_5_10000000_ordered","1"),("3Dgrid_WJ_10000000_ordered","1"),("soc-LiveJournal1.txt_WJ_psep_ordered","10000"),("cit-Patents.txt_WJ_psep_ordered","3000000"),("com-lj.ungraph.txt_WJ_psep_ordered","3000000"),("com-orkut.ungraph.txt_WJ_psep_ordered","10000"),("nlpkkt_bfsR_WJ","1")]
 
-wtestfiles = [("twitter_WJ", "1")]
 
 processors = [1,2,4,8]
 #processors = [1,2,4]+range(8,80+1,8)
@@ -57,7 +57,7 @@ if debug:
   testfiles = [("cit-Patents.txt_J_psep_ordered","3000000")]
 
 #os.system("make clean; make -j16; ~/hog2 250")
-for testfile in testfiles :
+for testfile in btestfiles :
 	for p in processors :
 		if p==1:
 			css = "export CILK_NWORKERS=1; ./decoderSpeed "+dataDir+testfile[0]+compression[compression_num]
@@ -68,38 +68,22 @@ for testfile in testfiles :
 		sys.stdout.flush()
 
 
-
 for app in applications:
-  for testfile in testfiles :
-    for p in processors :
-      if p == 1:
-       # ss = "export CILK_NWORKERS=1; ./"+app+' -rounds 1 -maxiters 1 -r '+testfile[1]+' '+bdataDir+testfile[0]
-        css = "export CILK_NWORKERS=1; ./"+app+' -c -r '+testfile[1]+' '+dataDir+testfile[0]+compression[compression_num]
-      else:
-      #  ss = "export CILK_NWORKERS="+`p`+"; numactl -i all ./" + app + ' -maxiters 1 -r '+testfile[1]+ ' ' + bdataDir + testfile[0]
-        css = "export CILK_NWORKERS="+`p`+"; numactl -i all ./" + app + ' -c -r '+testfile[1]+ ' ' + dataDir + testfile[0]+ compression[compression_num]
-     # print app+" "+`p` + " " + testfile[0] + " Ligra"
-     # print shellGetOutput(ss)
-     # sys.stdout.flush()
-      print app+" "+`p` + " " + testfile[0] + " Ligra+" 
-      print shellGetOutput(css)
-      sys.stdout.flush()
-	
-for app in wapplications:
-  for testfile in wtestfiles :
-    for p in processors :
-      if p == 1:
-    #    ss = "export CILK_NWORKERS=1; ./"+app+' -rounds 1 -r '+testfile[1]+' '+bdataDir+testfile[0]
-        css = "export CILK_NWORKERS=1; ./"+app+' -c -rounds 1 -r '+testfile[1]+' '+dataDir+testfile[0]+compression[compression_num]
-      else:
-   #     ss = "export CILK_NWORKERS="+`p`+"; numactl -i all ./" + app + ' -r '+testfile[1]+ ' ' + bdataDir + testfile[0]
-        css = "export CILK_NWORKERS="+`p`+"; numactl -i all ./" + app + ' -c -r '+testfile[1]+ ' ' + dataDir + testfile[0]+ compression[compression_num]
-#      print app+" "+`p` + " " + testfile[0] + " Ligra"
- #     print shell.getoutput(ss)
-  #    sys.stdout.flush()
-      print app+" "+`p` + " " + testfile[0] + " Ligra+" 
-      print shellGetOutput(css)
-      sys.stdout.flush()
+  for testfile in btestfiles :
+     for p in processors :
+	if p == 1:
+	#	ss = "export CILK_NWORKERS=1; ./"+app+' -b -rounds 1 -maxiters 1 -r '+testfile[1]+' '+bdataDir+testfile[0]
+		css = "export CILK_NWORKERS=1; ./"+app+' -c -r '+testfile[1]+' '+dataDir+testfile[0]+compression[compression_num]
+	else:
+	 #	ss ="export CILK_NWORKERS="+`p`+"; numactl -i all ./"+app+' -b -maxiters 1 -r '+testfile[1]+' '+bdataDir+testfile[0]
+		css ="export CILK_NWORKERS="+`p`+"; numactl -i all ./" +app+' -c -r '+testfile[1]+ ' '+dataDir+testfile[0]+compression[compression_num]
+ #	print app+" "+`p`+" "+testfile[0]+" Ligra"
+  #  	print shellGetOutput(ss)
+	#print ss      
+#	sys.stdout.flush()
+      	print app+" "+`p` + " " + testfile[0] + " Ligra+" 
+      	print shellGetOutput(css)
+      	sys.stdout.flush()
 
 
 # for app in applications:

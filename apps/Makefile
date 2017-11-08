@@ -18,6 +18,8 @@ else ifdef STREAMVBYTE
 CODE = -DSTREAMVBYTE
 else ifdef STREAMVEC
 CODE = -DSTREAMVEC
+else ifdef STREAMCASE
+CODE = -DSTREAMCASE
 else
 CODE = -DBYTERLE
 endif
@@ -46,7 +48,7 @@ PCFLAGS = -std=c++14 -O2 $(INTT) $(INTE) $(CODE) $(PD) $(MEM)
 endif
 
 
-COMMON= ligra.h graph.h compressedVertex.h vertex.h utils.h IO.h parallel.h gettime.h index_map.h maybe.h sequence.h edgeMap_utils.h binary_search.h quickSort.h blockRadixSort.h transpose.h parseCommandLine.h byte.h byteRLE.h nibble.h streamvbyte.h byte-pd.h byteRLE-pd.h nibble-pd.h streamvbyte_vec.h vertexSubset.h streamvbyte_shuffle_tables.h encoder.C decoder.C
+COMMON= ligra.h graph.h compressedVertex.h vertex.h utils.h IO.h parallel.h gettime.h index_map.h maybe.h sequence.h edgeMap_utils.h binary_search.h quickSort.h blockRadixSort.h transpose.h parseCommandLine.h byte.h byteRLE.h nibble.h streamvbyte.h byte-pd.h byteRLE-pd.h nibble-pd.h streamvbyte_vec.h streamvbyte_256.h vertexSubset.h streamvbyte_shuffle_tables.h encoder.C decoder.C
 ALL= decoder encoder BFS BC BellmanFord Components Radii PageRank PageRankDelta BFSCC BFS-Bitvector KCore MIS Triangle CF
 
 all: $(ALL)

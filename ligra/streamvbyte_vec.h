@@ -103,6 +103,7 @@ static inline intE _decode_data(uint8_t **dataPtrPtr, uint8_t code){
 //	code &= 0x3;
 	if(code ==0){
 		edgeRead = *dataPtr;
+	//	cout << "*dataPtr: " << edgeRead << endl;
 		dataPtr += 1;
 	}
 	else if(code ==1){
@@ -119,6 +120,7 @@ static inline intE _decode_data(uint8_t **dataPtrPtr, uint8_t code){
 	}
 	
 	*dataPtrPtr = dataPtr;
+	//cout << "**dataPtrPtr: " << *(*dataPtrPtr) << endl;
 	return edgeRead;
 }
 
@@ -127,38 +129,43 @@ template <class T>
 void svb_decode_scalar(size_t edgesRead, uchar* dataPointer, uchar* controlPointer, uintT degree, intE* previousEdge, T t, const uintE &source, bool firstEdge){
 	if(degree >  0){
 	intE edge = *previousEdge;	
-	uchar shift = 0;
+	uintT shift = 0;
 	uintT key = *controlPointer++;
 	uintT i = 0;
 	intE val;
 	intE* valPtr;
-	cout << "edgesRead: " << edgesRead << endl;
+//	cout << "edgesRead: " << edgesRead << endl;
 //	cout << "svb_decode_scalar " << endl;
 	if (firstEdge == 1){
-		cout << "first edge" << endl;
+	//	cout << "first edge" << endl;
 		uchar firstKey = key & 0x3;
-		uchar signBit = 0;
+		uintT signBit = 0;
 		if(firstKey == 0){
 			val = *dataPointer;
-			signBit = (uchar)(((val) & 0x80) >> 7);
-			val = val & 0x7F;
+			cout << "val with signBit: " << val << endl;
+			signBit = (((val) & 0x80) >> 7);
+			val &=  0x7F;
+			cout << "val no signBit: " << val << endl;
 			dataPointer += 1;
 		}
 		else if(firstKey == 1){
+			cout << "firstKey 1" << endl;
 			memcpy(&valPtr, dataPointer, 2);
-			signBit = (uchar)(((1 << 15) & val) >> 15);
+			signBit = (((1 << 15) & val) >> 15);
 			val = val & 0x7FFF;
 			dataPointer += 2;
 		}
 		else if(firstKey == 2){
+			cout << "firstkey 2: "<< endl;
 			memcpy(&valPtr, dataPointer, 3);
-			signBit = (uchar)(((1 << 23) & val) >> 23);
+			signBit = (((1 << 23) & val) >> 23);
 			val = val & 0x7FFFFF;
 			dataPointer += 3;
 		}
 		else{
+			cout << "firstkey 3 " << endl;
 			memcpy(&valPtr, dataPointer, 4);
-			signBit = (uchar)(((1 << 31) & val) >> 31);
+			signBit = (((1 << 31) & val) >> 31);
 			val = val & 0x7FFFFFFF;
 			dataPointer += 4;
 		}
@@ -181,6 +188,7 @@ void svb_decode_scalar(size_t edgesRead, uchar* dataPointer, uchar* controlPoint
 		}
 		val = _decode_data(&dataPointer, (key >> shift) & 0x3);
 		edge = edge + val; 
+//		cout << "edge: " << edge << " val: " << val << endl;
 		if(!t.srcTarg(source, edge, edgesRead))
 			break;
 		edgesRead++;
@@ -382,7 +390,7 @@ size_t streamvbyte_encode4(__m128i in, long outData, long outCode, uchar* &start
 	u128 codeAndLength = {.i128 = _mm_mullo_epi32(hibytes, Aggregators.i128)};
 	uint8_t code = codeAndLength.i8[3];
 	size_t length = codeAndLength.i8[7] + 4; 
-	cout << "length: " << length << endl;	
+//	cout << "length: " << length << endl;	
 	__m128i Shuf = *(__m128i *)&encodingShuffleTable[code]; 
 	__m128i outAligned = _mm_shuffle_epi8(in, Shuf);
 	_mm_storeu_si128((__m128i *)(&start[outData]), outAligned);
@@ -396,6 +404,7 @@ size_t streamvbyte_encode4(__m128i in, long outData, long outCode, uchar* &start
 
 uintT streamvbyte_encode_quad(uintT *in, long outData, long outControl, uchar *edgeArray){
 	__m128i vin = _mm_loadu_si128((__m128i *) in);
+	cout << "*in " << *in << endl;
 	return streamvbyte_encode4(vin, outData, outControl, edgeArray);
 }
 
@@ -409,9 +418,11 @@ long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degre
 		uintE* diffPtr = difference;
 		intE preCompress = (intE)savedEdges[0] - vertexNum;
 		intE toCompress = abs(preCompress);
+	//	cout << "toCompress: " << toCompress << endl;
 		intE signBit = (preCompress < 0) ? 1:0;
 		if(toCompress < (1 << 7)){
 			toCompress = (signBit << 7) | toCompress;
+	//		cout << "toCompress & signBit: " << toCompress << endl;
 		}
 		else if(toCompress < (1 << 15)){
 			toCompress = (signBit << 15) | toCompress;
@@ -426,7 +437,7 @@ long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degre
 		for(uintT i = 1; i < degree; i++){
 			difference[i] = savedEdges[i] - savedEdges[i-1];
 		}
-	
+	//	cout << "*(diffPtr + 4*0): " << *(diffPtr + 4*0) << endl;
 		degree -= 4*count;
 		uintT length = 0;
 		for(uintT i = 0; i < count; i++){
@@ -542,7 +553,7 @@ template <class T>
 	size_t edgesRead = 0;
 	if(degree > 0) {
 //		cout << "inside decode" << endl;
-		uchar controlLength = (degree+3)/4;
+		uintT controlLength = (degree+3)/4;
 //		cout << "keybytes1: " << keybytes << endl;
 		uchar *dataPtr = edgeStart + controlLength;
 		uint64_t keybytes = degree/4;
@@ -703,13 +714,13 @@ template <class T>
 		edgesRead += 4;
 	}	
 
-// call svb_decode_scalar but don't return it
 	}
-
+	cout << "controlPtr: " << *controlPtr << endl;
 	controlPtr += (degree/4) & ~7;	
-	svb_decode_scalar(edgesRead, dataPtr, controlPtr, (degree & 31), &prevEdge, t, source, firstEdge);
-//	svb_decode_scalar(edgesRead, dataPtr, controlPtr, degree, &prevEdge, t, source, firstEdge);
+	cout << "controlPtr2: " << *controlPtr << endl;
 
+	cout << "degree : " << degree << " degree&31: " << (degree & 31) << endl;
+	svb_decode_scalar(edgesRead, dataPtr, controlPtr, (degree & 31), &prevEdge, t, source, firstEdge);
 	}
 
 }
