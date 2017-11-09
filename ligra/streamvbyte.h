@@ -63,23 +63,23 @@ inline intE eatFirstEdge(uchar controlKey, uintE source, long* dOffset, long con
 	// check the two bit code in control stream
 	uintT checkCode = (controlKey) & 0x3;
 //	checkCode = 0;
-	intE edgeRead = 0;
-	intE *edgeReadPtr = &edgeRead;
-	uchar signBit = 0;
+	bool signBit;
+	uintE edgeRead = 0;
+	//intE *edgeReadPtr = &edgeRead;
 	long saveOffset = *dOffset;
 	// 1 bytei
 //	cout << "sizeof(intE) " << sizeof(intE) << " sizeof(uintE) " << sizeof(uintE) << " sizeof(uchar) " << sizeof(uchar) << endl;
 	if(checkCode == 0){
 		edgeRead = start[saveOffset];
 		// check sign bit and then get rid of it from actual value 
-		signBit = (uchar)(((edgeRead) & 0x80) >> 7);
+		signBit = (((edgeRead) & 0x80) >> 7);
 		edgeRead &= 0x7F;
 		(*dOffset) += 1;
 	}
 	// 2 bytes
 	else if(checkCode == 1){
 		memcpy(&edgeRead, &start[saveOffset], 2);
-		signBit =(uchar) (((1 << 15) & edgeRead) >> 15);
+		signBit =(((1 << 15) & edgeRead) >> 15);
 		edgeRead = edgeRead & 0x7FFF; 
 		(*dOffset) += 2;
 	}
@@ -87,7 +87,7 @@ inline intE eatFirstEdge(uchar controlKey, uintE source, long* dOffset, long con
 	else if(checkCode == 2){
 		memcpy(&edgeRead, &start[saveOffset], 3);
 //		memcpy(&edgeRead, start+saveOffset*sizeof(uchar), 3);
-		signBit = (uchar)(((edgeRead) & (1 <<23)) >> 23);
+		signBit = (((edgeRead) & (1 <<23)) >> 23);
 		edgeRead = edgeRead & 0x7FFFFF;
 		(*dOffset) += 3;
 	}
@@ -95,7 +95,7 @@ inline intE eatFirstEdge(uchar controlKey, uintE source, long* dOffset, long con
 	else{
 		memcpy(&edgeRead, &start[saveOffset], 4);
 //		memcpy(&edgeRead, start+saveOffset*sizeof(uchar), 4);
-		signBit = (uchar)((edgeRead) & (1 << 31)) >> 31;
+		signBit = ((edgeRead) & (1 << 31)) >> 31;
 		edgeRead = (edgeRead) & 0x7FFFFFFF; 
 		(*dOffset) += 4;
 	}
@@ -153,10 +153,10 @@ uchar compressFirstEdge(uchar* &start, long controlOffset, long dataOffset, uint
 //	long saveOffset = dataOffset;
 	
 	intE preCompress = (intE) target - source;
-	intE toCompress = abs(preCompress);
-	intT signBit = (preCompress < 0) ? 1:0;
+	uintE toCompress = abs(preCompress);
+	uintT signBit = (preCompress < 0) ? 1:0;
 	uchar code; 
-	intE *toCompressPtr = &toCompress;
+	uintE *toCompressPtr = &toCompress;
 	// check how many bytes is required to store the data and a sign bit (MSB)
 //	cout << "first edge dOffset (should be 0) : " << dataOffset << endl;
 	if(toCompress < (1 << 7)) {
@@ -335,17 +335,13 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 	// compresses edges for vertices in parallel & prints compression stats
 	cout << "parallel compressing, (n,m) = (" << n << "," << m << ")"  << endl;
 	uintE **edgePts = newA(uintE*, n);
-	uintT *degrees = newA(uintT, n+1);
 	long *charsUsedArr = newA(long, n);
 	long *compressionStarts = newA(long, n+1);
 	{parallel_for(long i=0;i<n;i++){		
-	    degrees[i] = Degrees[i];
-	    charsUsedArr[i] = 5*degrees[i];
+	    charsUsedArr[i] = 5*Degrees[i];
 //		charsUsedArr[i] = ceil((degrees[i]*9)/8) + 4;
 //		charsUsedArr[i] = (degrees[i] + 3)/4 + 4*degrees[i];
 	}}
-	degrees[n] = 0;
-	sequence::plusScan(degrees,degrees, n+1);
 	long toAlloc = sequence::plusScan(charsUsedArr, charsUsedArr, n);
 	uintE* iEdges = newA(uintE, toAlloc);
 	{parallel_for(long i=0;i<n;i++){
@@ -357,7 +353,6 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 	// produce the total space needed for all compressed lists in chars
 	long totalSpace = sequence::plusScan(charsUsedArr, compressionStarts, n);
 	compressionStarts[n] = totalSpace;
-	free(degrees);
 	free(charsUsedArr);
 	
 	uchar *finalArr =  newA(uchar, totalSpace);
@@ -496,16 +491,12 @@ long sequentialCompressWeightedEdgeSet(uchar *edgeArray, long currentOffset, uin
 uchar *parallelCompressWeightedEdges(intEPair *edges, uintT *offsets, long n, long m, uintE* Degrees){
 	cout << "parallel compressing, (n,m) = (" << n << "," << m << ")" << endl;
 	uintE **edgePts = newA(uintE*, n);
-	uintT *degrees = newA(uintT, n+1);
 	long *charsUsedArr = newA(long, n);
 	long *compressionStarts = newA(long, n+1);
 	{parallel_for(long i=0; i<n; i++){
-	    degrees[i] = Degrees[i];
-//		charsUsedArr[i] = (2*degrees[i]+3)/4 + 8*degrees[i];
-		charsUsedArr[i] = 10*degrees[i];
+	    //		charsUsedArr[i] = (2*degrees[i]+3)/4 + 8*degrees[i];
+		charsUsedArr[i] = 10*Degrees[i];
 	}}
-	degrees[n] = 0;
-	sequence::plusScan(degrees,degrees, n+1);
 	long toAlloc = sequence::plusScan(charsUsedArr, charsUsedArr, n);
 	uintE* iEdges = newA(uintE, toAlloc);
 	{parallel_for(long i = 0; i < n; i++){
@@ -516,7 +507,6 @@ uchar *parallelCompressWeightedEdges(intEPair *edges, uintT *offsets, long n, lo
 	
 	long totalSpace = sequence::plusScan(charsUsedArr, compressionStarts, n);
 	compressionStarts[n] = totalSpace;
-	free(degrees);
 	free(charsUsedArr);
 	
 	uchar *finalArr = newA(uchar, totalSpace);
