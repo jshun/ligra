@@ -240,22 +240,18 @@ long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degre
 uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE* Degrees) {
   cout << "parallel compressing, (n,m) = (" << n << "," << m << ")" << endl;
   uintE **edgePts = newA(uintE*, n);
-  uintT *degrees = newA(uintT, n+1);
   long *charsUsedArr = newA(long, n);
   long *compressionStarts = newA(long, n+1);
   {parallel_for(long i=0; i<n; i++) {
-    degrees[i] = Degrees[i];
-    charsUsedArr[i] = ceil((degrees[i] * 9) / 8) + 4;
+    charsUsedArr[i] = ceil((Degrees[i] * 9) / 8) + 4;
   }}
-  degrees[n] = 0;
-  sequence::plusScan(degrees,degrees, n+1);
   long toAlloc = sequence::plusScan(charsUsedArr,charsUsedArr,n);
   uintE* iEdges = newA(uintE,toAlloc);
   {parallel_for(long i=0; i<n; i++) {
       edgePts[i] = iEdges+charsUsedArr[i];
       long charsUsed =
 	sequentialCompressEdgeSet((uchar *)(iEdges+charsUsedArr[i]),
-				  0, degrees[i+1]-degrees[i],
+				  0, Degrees[i],
 				  i, edges + offsets[i]);
       // convert units from #1/2 bytes -> #bytes, round up to make it
       //byte-aligned
@@ -264,7 +260,6 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
   }}
   long totalSpace = sequence::plusScan(charsUsedArr, compressionStarts, n);
   compressionStarts[n] = totalSpace; // in bytes
-  free(degrees);
   free(charsUsedArr);
 
   uchar *finalArr = newA(uchar, totalSpace);

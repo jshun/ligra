@@ -114,7 +114,9 @@ void writeAdjGraph(graph<compressedSymmetricVertex> G, ofstream *of, bool weight
 }
 
 //Converts binary compressed graph to text format. For weighted
-//graphs, pass the "-w" flag.
+//graphs, pass the "-w" flag. Note that if the original graph
+//contained self-edges or duplicate edges, these would have been
+//deleted by the encoder and will not be recreated by the decoder.
 int parallel_main(int argc, char* argv[]) {  
   commandLine P(argc,argv,"[-w] <inFile> <outFile>");
   char* iFile = P.getArgument(1);
