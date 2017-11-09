@@ -285,15 +285,11 @@ long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degre
 uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE* Degrees) {
   cout << "parallel compressing, (n,m) = (" << n << "," << m << ")" << endl;
   uintE **edgePts = newA(uintE*, n);
-  uintT *degrees = newA(uintT, n+1);
   long *charsUsedArr = newA(long, n);
   long *compressionStarts = newA(long, n+1);
   {parallel_for(long i=0; i<n; i++) {
-      degrees[i] = Degrees[i];
-    charsUsedArr[i] = ceil((degrees[i] * 9) / 8) + 4;
+    charsUsedArr[i] = ceil((Degrees[i] * 9) / 8) + 4;
   }}
-  degrees[n] = 0;
-  sequence::plusScan(degrees,degrees, n+1);
   long toAlloc = sequence::plusScan(charsUsedArr,charsUsedArr,n);
   uintE* iEdges = newA(uintE,toAlloc);
 
@@ -301,7 +297,7 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
       edgePts[i] = iEdges+charsUsedArr[i];
       long charsUsed =
 	sequentialCompressEdgeSet((uchar *)(iEdges+charsUsedArr[i]),
-				  0, degrees[i+1]-degrees[i],
+				  0, Degrees[i],
 				  i, edges + offsets[i]);
       charsUsedArr[i] = charsUsed;
   }}
@@ -309,7 +305,6 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
   // produce the total space needed for all compressed lists in chars.
   long totalSpace = sequence::plusScan(charsUsedArr, compressionStarts, n);
   compressionStarts[n] = totalSpace;
-  free(degrees);
   free(charsUsedArr);
 
   uchar *finalArr = newA(uchar, totalSpace);
@@ -382,29 +377,24 @@ long sequentialCompressWeightedEdgeSet
 uchar *parallelCompressWeightedEdges(intEPair *edges, uintT *offsets, long n, long m, uintE* Degrees) {
   cout << "parallel compressing, (n,m) = (" << n << "," << m << ")" << endl;
   uintE **edgePts = newA(uintE*, n);
-  uintT *degrees = newA(uintT, n+1);
   long *charsUsedArr = newA(long, n);
   long *compressionStarts = newA(long, n+1);
   {parallel_for(long i=0; i<n; i++) {
-    degrees[i] = Degrees[i];
-    charsUsedArr[i] = 2*(ceil((degrees[i] * 9) / 8) + 4); //to change
+    charsUsedArr[i] = 2*(ceil((Degrees[i] * 9) / 8) + 4); //to change
   }}
-  degrees[n] = 0;
-  sequence::plusScan(degrees,degrees, n+1);
   long toAlloc = sequence::plusScan(charsUsedArr,charsUsedArr,n);
   uintE* iEdges = newA(uintE,toAlloc);
 
   {parallel_for(long i=0; i<n; i++) {
     edgePts[i] = iEdges+charsUsedArr[i];
     long charsUsed =
-      sequentialCompressWeightedEdgeSet((uchar *)(iEdges+charsUsedArr[i]), 0, degrees[i+1]-degrees[i],i, edges + offsets[i]);
+      sequentialCompressWeightedEdgeSet((uchar *)(iEdges+charsUsedArr[i]), 0, Degrees[i],i, edges + offsets[i]);
     charsUsedArr[i] = charsUsed;
   }}
 
   // produce the total space needed for all compressed lists in chars.
   long totalSpace = sequence::plusScan(charsUsedArr, compressionStarts, n);
   compressionStarts[n] = totalSpace;
-  free(degrees);
   free(charsUsedArr);
 
   uchar *finalArr = newA(uchar, totalSpace);
