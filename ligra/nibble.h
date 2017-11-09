@@ -176,8 +176,8 @@ long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degre
     currentOffset = encode_nibbleval(edgeArray, currentOffset, toCompress);
     long val;
     //for debugging only
-    decode_val_nibblecode(edgeArray,&temp,val);
-    if(val != toCompress) {cout << "decoding error! got "<<val<<" but should've been "<<(savedEdges[0])<<" " <<vertexNum<<" "<<preCompress<<" " << labs(preCompress)<<" " << toCompress<<" " << (val >> 1)<<endl; exit(0);}
+    //decode_val_nibblecode(edgeArray,&temp,val);
+    //if(val != toCompress) {cout << "decoding error! got "<<val<<" but should've been "<<(savedEdges[0])<<" " <<vertexNum<<" "<<preCompress<<" " << labs(preCompress)<<" " << toCompress<<" " << (val >> 1)<<endl; exit(0);}
     for (uintT edgeI=1; edgeI < degree; edgeI++) {
       // Store difference between cur and prev edge.
       uintE difference = savedEdges[edgeI] -
@@ -185,8 +185,8 @@ long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degre
       temp = currentOffset;
       currentOffset = encode_nibbleval(edgeArray, currentOffset, difference);
       //for debugging only
-      decode_val_nibblecode(edgeArray,&temp,val);
-    if(val != difference) {cout << "decoding error! got "<<val<<" but should've been "<<(savedEdges[0])<<" " <<vertexNum<<" "<<difference<<endl; exit(0);}
+      //decode_val_nibblecode(edgeArray,&temp,val);
+      //if(val != difference) {cout << "decoding error! got "<<val<<" but should've been "<<(savedEdges[0])<<" " <<vertexNum<<" "<<difference<<endl; exit(0);}
 
     }
   }
