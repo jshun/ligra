@@ -19,15 +19,15 @@ inline intE eatWeight(uchar controlKey, long* dOffset, intT shift, long controlO
 //	uchar fb = start[controlOffset];
 	// check two bit code in control stream
 	uintT checkCode = (controlKey >> shift) & 0x3;
-	intE edgeRead = 0;
-	intE *edgeReadPtr = &edgeRead;
-	uchar signBit = 0;
+	uintE edgeRead = 0;
+	uintE *edgeReadPtr = &edgeRead;
+	bool signBit;
 	long saveOffset = *dOffset;
 	// 1 byte
 	if(checkCode == 0){
 		edgeRead = start[saveOffset];
 		// check sign bit and then get rid of it from actual value 
-		signBit =(uchar)(((edgeRead) & 0x80) >> 7);
+		signBit =(((edgeRead) & 0x80) >> 7);
 		edgeRead &= 0x7F;
 		// incrememnt the offset to data by 1 byte
 		(*dOffset) += 1;
@@ -35,21 +35,21 @@ inline intE eatWeight(uchar controlKey, long* dOffset, intT shift, long controlO
 	// 2 bytes
 	else if(checkCode == 1){
 		memcpy(&edgeReadPtr, start + saveOffset*sizeof(uchar), 2);
-		signBit = (uchar)(((1 << 15) & edgeRead) >> 15);
+		signBit = (((1 << 15) & edgeRead) >> 15);
 		edgeRead = edgeRead & 0x7FFF; 
 		(*dOffset) += 2;
 	}
 	// 3 bytes
 	else if(checkCode == 2){
 		memcpy(&edgeReadPtr, start + saveOffset*sizeof(uchar), 3);
-		signBit = (uchar)(((edgeRead) & (1 <<23)) >> 23);
+		signBit = (((edgeRead) & (1 <<23)) >> 23);
 		edgeRead = edgeRead & 0x7FFFFF;
 		(*dOffset) += 3;
 	}
 	// 4 bytes
 	else{
 		memcpy(&edgeReadPtr, start+saveOffset*sizeof(uchar), 4);
-		signBit = (uchar)(((edgeRead) & (1 << 31)) >> 31);
+		signBit = (((edgeRead) & (1 << 31)) >> 31);
 		edgeRead = (edgeRead) & 0x7FFFFFFF; 
 		(*dOffset) += 4;
 	}
