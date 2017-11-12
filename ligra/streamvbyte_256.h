@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <cmath>
 
-// to use this compression scheme, compile with STREAMVBYTE=1 make -j
+// to use this compression scheme, compile with STREAMCASE=1 make -j
 
 typedef unsigned char uchar;
 
@@ -19,8 +19,8 @@ inline intE eatWeight(uchar* &start, uchar* &dOffset, intT shift){
 	uchar fb = *start;
 	// check two bit code in control stream
 	uintT checkCode = (fb >> shift) & 0x3;
-	intE edgeRead = 0;
-	intE *edgeReadPtr = &edgeRead;
+	uintE edgeRead = 0;
+	uintE *edgeReadPtr = &edgeRead;
 	uchar signBit = 0;
 	// 1 byte
 	if(checkCode == 0){
@@ -61,8 +61,8 @@ inline intE eatFirstEdge(uchar* &start, uintE source, uchar* &dOffset){
 	uchar fb = *start;
 	// check the two bit code in control stream
 	uintT checkCode = (fb) & 0x3;
-	intE edgeRead = 0;
-	intE *edgeReadPtr = &edgeRead;
+	uintE edgeRead = 0;
+	uintE *edgeReadPtr = &edgeRead;
 	uchar signBit = 0;
 	// 1 byte
 	if(checkCode == 0){
@@ -104,7 +104,7 @@ inline bool eatEdge_scalar(uchar* &start, uchar* &dOffset, intT shift, const uin
 	uintE edgeRead = 0;
 	uintE *edgeReadPtr = &edgeRead;
 	bool break_var = 0;
-	intE edge = *edgePtr;
+	uintE edge = *edgePtr;
 	size_t edgesRead = *edgesReadPtr;
 	// 1 byte
 	if(checkCode == 0){
@@ -139,11 +139,11 @@ inline bool eatEdge_scalar(uchar* &start, uchar* &dOffset, intT shift, const uin
 // decode remaining edges
 template <class T>
 inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE &source, T t, size_t* edgesReadPtr){
-	intE edgeRead =0;
-	intE* edgeReadPtr = &edgeRead;
+	uintE edgeRead =0;
+	uintE* edgeReadPtr = &edgeRead;
 	bool break_var = 0;
-	intE edge = *edgePtr;
-	intT edgesRead = *edgesReadPtr;
+	uintE edge = *edgePtr;
+	uintT edgesRead = *edgesReadPtr;
  	uchar control_byte = *start;
 
 	switch(control_byte){
@@ -8347,14 +8347,14 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 return 0;	
 }
 
-intT compressFirstEdge(uchar *start, long controlOffset, long dataOffset, uintE source, uintE target){
+uchar compressFirstEdge(uchar *start, long controlOffset, long dataOffset, uintE source, uintE target){
 	uchar* saveStart = start;
 	long saveOffset = dataOffset;
 	
 	intE preCompress = (intE) target - source;
-	intE toCompress = abs(preCompress);
-	intT signBit = (preCompress < 0) ? 1:0;
-	intT code; 
+	uintE toCompress = abs(preCompress);
+	uintT signBit = (preCompress < 0) ? 1:0;
+	uchar code; 
 	// check how many bytes is required to store the data and a sign bit (MSB)
 	if(toCompress < (1 << 7)) {
 		// concatenate sign bit with data and store
@@ -8378,8 +8378,8 @@ intT compressFirstEdge(uchar *start, long controlOffset, long dataOffset, uintE 
 }
 
 // store compressed data
-uintT encode_data(uintE d, long dataCurrentOffset, uchar*start){
-	uintT code;
+uchar encode_data(uintE d, long dataCurrentOffset, uchar*start){
+	uchar code;
 	// figure out how many bytes needed to store value and set code accordingly
 	if(d < (1 << 8)){
 		start[dataCurrentOffset] = d;
@@ -8404,7 +8404,7 @@ uintT encode_data(uintE d, long dataCurrentOffset, uchar*start){
 typedef pair<uintE,intE> intEPair;
 
 long compressWeightedEdge(uchar *start, long currentOffset, intEPair *savedEdges, uintT key, long dataCurrentOffset, uintT degree){
-	uintT code = 0;
+	uchar code = 0;
 	uintT storeKey = key;
 	long storeDOffset = dataCurrentOffset;
 	long storeCurrentOffset = currentOffset;
@@ -8447,7 +8447,7 @@ long compressWeightedEdge(uchar *start, long currentOffset, intEPair *savedEdges
 
 long compressEdge(uchar *start, long currentOffset, uintE *savedEdges, uintT key, long dataCurrentOffset, uintT degree){
 	uintT code = 0;
-	uintT storeKey = key;
+	uchar storeKey = key;
 	long storeDOffset = dataCurrentOffset;
 	long storeCurrentOffset = currentOffset;
 	// shift 0 used by first edge
@@ -8465,7 +8465,7 @@ long compressEdge(uchar *start, long currentOffset, uintE *savedEdges, uintT key
 			}		
 			// encode and store data in data stream
 			code = encode_data(difference, storeDOffset, start);
-			storeDOffset += (code + 1)*sizeof(uchar); 
+			storeDOffset += (code + 1); 
 			storeKey |= (code << shift);
 			shift +=2;
 	}
@@ -8481,7 +8481,7 @@ long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degre
 		// offset where to start storing data (after control bytes)
 		long dataCurrentOffset = currentOffset + controlLength;
 		// shift and key always = 0 for first edge
-		uintT key = compressFirstEdge(edgeArray, currentOffset, dataCurrentOffset, vertexNum, savedEdges[0]);
+		uchar key = compressFirstEdge(edgeArray, currentOffset, dataCurrentOffset, vertexNum, savedEdges[0]);
 		// offset data pointer by amount of space required by first edge
 		dataCurrentOffset += (1 + key)*sizeof(uchar);
 		if(degree == 1){
@@ -8500,27 +8500,28 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 	// compresses edges for vertices in parallel & prints compression stats
 	cout << "parallel compressing, (n,m) = (" << n << "," << m << ")"  << endl;
 	uintE **edgePts = newA(uintE*, n);
-	uintT *degrees = newA(uintT, n+1); 
+//	uintT *degrees = newA(uintT, n+1); 
 	long *charsUsedArr = newA(long, n);
 	long *compressionStarts = newA(long, n+1);
 	{parallel_for(long i=0;i<n;i++){
-		degrees[i] = Degrees[i];
-		charsUsedArr[i] = ceil((degrees[i]*9)/8) + 4;
+//		degrees[i] = Degrees[i];
+		charsUsedArr[i] = 5*Degrees[i];
+//		charsUsedArr[i] = ceil((degrees[i]*9)/8) + 4;
 	}}
-	degrees[n] = 0;
-	sequence::plusScan(degrees, degrees, n+1);
+//	degrees[n] = 0;
+//	sequence::plusScan(charsUsedArr, charsUsedArr, n+1);
 	long toAlloc = sequence::plusScan(charsUsedArr, charsUsedArr, n);
 	uintE* iEdges = newA(uintE, toAlloc);
 
 	{parallel_for(long i=0;i<n;i++){
 		edgePts[i] = iEdges+charsUsedArr[i];
-		long charsUsed = sequentialCompressEdgeSet((uchar *)(iEdges+charsUsedArr[i]), 0, degrees[i+1]-degrees[i], i, edges + offsets[i]);
+		long charsUsed = sequentialCompressEdgeSet((uchar *)(iEdges+charsUsedArr[i]), 0, Degrees[i], i, edges + offsets[i]);
 		charsUsedArr[i] = charsUsed;
 	}}
 	// produce the total space needed for all compressed lists in chars
 	long totalSpace = sequence::plusScan(charsUsedArr, compressionStarts, n);
 	compressionStarts[n] = totalSpace;
-	free(degrees);
+//	free(degrees);
 	free(charsUsedArr);
 	
 	uchar *finalArr =  newA(uchar, totalSpace);

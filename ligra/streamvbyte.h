@@ -334,41 +334,67 @@ long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degre
 uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE* Degrees){
 	// compresses edges for vertices in parallel & prints compression stats
 	cout << "parallel compressing, (n,m) = (" << n << "," << m << ")"  << endl;
-	uintE **edgePts = newA(uintE*, n);
 	long *charsUsedArr = newA(long, n);
 	long *compressionStarts = newA(long, n+1);
-	{parallel_for(long i=0;i<n;i++){		
-	    charsUsedArr[i] = 5*Degrees[i];
-//		charsUsedArr[i] = ceil((degrees[i]*9)/8) + 4;
-//		charsUsedArr[i] = (degrees[i] + 3)/4 + 4*degrees[i];
-	}}
-	long toAlloc = sequence::plusScan(charsUsedArr, charsUsedArr, n);
-	uintE* iEdges = newA(uintE, toAlloc);
-	{parallel_for(long i=0;i<n;i++){
-		edgePts[i] = iEdges+charsUsedArr[i];
-		long charsUsed = sequentialCompressEdgeSet((uchar *)(iEdges+charsUsedArr[i]), 0, Degrees[i], i, edges + offsets[i]);
-		//cout << degrees[i] << " " << offsets[i] << " " << charsUsed << endl;
-		charsUsedArr[i] = charsUsed;
-	}}
-	// produce the total space needed for all compressed lists in chars
+	long count;
+	for(long i=0;i<n;i++){
+		count = 0;
+		if (Degrees[i] > 0){
+			count = (Degrees[i]+3)/4;
+			uintE* edgePtr = edges+offsets[i];
+			uintE edge = *edgePtr;	
+			intE preCompress = (intE)(edge - i);
+			uintE toCompress = abs(preCompress);
+			if(toCompress < (1 << 7)){
+				count++;
+			}
+			else if(toCompress < (1 << 15)){
+				count += 2;
+			}
+			else if(toCompress < (1 << 23)){
+				count += 3;
+			}
+			else{ 
+				count += 4;
+			}
+			uintE prevEdge = *edgePtr;	
+			uintE difference;
+			for(long j=1;j<Degrees[i];j++){
+				edge = *(edgePtr+j);
+				difference = edge - prevEdge;
+				if(difference < (1<<8)){
+					count++;
+				}	
+				else if(difference < (1 << 16)){
+					count += 2;
+				}
+				else if(difference < (1 << 24)){
+					count += 3;
+				}
+				else {
+					count +=4;
+				}
+				prevEdge = edge;	
+			}
+		}
+			charsUsedArr[i] = count;
+
+	}
+ 
 	long totalSpace = sequence::plusScan(charsUsedArr, compressionStarts, n);
 	compressionStarts[n] = totalSpace;
+	uchar *finalArr = newA(uchar, totalSpace);	
+	{parallel_for(long i=0;i<n;i++){
+
+		long charsUsed = sequentialCompressEdgeSet((uchar *)(finalArr+compressionStarts[i]), 0, Degrees[i], i, edges + offsets[i]);
+		offsets[i] = compressionStarts[i];
+	}}
+	offsets[n] = totalSpace;
 	free(charsUsedArr);
 	
-	uchar *finalArr =  newA(uchar, totalSpace);
 	cout << "total space requested is: " << totalSpace << endl;
 	float avgBitsPerEdge = (float)totalSpace*8 / (float)m;
 	cout << "Average bits per edge: " << avgBitsPerEdge << endl;
-
-	{parallel_for(long i=0; i<n; i++){
-		long o = compressionStarts[i];
-		memcpy(finalArr + o, (uchar *)(edgePts[i]), compressionStarts[i+1] - o);
-		offsets[i] = o;
-	}}
-
-	offsets[n] = totalSpace;
-	free(iEdges);
-	free(edgePts);
 	free(compressionStarts);
 	cout << "finished compressing, bytes used = " << totalSpace << endl;
 	cout << "would have been, " << (m*4) << endl;
