@@ -11,7 +11,7 @@ import subprocess
 
 # nibble = 0, byte = 1, rle = 2, streamvbyte = 3 
 
-compression_num = 0;	
+compression_num = 1;	
 
 def signal_handler(signal,frame):
   print "bye\n"

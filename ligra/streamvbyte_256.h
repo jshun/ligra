@@ -10,170 +10,141 @@
 #include <stdlib.h>
 #include <cmath>
 
-// to use this compression scheme, compile with STREAMCASE=1 make -j
+// to use this compression scheme, compile with STREAMVBYTE=1 make -j
 
 typedef unsigned char uchar;
 
 // decode weights
-inline intE eatWeight(uchar* &start, uchar* &dOffset, intT shift){
-	uchar fb = *start;
+inline intE eatWeight(uchar controlKey, long* dOffset, intT shift, long controlOffset, uchar* start){
+//	uchar fb = start[controlOffset];
 	// check two bit code in control stream
-	uintT checkCode = (fb >> shift) & 0x3;
+	uintT checkCode = (controlKey >> shift) & 0x3;
 	uintE edgeRead = 0;
 	uintE *edgeReadPtr = &edgeRead;
-	uchar signBit = 0;
+	bool signBit;
+	long saveOffset = *dOffset;
 	// 1 byte
 	if(checkCode == 0){
-		edgeRead = *dOffset;
+		edgeRead = start[saveOffset];
 		// check sign bit and then get rid of it from actual value 
-		signBit =(uchar)(((edgeRead) & 0x80) >> 7);
+		signBit =(((edgeRead) & 0x80) >> 7);
 		edgeRead &= 0x7F;
 		// incrememnt the offset to data by 1 byte
-		dOffset += 1;
+		(*dOffset) += 1;
 	}
 	// 2 bytes
 	else if(checkCode == 1){
-		memcpy(&edgeReadPtr, dOffset, 2);
-		signBit = (uchar)(((1 << 15) & edgeRead) >> 15);
+		memcpy(&edgeReadPtr, start + saveOffset*sizeof(uchar), 2);
+		signBit = (((1 << 15) & edgeRead) >> 15);
 		edgeRead = edgeRead & 0x7FFF; 
-		dOffset += 2;
+		(*dOffset) += 2;
 	}
 	// 3 bytes
 	else if(checkCode == 2){
-		memcpy(&edgeReadPtr, dOffset, 3);
-		signBit = (uchar)(((edgeRead) & (1 <<23)) >> 23);
+		memcpy(&edgeReadPtr, start + saveOffset*sizeof(uchar), 3);
+		signBit = (((edgeRead) & (1 <<23)) >> 23);
 		edgeRead = edgeRead & 0x7FFFFF;
-		dOffset += 3;
+		(*dOffset) += 3;
 	}
 	// 4 bytes
 	else{
-		memcpy(&edgeReadPtr, dOffset, 4);
-		signBit = (uchar)(((edgeRead) & (1 << 31)) >> 31);
+		memcpy(&edgeReadPtr, start+saveOffset*sizeof(uchar), 4);
+		signBit = (((edgeRead) & (1 << 31)) >> 31);
 		edgeRead = (edgeRead) & 0x7FFFFFFF; 
-		dOffset += 4;
+		(*dOffset) += 4;
 	}
 
 	return (signBit) ? -edgeRead : edgeRead;
 }
 
 // decode first edge
-inline intE eatFirstEdge(uchar* &start, uintE source, uchar* &dOffset){
-	uchar fb = *start;
-	// check the two bit code in control stream
-	uintT checkCode = (fb) & 0x3;
+inline intE eatFirstEdge(uchar controlKey, uintE source, long* dOffset, long controlOffset, uchar* start){
+	uintT checkCode = (controlKey) & 0x3;
+	bool signBit;
 	uintE edgeRead = 0;
-	uintE *edgeReadPtr = &edgeRead;
-	uchar signBit = 0;
-	// 1 byte
+	long saveOffset = *dOffset;
 	if(checkCode == 0){
-		edgeRead = *dOffset;
-		// check sign bit and then get rid of it from actual value 
-		signBit = (uchar)(((edgeRead) & 0x80) >> 7);
+		edgeRead = start[saveOffset];
+		signBit = (((edgeRead) & 0x80) >> 7);
 		edgeRead &= 0x7F;
-		dOffset += 1;
+		(*dOffset) += 1;
 	}
 	// 2 bytes
 	else if(checkCode == 1){
-		memcpy(&edgeReadPtr, dOffset, 2);
-		signBit =(uchar) (((1 << 15) & edgeRead) >> 15);
+		memcpy(&edgeRead, &start[saveOffset], 2);
+		signBit =(((1 << 15) & edgeRead) >> 15);
 		edgeRead = edgeRead & 0x7FFF; 
-		dOffset += 2;
+		(*dOffset) += 2;
 	}
 	// 3 bytes
 	else if(checkCode == 2){
-		memcpy(&edgeReadPtr, dOffset, 3);
-		signBit = (uchar)(((edgeRead) & (1 <<23)) >> 23);
+		memcpy(&edgeRead, &start[saveOffset], 3);
+		signBit = (((edgeRead) & (1 <<23)) >> 23);
 		edgeRead = edgeRead & 0x7FFFFF;
-		dOffset += 3;
+		(*dOffset) += 3;
 	}
 	// 4 bytes
 	else{
-		memcpy(&edgeReadPtr, dOffset, 4);
-		signBit = (uchar)((edgeRead) & (1 << 31)) >> 31;
+		memcpy(&edgeRead, &start[saveOffset], 4);
+		signBit = ((edgeRead) & (1 << 31)) >> 31;
 		edgeRead = (edgeRead) & 0x7FFFFFFF; 
-		dOffset += 4;
+		(*dOffset) += 4;
 	}
 	return (signBit) ? source - edgeRead : source + edgeRead;
 }
 
+
 template <class T>
-inline bool eatEdge_scalar(uchar* &start, uchar* &dOffset, intT shift, const uintE &source, T t, size_t* edgesReadPtr, uintE* edgePtr){
-	uchar fb = *start;
-	// check two bit code in control stream
-	uintT checkCode = (fb >> shift) & 0x3;
+inline bool eatByte(uchar controlKey, long* dOffsetPtr, uintE source, T t, uintE* startEdgePtr, size_t* edgesReadPtr, uchar* start){
+	long dOffset = *dOffsetPtr;
 	uintE edgeRead = 0;
-	uintE *edgeReadPtr = &edgeRead;
-	bool break_var = 0;
-	uintE edge = *edgePtr;
-	size_t edgesRead = *edgesReadPtr;
-	// 1 byte
-	if(checkCode == 0){
-		edgeRead = *dOffset; 
-		dOffset += 1;
-	}
-	// 2 bytes
-	else if(checkCode == 1){
-		memcpy(&edgeRead, dOffset, 2);
-		dOffset += 2;
-	}
-	// 3 bytes
-	else if(checkCode == 2){
-		memcpy(&edgeRead, dOffset, 3);
-		dOffset += 3;
-	}
-	// 4 bytes
-	else{
-		memcpy(&edgeRead, dOffset, 4);
-		dOffset += 4;
-	}
-	edge = *edgeReadPtr + edge;
-	*edgePtr = edge;
-	edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)){
-                break_var = 1;    
-        }
-	*edgesReadPtr = edgesRead;	
-	return break_var;
-}
-
-// decode remaining edges
-template <class T>
-inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE &source, T t, size_t* edgesReadPtr){
-	uintE edgeRead =0;
-	uintE* edgeReadPtr = &edgeRead;
-	bool break_var = 0;
-	uintE edge = *edgePtr;
-	uintT edgesRead = *edgesReadPtr;
- 	uchar control_byte = *start;
-
-	switch(control_byte){
-			case 0: 
+	uintE startEdge = *startEdgePtr;
+	uintE edge = 0; 
+	uintE edgesRead = *edgesReadPtr;
+	uintT num_bytes = 0;
+	switch(controlKey){
+		case 0: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
+	//		cout << "edge1 " << startEdge << " dOffset1 " << dOffset << endl;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
+	//		cout << "edge2 " << startEdge << " dOffset2 " << dOffset << endl;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
+	//		cout << "edge3 " << edge << " dOffset3 " << dOffset << endl;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
+	//		cout << " edge4 " << edge << " dOffset4 "  << dOffset << endl;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
@@ -181,30 +152,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 1: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -213,30 +195,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 2: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -245,30 +238,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 3: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -277,30 +281,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 4: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -309,30 +324,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 5: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -341,30 +367,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 6: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -373,30 +410,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 7: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -405,30 +453,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 8: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -437,30 +496,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 9: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -469,30 +539,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 10: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -501,30 +582,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 11: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -533,30 +625,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 12: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -565,30 +668,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 13: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -597,30 +711,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 14: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -629,30 +754,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 15: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -661,30 +797,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 16: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -693,30 +840,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 17: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -725,30 +883,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 18: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -757,30 +926,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 19: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -789,30 +969,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 20: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -821,30 +1012,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 21: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -853,30 +1055,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 22: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -885,30 +1098,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 23: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -917,30 +1141,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 24: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -949,30 +1184,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 25: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -981,30 +1227,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 26: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -1013,30 +1270,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 27: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -1045,30 +1313,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 28: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -1077,30 +1356,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 29: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -1109,30 +1399,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 30: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -1141,30 +1442,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 31: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -1173,30 +1485,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 32: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -1205,30 +1528,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 33: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -1237,30 +1571,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 34: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -1269,30 +1614,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 35: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -1301,30 +1657,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 36: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -1333,30 +1700,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 37: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -1365,30 +1743,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 38: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -1397,30 +1786,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 39: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -1429,30 +1829,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 40: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -1461,30 +1872,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 41: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -1493,30 +1915,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 42: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -1525,30 +1958,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 43: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -1557,30 +2001,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 44: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -1589,30 +2044,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 45: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -1621,30 +2087,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 46: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -1653,30 +2130,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 47: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -1685,30 +2173,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 48: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -1717,30 +2216,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 49: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -1749,30 +2259,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 50: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -1781,30 +2302,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 51: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -1813,30 +2345,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 52: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -1845,30 +2388,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 53: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -1877,30 +2431,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 54: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -1909,30 +2474,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 55: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -1941,30 +2517,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 56: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -1973,30 +2560,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 57: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2005,30 +2603,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 58: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2037,30 +2646,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 59: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2069,30 +2689,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 60: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2101,30 +2732,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 61: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2133,30 +2775,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 62: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2165,30 +2818,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 63: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2197,30 +2861,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 64: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2229,30 +2904,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 65: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2261,30 +2947,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 66: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2293,30 +2990,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 67: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2325,30 +3033,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 68: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2357,30 +3076,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 69: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2389,30 +3119,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 70: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2421,30 +3162,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 71: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2453,30 +3205,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 72: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2485,30 +3248,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 73: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2517,30 +3291,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 74: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2549,30 +3334,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 75: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2581,30 +3377,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 76: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2613,30 +3420,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 77: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2645,30 +3463,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 78: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2677,30 +3506,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 79: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2709,30 +3549,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 80: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2741,30 +3592,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 81: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2773,30 +3635,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 82: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2805,30 +3678,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 83: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2837,30 +3721,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 84: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2869,30 +3764,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 85: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2901,30 +3807,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 86: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2933,30 +3850,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 87: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2965,30 +3893,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 88: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -2997,30 +3936,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 89: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -3029,30 +3979,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 90: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -3061,30 +4022,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 91: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -3093,30 +4065,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 92: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -3125,30 +4108,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 93: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -3157,30 +4151,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 94: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -3189,30 +4194,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 95: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -3221,30 +4237,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 96: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -3253,30 +4280,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 97: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -3285,30 +4323,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 98: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -3317,30 +4366,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 99: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -3349,30 +4409,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 100: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -3381,30 +4452,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 101: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -3413,30 +4495,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 102: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -3445,30 +4538,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 103: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -3477,30 +4581,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 104: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -3509,30 +4624,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 105: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -3541,30 +4667,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 106: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -3573,30 +4710,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 107: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -3605,30 +4753,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 108: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -3637,30 +4796,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 109: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -3669,30 +4839,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 110: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -3701,30 +4882,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 111: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -3733,30 +4925,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 112: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -3765,30 +4968,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 113: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -3797,30 +5011,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 114: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -3829,30 +5054,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 115: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -3861,30 +5097,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 116: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -3893,30 +5140,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 117: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -3925,30 +5183,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 118: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -3957,30 +5226,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 119: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -3989,30 +5269,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 120: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -4021,30 +5312,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 121: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -4053,30 +5355,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 122: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -4085,30 +5398,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 123: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -4117,30 +5441,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 124: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -4149,30 +5484,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 125: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -4181,30 +5527,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 126: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -4213,30 +5570,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 127: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -4245,30 +5613,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 128: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -4277,30 +5656,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 129: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -4309,30 +5699,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 130: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -4341,30 +5742,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 131: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -4373,30 +5785,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 132: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -4405,30 +5828,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 133: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -4437,30 +5871,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 134: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -4469,30 +5914,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 135: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -4501,30 +5957,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 136: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -4533,30 +6000,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 137: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -4565,30 +6043,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 138: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -4597,30 +6086,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 139: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -4629,30 +6129,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 140: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -4661,30 +6172,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 141: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -4693,30 +6215,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 142: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -4725,30 +6258,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 143: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -4757,30 +6301,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 144: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -4789,30 +6344,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 145: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -4821,30 +6387,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 146: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -4853,30 +6430,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 147: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -4885,30 +6473,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 148: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -4917,30 +6516,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 149: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -4949,30 +6559,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 150: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -4981,30 +6602,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 151: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -5013,30 +6645,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 152: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -5045,30 +6688,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 153: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -5077,30 +6731,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 154: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -5109,30 +6774,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 155: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -5141,30 +6817,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 156: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -5173,30 +6860,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 157: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -5205,30 +6903,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 158: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -5237,30 +6946,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 159: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -5269,30 +6989,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 160: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -5301,30 +7032,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 161: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -5333,30 +7075,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 162: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -5365,30 +7118,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 163: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -5397,30 +7161,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 164: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -5429,30 +7204,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 165: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -5461,30 +7247,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 166: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -5493,30 +7290,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 167: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -5525,30 +7333,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 168: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -5557,30 +7376,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 169: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -5589,30 +7419,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 170: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -5621,30 +7462,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 171: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -5653,30 +7505,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 172: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -5685,30 +7548,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 173: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -5717,30 +7591,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 174: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -5749,30 +7634,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 175: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -5781,30 +7677,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 176: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -5813,30 +7720,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 177: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -5845,30 +7763,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 178: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -5877,30 +7806,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 179: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -5909,30 +7849,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 180: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -5941,30 +7892,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 181: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -5973,30 +7935,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 182: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6005,30 +7978,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 183: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6037,30 +8021,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 184: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6069,30 +8064,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 185: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6101,30 +8107,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 186: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6133,30 +8150,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 187: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6165,30 +8193,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 188: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6197,30 +8236,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 189: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6229,30 +8279,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 190: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6261,30 +8322,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 191: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6293,30 +8365,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 192: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6325,30 +8408,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 193: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6357,30 +8451,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 194: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6389,30 +8494,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 195: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6421,30 +8537,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 196: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6453,30 +8580,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 197: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6485,30 +8623,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 198: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6517,30 +8666,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 199: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6549,30 +8709,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 200: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6581,30 +8752,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 201: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6613,30 +8795,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 202: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6645,30 +8838,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 203: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6677,30 +8881,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 204: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6709,30 +8924,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 205: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6741,30 +8967,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 206: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6773,30 +9010,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 207: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6805,30 +9053,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 208: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6837,30 +9096,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 209: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6869,30 +9139,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 210: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6901,30 +9182,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 211: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6933,30 +9225,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 212: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6965,30 +9268,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 213: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -6997,30 +9311,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 214: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -7029,30 +9354,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 215: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -7061,30 +9397,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 216: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -7093,30 +9440,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 217: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -7125,30 +9483,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 218: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -7157,30 +9526,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 219: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -7189,30 +9569,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 220: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -7221,30 +9612,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 221: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -7253,30 +9655,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 222: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -7285,30 +9698,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 223: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -7317,30 +9741,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 224: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -7349,30 +9784,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 225: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -7381,30 +9827,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 226: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -7413,30 +9870,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 227: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -7445,30 +9913,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 228: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -7477,30 +9956,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 229: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -7509,30 +9999,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 230: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -7541,30 +10042,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 231: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -7573,30 +10085,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 232: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -7605,30 +10128,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 233: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -7637,30 +10171,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 234: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -7669,30 +10214,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 235: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -7701,30 +10257,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 236: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -7733,30 +10300,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 237: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -7765,30 +10343,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 238: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -7797,30 +10386,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 239: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -7829,30 +10429,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 240: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -7861,30 +10472,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 241: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -7893,30 +10515,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 242: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -7925,30 +10558,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 243: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + edgeRead;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -7957,30 +10601,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 244: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -7989,30 +10644,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 245: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -8021,30 +10687,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 246: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -8053,30 +10730,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 247: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + edgeRead;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -8085,30 +10773,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 248: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -8117,30 +10816,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 249: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -8149,30 +10859,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 250: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -8181,30 +10902,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 251: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + edgeRead;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -8213,30 +10945,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 252: 
 		{
-			 memcpy(&edgeRead, dOffset, 1);
-			 dOffset += 1;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 1;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -8245,30 +10988,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 253: 
 		{
-			 memcpy(&edgeRead, dOffset, 2);
-			 dOffset += 2;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 2;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -8277,30 +11031,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 254: 
 		{
-			 memcpy(&edgeRead, dOffset, 3);
-			 dOffset += 3;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 3;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -8309,30 +11074,41 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 		}
 		case 255: 
 		{
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + *edgeReadPtr;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 dOffset += num_bytes;
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
 				 }
-			 memcpy(&edgeRead, dOffset, 4);
-			 dOffset += 4;
-			 edge = edge + edgeRead;
+			 num_bytes = 4;
+			 memcpy(&edgeRead, &start[dOffset], num_bytes);
+			 (*dOffsetPtr) += num_bytes;
+			 edge = startEdge + edgeRead;
+			 startEdge = edge;
 			 edgesRead++;
 			 if (!t.srcTarg(source, edge, edgesRead)){
 				 return 1;
@@ -8340,61 +11116,91 @@ inline bool eatEdge(uchar* &start, uchar* &dOffset, uintE *edgePtr, const uintE 
 			 break;
 		}
 
-	default: return 1;
+		default: return 1;
 	}
-*edgesReadPtr = edgesRead;
-*edgePtr = edge;
-return 0;	
-}
-
-uchar compressFirstEdge(uchar *start, long controlOffset, long dataOffset, uintE source, uintE target){
-	uchar* saveStart = start;
-	long saveOffset = dataOffset;
 	
+	*edgesReadPtr = edgesRead;
+	*startEdgePtr = startEdge;
+	return 0;
+};
+
+
+
+// decode remaining edges
+inline uintE eatEdge(uchar controlKey, long* dOffset, intT shift, long controlOffset, uchar* start){
+	uintT checkCode = (controlKey >> shift) & 0x3;
+	uintE edgeRead = 0;
+	uintE *edgeReadPtr = &edgeRead;
+	long saveOffset = *dOffset;
+	// 1 byte
+	if(checkCode == 0){
+		edgeRead = (uintE)(start[saveOffset]); 
+		(*dOffset) += 1;
+	}
+	// 2 bytes
+	else if(checkCode == 1){
+		memcpy(&edgeRead, &start[saveOffset], 2);
+		(*dOffset) += 2;
+	}
+	// 3 bytes
+	else if(checkCode == 2){
+		memcpy(&edgeRead, &start[saveOffset], 3);	
+		(*dOffset) += 3;
+	}
+	// 4 bytes
+	else{
+		memcpy(&edgeRead, &start[saveOffset], 4);
+		(*dOffset) += 4;
+	}
+	return edgeRead;
+}
+uchar compressFirstEdge(uchar* &start, long controlOffset, long dataOffset, uintE source, uintE target){
 	intE preCompress = (intE) target - source;
 	uintE toCompress = abs(preCompress);
 	uintT signBit = (preCompress < 0) ? 1:0;
 	uchar code; 
-	// check how many bytes is required to store the data and a sign bit (MSB)
+	uintE *toCompressPtr = &toCompress;
 	if(toCompress < (1 << 7)) {
-		// concatenate sign bit with data and store
-		start[dataOffset] = (signBit << 7) | toCompress;
+		toCompress |= (signBit << 7);
+		memcpy(&start[dataOffset], toCompressPtr, 1);
 		code = 0;
 	}
 	else if(toCompress < (1 << 15)){
-		start[dataOffset] = (signBit << 15) | toCompress;
+		toCompress |= (signBit << 15);
+		memcpy(&start[dataOffset], toCompressPtr, 2);
 		code = 1;
 	}
 	else if(toCompress < (1 << 23)){
-		start[dataOffset] = (signBit << 23) | toCompress;
+		toCompress |= (signBit << 23);
+		memcpy(&start[dataOffset], toCompressPtr, 3);
 		code = 2;
 	}
 	else{
-		start[dataOffset] = (signBit << 31) | toCompress;
+		toCompress |= (signBit << 31);
+		memcpy(&start[dataOffset], toCompressPtr, 4);
 		code = 3;
 	}
-//	cout << "first edge" << endl;
 	return code;
 }
 
 // store compressed data
-uchar encode_data(uintE d, long dataCurrentOffset, uchar*start){
+uchar encode_data(uintE d, long dataCurrentOffset, uchar* &start){
 	uchar code;
-	// figure out how many bytes needed to store value and set code accordingly
+	uintE* diffPtr = &d;
 	if(d < (1 << 8)){
-		start[dataCurrentOffset] = d;
+		memcpy(&start[dataCurrentOffset], diffPtr, 1);
 		code = 0;
 	}
 	else if( d < (1 << 16)){
-		start[dataCurrentOffset] = d;
+		memcpy(&start[dataCurrentOffset], diffPtr, 2);
 		code = 1;
 	}
 	else if (d < (1 << 24)){
-		start[dataCurrentOffset] = d;
+		memcpy(&start[dataCurrentOffset], diffPtr, 3);
 		code = 2;
 	}
 	else{
-		start[dataCurrentOffset] = d;
+		memcpy(&start[dataCurrentOffset], diffPtr, 4);	
 		code = 3;
 	}
 	
@@ -8404,7 +11210,7 @@ uchar encode_data(uintE d, long dataCurrentOffset, uchar*start){
 typedef pair<uintE,intE> intEPair;
 
 long compressWeightedEdge(uchar *start, long currentOffset, intEPair *savedEdges, uintT key, long dataCurrentOffset, uintT degree){
-	uchar code = 0;
+	uintT code = 0;
 	uintT storeKey = key;
 	long storeDOffset = dataCurrentOffset;
 	long storeCurrentOffset = currentOffset;
@@ -8445,7 +11251,7 @@ long compressWeightedEdge(uchar *start, long currentOffset, intEPair *savedEdges
 	return storeDOffset;
 }
 
-long compressEdge(uchar *start, long currentOffset, uintE *savedEdges, uintT key, long dataCurrentOffset, uintT degree){
+long compressEdge(uchar* &start, long currentOffset, uintE *savedEdges, uchar key, long dataCurrentOffset, uintT degree){
 	uintT code = 0;
 	uchar storeKey = key;
 	long storeDOffset = dataCurrentOffset;
@@ -8459,14 +11265,19 @@ long compressEdge(uchar *start, long currentOffset, uintE *savedEdges, uintT key
 			// check if used full byte in control stream; if yes, increment and reset vars
 			if(shift == 8){
 				shift = 0;
+//				cout << "storeCurrentOFfset: " << storeCurrentOffset << endl;
+//				cout << "storeKey " << (uintE) storeKey << endl;
 				start[storeCurrentOffset] = storeKey;
-				storeCurrentOffset += sizeof(uchar);
+//				uchar test = start[storeCurrentOffset];
+//				cout << "start[storecurrentoffset] : " << (uintE)(test) << endl;
+				storeCurrentOffset++;
 				storeKey = 0;
 			}		
 			// encode and store data in data stream
 			code = encode_data(difference, storeDOffset, start);
 			storeDOffset += (code + 1); 
 			storeKey |= (code << shift);
+		//	cout << "code " << code << " shift: " << shift << endl;
 			shift +=2;
 	}
 	start[storeCurrentOffset] = storeKey;
@@ -8483,13 +11294,16 @@ long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degre
 		// shift and key always = 0 for first edge
 		uchar key = compressFirstEdge(edgeArray, currentOffset, dataCurrentOffset, vertexNum, savedEdges[0]);
 		// offset data pointer by amount of space required by first edge
-		dataCurrentOffset += (1 + key)*sizeof(uchar);
+		dataCurrentOffset += (1 + key);
 		if(degree == 1){
 			edgeArray[currentOffset] = key;
 			return dataCurrentOffset;
+//			return (dataCurrentOffset+1);
 		}
 		// scalar version: compress the rest of the edges
-		return  compressEdge(edgeArray, currentOffset, savedEdges, key, dataCurrentOffset, degree);
+		dataCurrentOffset= compressEdge(edgeArray, currentOffset, savedEdges, key, dataCurrentOffset, degree);
+		return dataCurrentOffset;
+//		return (dataCurrentOffset+1);
 	}
 	else{
 		return currentOffset;
@@ -8499,45 +11313,69 @@ long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degre
 uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE* Degrees){
 	// compresses edges for vertices in parallel & prints compression stats
 	cout << "parallel compressing, (n,m) = (" << n << "," << m << ")"  << endl;
-	uintE **edgePts = newA(uintE*, n);
-//	uintT *degrees = newA(uintT, n+1); 
 	long *charsUsedArr = newA(long, n);
 	long *compressionStarts = newA(long, n+1);
-	{parallel_for(long i=0;i<n;i++){
-//		degrees[i] = Degrees[i];
-		charsUsedArr[i] = 5*Degrees[i];
-//		charsUsedArr[i] = ceil((degrees[i]*9)/8) + 4;
-	}}
-//	degrees[n] = 0;
-//	sequence::plusScan(charsUsedArr, charsUsedArr, n+1);
-	long toAlloc = sequence::plusScan(charsUsedArr, charsUsedArr, n);
-	uintE* iEdges = newA(uintE, toAlloc);
+	long count;
+	for(long i=0;i<n;i++){
+		count = 0;
+		if (Degrees[i] > 0){
+			count = (Degrees[i]+3)/4;
+			uintE* edgePtr = edges+offsets[i];
+			uintE edge = *edgePtr;	
+			intE preCompress = (intE)(edge - i);
+			uintE toCompress = abs(preCompress);
+			if(toCompress < (1 << 7)){
+				count++;
+			}
+			else if(toCompress < (1 << 15)){
+				count += 2;
+			}
+			else if(toCompress < (1 << 23)){
+				count += 3;
+			}
+			else{ 
+				count += 4;
+			}
+			uintE prevEdge = *edgePtr;	
+			uintE difference;
+			for(long j=1;j<Degrees[i];j++){
+				edge = *(edgePtr+j);
+				difference = edge - prevEdge;
+				if(difference < (1<<8)){
+					count++;
+				}	
+				else if(difference < (1 << 16)){
+					count += 2;
+				}
+				else if(difference < (1 << 24)){
+					count += 3;
+				}
+				else {
+					count +=4;
+				}
+				prevEdge = edge;	
+			}
+		}
+			charsUsedArr[i] = count;
 
-	{parallel_for(long i=0;i<n;i++){
-		edgePts[i] = iEdges+charsUsedArr[i];
-		long charsUsed = sequentialCompressEdgeSet((uchar *)(iEdges+charsUsedArr[i]), 0, Degrees[i], i, edges + offsets[i]);
-		charsUsedArr[i] = charsUsed;
-	}}
-	// produce the total space needed for all compressed lists in chars
+		
+		cout << "source, charsUsed " << i << ", " << count << endl;
+	}
+ 
 	long totalSpace = sequence::plusScan(charsUsedArr, compressionStarts, n);
 	compressionStarts[n] = totalSpace;
-//	free(degrees);
+	uchar *finalArr = newA(uchar, totalSpace);	
+	{parallel_for(long i=0;i<n;i++){
+
+		long charsUsed = sequentialCompressEdgeSet((uchar *)(finalArr+compressionStarts[i]), 0, Degrees[i], i, edges + offsets[i]);
+		offsets[i] = compressionStarts[i];
+	}}
+	offsets[n] = totalSpace;
 	free(charsUsedArr);
 	
-	uchar *finalArr =  newA(uchar, totalSpace);
 	cout << "total space requested is: " << totalSpace << endl;
 	float avgBitsPerEdge = (float)totalSpace*8 / (float)m;
 	cout << "Average bits per edge: " << avgBitsPerEdge << endl;
-
-	{parallel_for(long i=0; i<n; i++){
-		long o = compressionStarts[i];
-		memcpy(finalArr + o, (uchar *)(edgePts[i]), compressionStarts[i+1] - o);
-		offsets[i] = o;
-	}}
-
-	offsets[n] = totalSpace;
-	free(iEdges);
-	free(edgePts);
 	free(compressionStarts);
 	cout << "finished compressing, bytes used = " << totalSpace << endl;
 	cout << "would have been, " << (m*4) << endl;
@@ -8547,69 +11385,64 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 
 template <class T>
 	inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degree, const bool par=true){
+//	cout << "in decode" << endl;
 	size_t edgesRead = 0;
 	if(degree > 0) {
-	// space used by control stream
-	uchar controlLength = (degree + 3)/4;
-	// set data pointer to location after control stream (ie beginning of data stream)
-	uchar *dataOffset = edgeStart + controlLength;
-		uintE startEdge = eatFirstEdge(edgeStart, source, dataOffset);
+		// space used by control stream
+		uintT controlLength = (degree + 3)/4;
+		// set data pointer to location after control stream (ie beginning of data stream)
+		long currentOffset = 0;
+		long dataOffset = controlLength + currentOffset;
+		uchar key = edgeStart[currentOffset];
+		uintE startEdge = eatFirstEdge(key, source, &dataOffset, currentOffset, edgeStart);
 		if(!t.srcTarg(source,startEdge,edgesRead)){
 			return;
 		}
-		
-	bool break_var = 0;
-	uintE edge = startEdge;		
-	if (degree < 5){
+		// if degree <= 4, process remaining. If > 4, process the other three edges in first edge control byte
+		long scalar_count = (degree > 4) ? 4 : degree;
 		uintT shift = 2;
-//		cout << "degree: " << degree  << endl;
-		for (int i=1; i < degree; i++){
-//			cout << "in remaining loop degree<5" << endl;
-			break_var = eatEdge_scalar(edgeStart, dataOffset, shift, source, t,&edgesRead, &edge); 
-			if(break_var){
+		uintE edge = startEdge;
+		for(size_t i = 1; i < scalar_count; i++){
+			uintE edgeRead = eatEdge(key, &dataOffset, shift, currentOffset, edgeStart);
+			edge = edgeRead + startEdge;
+			startEdge = edge;
+			edgesRead++;
+			if(!t.srcTarg(source, edge, edgesRead)){
 				break;
 			}
-			shift+= 2;		
+			shift += 2;
 		}
-	}
-	else{
-		uintT shift = 2;
-//	cout << "degree: " << degree << endl;
-		for (int i=1; i < 4; i++){
-//			cout << "in remaining loop1" << endl;
-			break_var = eatEdge_scalar(edgeStart, dataOffset, shift, source, t,&edgesRead, &edge); 
+		// process the rest of the bytes
+	if(degree > 4){
+		long count_four = degree/4;
+		scalar_count = degree - 4*count_four;
+		currentOffset++;
+		key = edgeStart[currentOffset];
+		bool break_var = 0;
+		for(long i = 1; i < count_four; i++){
+			//process bytes!
+			break_var = eatByte(key, &dataOffset, source, t, &startEdge, &edgesRead, edgeStart);
 			if(break_var){
+				return;
+			}
+			currentOffset++;
+			key = edgeStart[currentOffset];
+		}
+		shift = 0;
+		for(uintT i = 0; i < scalar_count; i++){
+			uintE edgeRead = eatEdge(key, &dataOffset, shift, currentOffset, edgeStart);
+			edge = edgeRead + startEdge;
+			startEdge = edge;
+			edgesRead++;
+			if(!t.srcTarg(source, edge, edgesRead)){
 				break;
 			}
-			shift+= 2;		
+			shift += 2;
 		}
+	}
+//cout << "edgesRead " << edgesRead << " degree " << degree << endl;
+	cout << "source, dataOffset " << source << ", " << dataOffset << endl;
 
-	uchar block_four = degree/4;
-	edgeStart++;
-	for (int i= 1; i < block_four; i++){
-		// decode stored value and add to previous edge value (stored using differential encoding)
-		break_var = eatEdge(edgeStart, dataOffset, &edge, source, t, &edgesRead);
-	//	cout << "edge: " << edge << " edgesRead: " << edgesRead << endl;
-		if (break_var){
-			break;
-		}
-		edgeStart++;
-	}
-
-	// finish any last edges for mod 4
-	uchar remaining = degree - block_four*4;
-	shift = 0;
-//	cout << "degree: " << degree << " remaining: " << remaining << endl;
-	for (int i=0; i < remaining; i++){
-//		cout << "in remaining loop2" << endl;
-		break_var = eatEdge_scalar(edgeStart, dataOffset, shift, source, t,&edgesRead, &edge); 
-		if(break_var){
-			break;
-		}
-		shift+= 2;		
-		//edgeStart++;
-	}
-	}
 	}
 };
 
@@ -8620,9 +11453,11 @@ template <class T>
 			// space needed for control stream
 			uchar controlLength = (2*degree+3)/4;
 			// set data pointer at beginning of data stream
-			uchar *dataOffset = edgeStart + controlLength;
-			uintE startEdge = eatFirstEdge(edgeStart, source, dataOffset);	
-			intE weight = eatWeight(edgeStart, dataOffset, 2);	
+			long currentOffset = 0; 
+			long dataOffset = currentOffset + controlLength;
+			uchar key = edgeStart[currentOffset];
+			uintE startEdge = eatFirstEdge(key, source, &dataOffset, currentOffset, edgeStart);	
+			intE weight = eatWeight(key, &dataOffset, 2, currentOffset, edgeStart);	
 			if (!t.srcTarg(source, startEdge, weight, edgesRead)){
 				return;
 			}
@@ -8631,20 +11466,20 @@ template <class T>
 			for (edgesRead = 1; edgesRead < degree; edgesRead++){
 				// if finished reading byte in control stream, increment and reset shift
 				if(shift == 8){
-					edgeStart++;
+					currentOffset++;
+					key= edgeStart[currentOffset];
 					shift = 0;
 				}
-			// remember to delete:
-				uintE edgeRead = 0;	
-		//	uintE edgeRead = eatEdge(edgeStart, dataOffset, shift);
+				uintE edgeRead = eatEdge(key, &dataOffset, shift, currentOffset, edgeStart);
 				edge = edge + edgeRead;
 				shift += 2;
 
 				if(shift == 8){
-					edgeStart++;
+					currentOffset++;
+					key = edgeStart[currentOffset];
 					shift = 0;
 				}
-				intE weight = eatWeight(edgeStart, dataOffset, shift);
+				intE weight = eatWeight(key, &dataOffset, shift, currentOffset, edgeStart);
 				shift += 2;
 				if (!t.srcTarg(source, edge, weight, edgesRead)){
 					break;
@@ -8683,28 +11518,22 @@ long sequentialCompressWeightedEdgeSet(uchar *edgeArray, long currentOffset, uin
 uchar *parallelCompressWeightedEdges(intEPair *edges, uintT *offsets, long n, long m, uintE* Degrees){
 	cout << "parallel compressing, (n,m) = (" << n << "," << m << ")" << endl;
 	uintE **edgePts = newA(uintE*, n);
-	uintT *degrees = newA(uintT, n+1);
 	long *charsUsedArr = newA(long, n);
 	long *compressionStarts = newA(long, n+1);
 	{parallel_for(long i=0; i<n; i++){
-		degrees[i] = Degrees[i];
-		charsUsedArr[i] = (2*degrees[i]+3)/4 + 8*degrees[i];
-
+	    //		charsUsedArr[i] = (2*degrees[i]+3)/4 + 8*degrees[i];
+		charsUsedArr[i] = 10*Degrees[i];
 	}}
-
-	degrees[n] = 0;
-	sequence::plusScan(degrees,degrees,n+1);
 	long toAlloc = sequence::plusScan(charsUsedArr, charsUsedArr, n);
 	uintE* iEdges = newA(uintE, toAlloc);
 	{parallel_for(long i = 0; i < n; i++){
 		edgePts[i] = iEdges + charsUsedArr[i];
-		long charsUsed = sequentialCompressWeightedEdgeSet((uchar *)(iEdges + charsUsedArr[i]), 0, degrees[i+1] - degrees[i], i, edges + offsets[i]);
+		long charsUsed = sequentialCompressWeightedEdgeSet((uchar *)(iEdges + charsUsedArr[i]), 0, Degrees[i], i, edges + offsets[i]);
 	charsUsedArr[i] = charsUsed;
 	}}
 	
 	long totalSpace = sequence::plusScan(charsUsedArr, compressionStarts, n);
 	compressionStarts[n] = totalSpace;
-	free(degrees);
 	free(charsUsedArr);
 	
 	uchar *finalArr = newA(uchar, totalSpace);
@@ -8728,6 +11557,7 @@ uchar *parallelCompressWeightedEdges(intEPair *edges, uintT *offsets, long n, lo
 
 template <class P>
 inline size_t pack(P pred, uchar* edge_start, const uintE &source, const uintE &degree){
+	cout << "pack" << endl;
 	size_t new_deg = 0;
 	uintE last_read_edge = source;
 	uintE last_write_edge;
@@ -8736,8 +11566,9 @@ inline size_t pack(P pred, uchar* edge_start, const uintE &source, const uintE &
 	cout << "pack" << endl;
 	if (degree > 0) {
 		uchar controlLength  = (degree + 3)/4;
-		uchar *dataOffset  = edge_start + controlLength;	
-		uintE start_edge = eatFirstEdge(cur, source, dataOffset);
+		long dataOffset  =  controlLength;
+		uchar key = *edge_start;	
+		uintE start_edge = eatFirstEdge(key, source, &dataOffset, 0, cur);
 		last_read_edge = start_edge;
 		if (pred(source, start_edge)){
 			long offset = compressFirstEdge(tail, 0, source, start_edge);

@@ -11,7 +11,7 @@ import subprocess
 
 # nibble = 0, byte = 1, rle = 2, streamvbyte = 3 
 
-compression_num = 3;	
+compression_num = 1;	
 
 def signal_handler(signal,frame):
   print "bye\n"
@@ -29,7 +29,8 @@ def shellGetOutput(str) :
 
 dataDir = "../../inputs/"
 bdataDir = "~/data/scratch/jshun/"
-applications = ["BFS","BC","Radii","Components"]
+#applications = ["BFS","BC","Radii","Components"]
+applications = ["Radii", "Components"]
 wapplications = ["BellmanFord"]
 rapplications = ["PageRank"]
 #testfiles = [("randLocalGraph_J_5_10000000_ordered","1"),("3Dgrid_J_10000000_ordered","1"),("soc-LiveJournal1.txt_J_psep_ordered","10000"),("cit-Patents.txt_J_psep_ordered","3000000"),("com-lj.ungraph.txt_J_psep_ordered","3000000"),("com-orkut.ungraph.txt_J_psep_ordered","10000"),("nlpkkt_bfsR_J","1")]
