@@ -11359,7 +11359,7 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 			charsUsedArr[i] = count;
 
 		
-		cout << "source, charsUsed " << i << ", " << count << endl;
+//		cout << "source, charsUsed " << i << ", " << count << endl;
 	}
  
 	long totalSpace = sequence::plusScan(charsUsedArr, compressionStarts, n);
@@ -11441,7 +11441,7 @@ template <class T>
 		}
 	}
 //cout << "edgesRead " << edgesRead << " degree " << degree << endl;
-	cout << "source, dataOffset " << source << ", " << dataOffset << endl;
+//	cout << "source, dataOffset " << source << ", " << dataOffset << endl;
 
 	}
 };
