@@ -338,9 +338,9 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 	cout << "parallel compressing, (n,m) = (" << n << "," << m << ")"  << endl;
 	long *charsUsedArr = newA(long, n);
 	long *compressionStarts = newA(long, n+1);
-	long count;
-	for(long i=0;i<n;i++){
-		count = 0;
+	//long count;
+	parallel_for(long i=0;i<n;i++){
+		long count = 0;
 		if (Degrees[i] > 0){
 			count = (Degrees[i]+3)/4;
 			uintE* edgePtr = edges+offsets[i];
