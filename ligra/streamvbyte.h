@@ -111,7 +111,6 @@ inline uintE eatEdge(uchar controlKey, long & dOffset, intT shift, long controlO
 //	checkCode = 0;
 
 	uintE edgeRead = 0;
-	uintE *edgeReadPtr = &edgeRead;
 	switch(checkCode) {
 	// 1 byte
 	case 0:
@@ -120,7 +119,7 @@ inline uintE eatEdge(uchar controlKey, long & dOffset, intT shift, long controlO
 		break;
 //		cout << "case0 " << endl;
 
-	// 2 bytes
+v	// 2 bytes
 	case 1:
 //		memcpy(edgeReadPtr, dataPtr, 2);
 		memcpy(&edgeRead, &start[dOffset], 2);

@@ -11126,35 +11126,55 @@ inline bool eatByte(uchar controlKey, long* dOffsetPtr, uintE source, T t, uintE
 };
 
 
-
 // decode remaining edges
-inline uintE eatEdge(uchar controlKey, long* dOffset, intT shift, long controlOffset, uchar* start){
+inline uintE eatEdge(uchar controlKey, long & dOffset, intT shift, long controlOffset, uchar* start){
+//	uchar fb = start[controlOffset];
+	// check two bit code in control stream
 	uintT checkCode = (controlKey >> shift) & 0x3;
+//	cout << "fb: " << (uintE)(fb) << " checkCode: " << checkCode << endl;
+
+	//hard code checkCode for debugging
+//	checkCode = 0;
+
 	uintE edgeRead = 0;
-	uintE *edgeReadPtr = &edgeRead;
-	long saveOffset = *dOffset;
+	switch(checkCode) {
 	// 1 byte
-	if(checkCode == 0){
-		edgeRead = (uintE)(start[saveOffset]); 
-		(*dOffset) += 1;
-	}
+	case 0:
+		edgeRead = start[dOffset]; 
+		dOffset += 1;
+		break;
+//		cout << "case0 " << endl;
+
 	// 2 bytes
-	else if(checkCode == 1){
-		memcpy(&edgeRead, &start[saveOffset], 2);
-		(*dOffset) += 2;
-	}
+	case 1:
+//		memcpy(edgeReadPtr, dataPtr, 2);
+		memcpy(&edgeRead, &start[dOffset], 2);
+//		memcpy(&edgeRead, start+dOffset*sizeof(uchar), 2);
+		dOffset += 2;
+		break;
+//		cout << "case1" << endl;
+	
 	// 3 bytes
-	else if(checkCode == 2){
-		memcpy(&edgeRead, &start[saveOffset], 3);	
-		(*dOffset) += 3;
-	}
+	case 2:
+		memcpy(&edgeRead, &start[dOffset], 3);	
+//		memcpy(&edgeRead, start+dOffset*sizeof(uchar), 3);
+//		memcpy(edgeReadPtr, dataPtr, 3);
+		dOffset += 3;
+//		cout << "case3" << endl;
+		break;
+	
 	// 4 bytes
-	else{
-		memcpy(&edgeRead, &start[saveOffset], 4);
-		(*dOffset) += 4;
+	default:
+		memcpy(&edgeRead, &start[dOffset], 4);
+//		memcpy(&edgeRead, start+dOffset*sizeof(uchar), 4);
+//		memcpy(edgeReadPtr, dataPtr, 4);
+		dOffset += 4;
+//		cout << "case4" << endl;
 	}
+//	cout <<"*dOffset after: " <<  (int)(**dOffset) << endl;	
 	return edgeRead;
 }
+
 uchar compressFirstEdge(uchar* &start, long controlOffset, long dataOffset, uintE source, uintE target){
 	intE preCompress = (intE) target - source;
 	uintE toCompress = abs(preCompress);
@@ -11403,7 +11423,7 @@ template <class T>
 		uintT shift = 2;
 		uintE edge = startEdge;
 		for(size_t i = 1; i < scalar_count; i++){
-			uintE edgeRead = eatEdge(key, &dataOffset, shift, currentOffset, edgeStart);
+			uintE edgeRead = eatEdge(key, dataOffset, shift, currentOffset, edgeStart);
 			edge = edgeRead + startEdge;
 			startEdge = edge;
 			edgesRead++;
@@ -11430,7 +11450,7 @@ template <class T>
 		}
 		shift = 0;
 		for(uintT i = 0; i < scalar_count; i++){
-			uintE edgeRead = eatEdge(key, &dataOffset, shift, currentOffset, edgeStart);
+			uintE edgeRead = eatEdge(key, dataOffset, shift, currentOffset, edgeStart);
 			edge = edgeRead + startEdge;
 			startEdge = edge;
 			edgesRead++;
@@ -11470,7 +11490,7 @@ template <class T>
 					key= edgeStart[currentOffset];
 					shift = 0;
 				}
-				uintE edgeRead = eatEdge(key, &dataOffset, shift, currentOffset, edgeStart);
+				uintE edgeRead = eatEdge(key, dataOffset, shift, currentOffset, edgeStart);
 				edge = edge + edgeRead;
 				shift += 2;
 
