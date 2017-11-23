@@ -15,80 +15,81 @@
 typedef unsigned char uchar;
 
 // decode weights
-inline intE eatWeight(uchar controlKey, long* dOffset, intT shift, long controlOffset, uchar* start){
+inline intE eatWeight(uchar controlKey, long & dOffset, intT shift, long controlOffset, uchar* start){
 //	uchar fb = start[controlOffset];
 	// check two bit code in control stream
 	uintT checkCode = (controlKey >> shift) & 0x3;
 	uintE edgeRead = 0;
-	uintE *edgeReadPtr = &edgeRead;
 	bool signBit;
-	long saveOffset = *dOffset;
+	switch(checkCode) {
 	// 1 byte
-	if(checkCode == 0){
-		edgeRead = start[saveOffset];
+	case 0:
+		edgeRead = start[dOffset];
 		// check sign bit and then get rid of it from actual value 
 		signBit =(((edgeRead) & 0x80) >> 7);
 		edgeRead &= 0x7F;
 		// incrememnt the offset to data by 1 byte
-		(*dOffset) += 1;
-	}
+		dOffset += 1;
+		break;
 	// 2 bytes
-	else if(checkCode == 1){
-		memcpy(&edgeReadPtr, start + saveOffset*sizeof(uchar), 2);
+	case 1:
+		memcpy(&edgeRead, start + dOffset, 2);
 		signBit = (((1 << 15) & edgeRead) >> 15);
 		edgeRead = edgeRead & 0x7FFF; 
-		(*dOffset) += 2;
-	}
+		dOffset += 2;
+		break;
 	// 3 bytes
-	else if(checkCode == 2){
-		memcpy(&edgeReadPtr, start + saveOffset*sizeof(uchar), 3);
+	case 2:
+		memcpy(&edgeRead, start + dOffset, 3);
 		signBit = (((edgeRead) & (1 <<23)) >> 23);
 		edgeRead = edgeRead & 0x7FFFFF;
-		(*dOffset) += 3;
-	}
+		dOffset += 3;
+		break;
 	// 4 bytes
-	else{
-		memcpy(&edgeReadPtr, start+saveOffset*sizeof(uchar), 4);
+	default:
+		memcpy(&edgeRead, start+dOffset, 4);
 		signBit = (((edgeRead) & (1 << 31)) >> 31);
 		edgeRead = (edgeRead) & 0x7FFFFFFF; 
-		(*dOffset) += 4;
+		dOffset += 4;
 	}
 
 	return (signBit) ? -edgeRead : edgeRead;
 }
 
 // decode first edge
-inline intE eatFirstEdge(uchar controlKey, uintE source, long* dOffset, long controlOffset, uchar* start){
+inline intE eatFirstEdge(uchar controlKey, uintE source, long & dOffset, long controlOffset, uchar* start){
 	uintT checkCode = (controlKey) & 0x3;
 	bool signBit;
 	uintE edgeRead = 0;
-	long saveOffset = *dOffset;
-	if(checkCode == 0){
-		edgeRead = start[saveOffset];
-		signBit = (((edgeRead) & 0x80) >> 7);
-		edgeRead &= 0x7F;
-		(*dOffset) += 1;
-	}
+	switch(checkCode) {
+	case 0:
+		edgeRead = start[dOffset] & 0x7f;
+		// check sign bit and then get rid of it from actual value 
+		signBit = start[dOffset] & 0x80;
+		dOffset += 1;
+		break;
 	// 2 bytes
-	else if(checkCode == 1){
-		memcpy(&edgeRead, &start[saveOffset], 2);
-		signBit =(((1 << 15) & edgeRead) >> 15);
+	case 1:
+		memcpy(&edgeRead, &start[dOffset], 2);
+		signBit = 0x8000 & edgeRead;
 		edgeRead = edgeRead & 0x7FFF; 
-		(*dOffset) += 2;
-	}
+		dOffset += 2;
+		break;
 	// 3 bytes
-	else if(checkCode == 2){
-		memcpy(&edgeRead, &start[saveOffset], 3);
-		signBit = (((edgeRead) & (1 <<23)) >> 23);
+	case 2:
+		memcpy(&edgeRead, &start[dOffset], 3);
+//		memcpy(&edgeRead, start+dOffset*sizeof(uchar), 3);
+		signBit = 0x800000 & edgeRead;
 		edgeRead = edgeRead & 0x7FFFFF;
-		(*dOffset) += 3;
-	}
+		dOffset += 3;
+		break;
 	// 4 bytes
-	else{
-		memcpy(&edgeRead, &start[saveOffset], 4);
-		signBit = ((edgeRead) & (1 << 31)) >> 31;
+	default:
+		memcpy(&edgeRead, &start[dOffset], 4);
+//		memcpy(&edgeRead, start+dOffset*sizeof(uchar), 4);
+		signBit = edgeRead & 0x80000000;
 		edgeRead = (edgeRead) & 0x7FFFFFFF; 
-		(*dOffset) += 4;
+		dOffset += 4;
 	}
 	return (signBit) ? source - edgeRead : source + edgeRead;
 }
@@ -11315,9 +11316,8 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 	cout << "parallel compressing, (n,m) = (" << n << "," << m << ")"  << endl;
 	long *charsUsedArr = newA(long, n);
 	long *compressionStarts = newA(long, n+1);
-	long count;
-	for(long i=0;i<n;i++){
-		count = 0;
+	parallel_for(long i=0;i<n;i++){
+		long count = 0;
 		if (Degrees[i] > 0){
 			count = (Degrees[i]+3)/4;
 			uintE* edgePtr = edges+offsets[i];
@@ -11394,7 +11394,7 @@ template <class T>
 		long currentOffset = 0;
 		long dataOffset = controlLength + currentOffset;
 		uchar key = edgeStart[currentOffset];
-		uintE startEdge = eatFirstEdge(key, source, &dataOffset, currentOffset, edgeStart);
+		uintE startEdge = eatFirstEdge(key, source, dataOffset, currentOffset, edgeStart);
 		if(!t.srcTarg(source,startEdge,edgesRead)){
 			return;
 		}
@@ -11456,8 +11456,8 @@ template <class T>
 			long currentOffset = 0; 
 			long dataOffset = currentOffset + controlLength;
 			uchar key = edgeStart[currentOffset];
-			uintE startEdge = eatFirstEdge(key, source, &dataOffset, currentOffset, edgeStart);	
-			intE weight = eatWeight(key, &dataOffset, 2, currentOffset, edgeStart);	
+			uintE startEdge = eatFirstEdge(key, source, dataOffset, currentOffset, edgeStart);	
+			intE weight = eatWeight(key, dataOffset, 2, currentOffset, edgeStart);	
 			if (!t.srcTarg(source, startEdge, weight, edgesRead)){
 				return;
 			}
@@ -11479,7 +11479,7 @@ template <class T>
 					key = edgeStart[currentOffset];
 					shift = 0;
 				}
-				intE weight = eatWeight(key, &dataOffset, shift, currentOffset, edgeStart);
+				intE weight = eatWeight(key, dataOffset, shift, currentOffset, edgeStart);
 				shift += 2;
 				if (!t.srcTarg(source, edge, weight, edgesRead)){
 					break;
@@ -11568,7 +11568,7 @@ inline size_t pack(P pred, uchar* edge_start, const uintE &source, const uintE &
 		uchar controlLength  = (degree + 3)/4;
 		long dataOffset  =  controlLength;
 		uchar key = *edge_start;	
-		uintE start_edge = eatFirstEdge(key, source, &dataOffset, 0, cur);
+		uintE start_edge = eatFirstEdge(key, source, dataOffset, 0, cur);
 		last_read_edge = start_edge;
 		if (pred(source, start_edge)){
 			long offset = compressFirstEdge(tail, 0, source, start_edge);

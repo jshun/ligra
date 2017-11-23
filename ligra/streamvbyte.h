@@ -20,7 +20,6 @@ inline intE eatWeight(uchar controlKey, long & dOffset, intT shift, long control
 	// check two bit code in control stream
 	uintT checkCode = (controlKey >> shift) & 0x3;
 	uintE edgeRead = 0;
-	uintE *edgeReadPtr = &edgeRead;
 	bool signBit;
 	switch(checkCode) {
 	// 1 byte
@@ -34,21 +33,21 @@ inline intE eatWeight(uchar controlKey, long & dOffset, intT shift, long control
 		break;
 	// 2 bytes
 	case 1:
-		memcpy(&edgeReadPtr, start + dOffset, 2);
+		memcpy(&edgeRead, start + dOffset, 2);
 		signBit = (((1 << 15) & edgeRead) >> 15);
 		edgeRead = edgeRead & 0x7FFF; 
 		dOffset += 2;
 		break;
 	// 3 bytes
 	case 2:
-		memcpy(&edgeReadPtr, start + dOffset, 3);
+		memcpy(&edgeRead, start + dOffset, 3);
 		signBit = (((edgeRead) & (1 <<23)) >> 23);
 		edgeRead = edgeRead & 0x7FFFFF;
 		dOffset += 3;
 		break;
 	// 4 bytes
 	default:
-		memcpy(&edgeReadPtr, start+dOffset, 4);
+		memcpy(&edgeRead, start+dOffset, 4);
 		signBit = (((edgeRead) & (1 << 31)) >> 31);
 		edgeRead = (edgeRead) & 0x7FFFFFFF; 
 		dOffset += 4;
