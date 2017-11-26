@@ -99,8212 +99,6926 @@ template <class T>
 inline bool eatByte(uchar controlKey, long & dOffset, uintE source, T t, uintE & startEdge, long & edgesRead, uchar* start){
   uintE edgeRead;// = 0;
   //uintE startEdge = *startEdgePtr;
-  uintE edge = 0; 
+  uintE edge;// = 0; 
   //uintE edgesRead = *edgesReadPtr;
-  uintT num_bytes = 0;
+  //uintT num_bytes = 0;
   switch(controlKey){
-case 0: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 1: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 2: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 3: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 4: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 5: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 6: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 7: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 8: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 9: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 10: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 11: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 12: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 13: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 14: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 15: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 16: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 17: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 18: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 19: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 20: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 21: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 22: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 23: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 24: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 25: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 26: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 27: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 28: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 29: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 30: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 31: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 32: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 33: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 34: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 35: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 36: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 37: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 38: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 39: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 40: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 41: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 42: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 43: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 44: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 45: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 46: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 47: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 48: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 49: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 50: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 51: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 52: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 53: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 54: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 55: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 56: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 57: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 58: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 59: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 60: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 61: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 62: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 63: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 64: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 65: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 66: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 67: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 68: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 69: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 70: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 71: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 72: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 73: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 74: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 75: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 76: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 77: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 78: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 79: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 80: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 81: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 82: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 83: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 84: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 85: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 86: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 87: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 88: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 89: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 90: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 91: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 92: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 93: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 94: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 95: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 96: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 97: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 98: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 99: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 100: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 101: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 102: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 103: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 104: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 105: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 106: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 107: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 108: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 109: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 110: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 111: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 112: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 113: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 114: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 115: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 116: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 117: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 118: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 119: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 120: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 121: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 122: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 123: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 124: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 125: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 126: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 127: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 128: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 129: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 130: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 131: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 132: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 133: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 134: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 135: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 136: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 137: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 138: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 139: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 140: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 141: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 142: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 143: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 144: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 145: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 146: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 147: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 148: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 149: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 150: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 151: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 152: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 153: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 154: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 155: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 156: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 157: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 158: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 159: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 160: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 161: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 162: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 163: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 164: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 165: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 166: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 167: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 168: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 169: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 170: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 171: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 172: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 173: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 174: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 175: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 176: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 177: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 178: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 179: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 180: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 181: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 182: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 183: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 184: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 185: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 186: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 187: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 188: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 189: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 190: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 191: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 192: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 193: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 194: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 195: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 196: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 197: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 198: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 199: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 200: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 201: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 202: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 203: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 204: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 205: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 206: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 207: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 208: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 209: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 210: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 211: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 212: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 213: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 214: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 215: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 216: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 217: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 218: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 219: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 220: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 221: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 222: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 223: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 224: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 225: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 226: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 227: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 228: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 229: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 230: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 231: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 232: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 233: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 234: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 235: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 236: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 237: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 238: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 239: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 240: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 241: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 242: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 243: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 244: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 245: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 246: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 247: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 248: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 249: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 250: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 251: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 252: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 1);
-	 dOffset += 1;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 253: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 2);
-	 dOffset += 2;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 254: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 3);
-	 dOffset += 3;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-case 255: 
-{
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 edgeRead = 0;
-	 memcpy(&edgeRead, &start[dOffset], 4);
-	 dOffset += 4;
-	 edge = startEdge + edgeRead;
-	 startEdge = edge;
-	 edgesRead++;
-	 if (!t.srcTarg(source, edge, edgesRead)) return 1;
-	 break;
-}
-
-
-
-  default: return 1;
-  }
-	
+  case 0: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 1: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 2: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 3: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 4: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 5: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 6: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 7: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 8: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 9: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 10: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 11: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 12: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 13: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 14: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 15: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 16: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 17: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 18: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 19: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 20: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 21: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 22: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 23: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 24: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 25: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 26: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 27: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 28: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 29: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 30: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 31: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 32: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 33: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 34: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 35: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 36: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 37: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 38: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 39: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 40: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 41: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 42: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 43: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 44: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 45: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 46: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 47: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 48: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 49: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 50: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 51: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 52: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 53: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 54: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 55: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 56: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 57: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 58: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 59: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 60: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 61: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 62: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 63: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 64: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 65: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 66: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 67: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 68: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 69: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 70: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 71: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 72: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 73: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 74: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 75: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 76: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 77: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 78: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 79: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 80: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 81: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 82: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 83: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 84: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 85: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 86: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 87: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 88: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 89: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 90: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 91: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 92: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 93: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 94: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 95: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 96: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 97: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 98: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 99: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 100: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 101: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 102: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 103: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 104: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 105: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 106: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 107: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 108: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 109: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 110: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 111: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 112: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 113: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 114: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 115: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 116: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 117: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 118: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 119: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 120: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 121: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 122: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 123: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 124: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 125: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 126: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 127: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 128: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 129: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 130: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 131: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 132: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 133: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 134: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 135: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 136: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 137: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 138: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 139: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 140: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 141: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 142: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 143: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 144: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 145: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 146: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 147: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 148: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 149: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 150: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 151: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 152: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 153: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 154: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 155: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 156: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 157: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 158: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 159: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 160: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 161: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 162: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 163: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 164: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 165: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 166: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 167: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 168: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 169: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 170: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 171: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 172: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 173: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 174: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 175: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 176: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 177: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 178: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 179: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 180: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 181: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 182: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 183: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 184: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 185: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 186: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 187: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 188: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 189: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 190: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 191: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 192: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 193: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 194: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 195: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 196: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 197: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 198: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 199: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 200: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 201: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 202: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 203: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 204: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 205: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 206: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 207: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 208: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 209: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 210: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 211: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 212: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 213: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 214: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 215: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 216: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 217: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 218: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 219: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 220: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 221: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 222: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 223: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 224: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 225: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 226: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 227: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 228: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 229: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 230: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 231: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 232: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 233: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 234: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 235: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 236: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 237: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 238: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 239: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 240: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 241: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 242: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 243: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 244: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 245: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 246: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 247: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 248: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 249: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 250: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 251: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 252: 
+    {
+      edgeRead = start[dOffset++];
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 253: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+      dOffset += 2;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  case 254: 
+    {
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+      dOffset += 3;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      break;
+    }
+  default: 
+    { 
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+      edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+      dOffset += 4;
+      edge = startEdge + edgeRead;
+      startEdge = edge;
+      edgesRead++;
+      if (!t.srcTarg(source, edge, edgesRead)) return 1;
+    }
+  }  	
   //*edgesReadPtr = edgesRead;
   //*startEdgePtr = startEdge;
   return 0;
-};
+  };
 
 // decode remaining edges
 inline uintE eatEdge(uchar controlKey, long & dOffset, intT shift, long controlOffset, uchar* start){
@@ -8320,38 +7034,26 @@ inline uintE eatEdge(uchar controlKey, long & dOffset, intT shift, long controlO
 	switch(checkCode) {
 	// 1 byte
 	case 0:
-		edgeRead = start[dOffset]; 
-		dOffset += 1;
-		break;
-//		cout << "case0 " << endl;
-
+	  edgeRead = start[dOffset++]; 
+	  break;
 	// 2 bytes
 	case 1:
-//		memcpy(edgeReadPtr, dataPtr, 2);
-		memcpy(&edgeRead, &start[dOffset], 2);
-//		memcpy(&edgeRead, start+dOffset*sizeof(uchar), 2);
-		dOffset += 2;
-		break;
-//		cout << "case1" << endl;
-	
+	  edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+	  //memcpy(&edgeRead, &start[dOffset], 2);
+	  dOffset += 2;
+	  break;
 	// 3 bytes
 	case 2:
-		memcpy(&edgeRead, &start[dOffset], 3);	
-//		memcpy(&edgeRead, start+dOffset*sizeof(uchar), 3);
-//		memcpy(edgeReadPtr, dataPtr, 3);
-		dOffset += 3;
-//		cout << "case3" << endl;
+	  edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+	  //		memcpy(&edgeRead, &start[dOffset], 3);	
+	  dOffset += 3;
 		break;
-	
 	// 4 bytes
 	default:
-		memcpy(&edgeRead, &start[dOffset], 4);
-//		memcpy(&edgeRead, start+dOffset*sizeof(uchar), 4);
-//		memcpy(edgeReadPtr, dataPtr, 4);
-		dOffset += 4;
-//		cout << "case4" << endl;
+	  edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+	  //		memcpy(&edgeRead, &start[dOffset], 4);
+	  dOffset += 4;
 	}
-//	cout <<"*dOffset after: " <<  (int)(**dOffset) << endl;	
 	return edgeRead;
 }
 

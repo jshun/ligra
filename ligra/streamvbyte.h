@@ -58,96 +58,80 @@ inline intE eatWeight(uchar controlKey, long & dOffset, intT shift, long control
 
 // decode first edge
 inline intE eatFirstEdge(uchar controlKey, uintE source, long & dOffset, long controlOffset, uchar* start){
-//	uchar fb = start[controlOffset];
-	// check the two bit code in control stream
-	uintT checkCode = (controlKey) & 0x3;
-//	checkCode = 0;
-	bool signBit;
-	uintE edgeRead = 0;
-	//intE *edgeReadPtr = &edgeRead;
-	// 1 bytei
-//	cout << "sizeof(intE) " << sizeof(intE) << " sizeof(uintE) " << sizeof(uintE) << " sizeof(uchar) " << sizeof(uchar) << endl;
-	switch(checkCode) {
-	case 0:
-		edgeRead = start[dOffset] & 0x7f;
-		// check sign bit and then get rid of it from actual value 
-		signBit = start[dOffset] & 0x80;
-		dOffset += 1;
-		break;
-	// 2 bytes
-	case 1:
-		memcpy(&edgeRead, &start[dOffset], 2);
-		signBit = 0x8000 & edgeRead;
-		edgeRead = edgeRead & 0x7FFF; 
-		dOffset += 2;
-		break;
-	// 3 bytes
-	case 2:
-		memcpy(&edgeRead, &start[dOffset], 3);
-//		memcpy(&edgeRead, start+dOffset*sizeof(uchar), 3);
-		signBit = 0x800000 & edgeRead;
-		edgeRead = edgeRead & 0x7FFFFF;
-		dOffset += 3;
-		break;
-	// 4 bytes
-	default:
-		memcpy(&edgeRead, &start[dOffset], 4);
-//		memcpy(&edgeRead, start+dOffset*sizeof(uchar), 4);
-		signBit = edgeRead & 0x80000000;
-		edgeRead = (edgeRead) & 0x7FFFFFFF; 
-		dOffset += 4;
-	}
-	return (signBit) ? source - edgeRead : source + edgeRead;
+  // check the two bit code in control stream
+  uintT checkCode = (controlKey) & 0x3;
+  bool signBit;
+  uintE edgeRead;
+  // 1 byte
+  switch(checkCode) {
+  case 0:
+    edgeRead = start[dOffset] & 0x7f;
+    // check sign bit and then get rid of it from actual value 
+    signBit = start[dOffset] & 0x80;
+    dOffset += 1;
+    break;
+    // 2 bytes
+  case 1:
+    edgeRead = start[dOffset] + ((start[dOffset+1] & 0x7f) << 8);
+    //memcpy(&edgeRead, &start[dOffset], 2);
+    signBit = 0x80 & start[dOffset+1];
+    //signBit = 0x8000 & edgeRead;
+    //edgeRead = edgeRead & 0x7FFF; 
+    dOffset += 2;
+    break;
+    // 3 bytes
+  case 2:
+    //memcpy(&edgeRead, &start[dOffset], 3);
+    edgeRead = start[dOffset] + (start[dOffset+1] << 8) + ((start[dOffset+2] & 0x7f) << 16);
+    signBit = 0x80 & start[dOffset+2];
+    //signBit = 0x800000 & edgeRead;
+    //edgeRead = edgeRead & 0x7FFFFF;
+    dOffset += 3;
+    break;
+    // 4 bytes
+  default:
+    edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + ((start[dOffset+3] & 0x7f) << 24);
+    //memcpy(&edgeRead, &start[dOffset], 4);
+    signBit = start[dOffset+3] & 0x80;
+    //signBit = edgeRead & 0x80000000;
+    //edgeRead = (edgeRead) & 0x7FFFFFFF; 
+    dOffset += 4;
+  }
+  return (signBit) ? source - edgeRead : source + edgeRead;
 }
 
 // decode remaining edges
 inline uintE eatEdge(uchar controlKey, long & dOffset, intT shift, long controlOffset, uchar* start){
-//	uchar fb = start[controlOffset];
-	// check two bit code in control stream
-	uintT checkCode = (controlKey >> shift) & 0x3;
-//	cout << "fb: " << (uintE)(fb) << " checkCode: " << checkCode << endl;
-
-	//hard code checkCode for debugging
-//	checkCode = 0;
-
-	uintE edgeRead = 0;
-	switch(checkCode) {
-	// 1 byte
-	case 0:
-		edgeRead = start[dOffset]; 
-		dOffset += 1;
-		break;
-//		cout << "case0 " << endl;
-
-v	// 2 bytes
-	case 1:
-//		memcpy(edgeReadPtr, dataPtr, 2);
-		memcpy(&edgeRead, &start[dOffset], 2);
-//		memcpy(&edgeRead, start+dOffset*sizeof(uchar), 2);
-		dOffset += 2;
-		break;
-//		cout << "case1" << endl;
-	
-	// 3 bytes
-	case 2:
-		memcpy(&edgeRead, &start[dOffset], 3);	
-//		memcpy(&edgeRead, start+dOffset*sizeof(uchar), 3);
-//		memcpy(edgeReadPtr, dataPtr, 3);
-		dOffset += 3;
-//		cout << "case3" << endl;
-		break;
-	
-	// 4 bytes
-	default:
-		memcpy(&edgeRead, &start[dOffset], 4);
-//		memcpy(&edgeRead, start+dOffset*sizeof(uchar), 4);
-//		memcpy(edgeReadPtr, dataPtr, 4);
-		dOffset += 4;
-//		cout << "case4" << endl;
-	}
-//	cout <<"*dOffset after: " <<  (int)(**dOffset) << endl;	
-	return edgeRead;
+  // check two bit code in control stream
+  uintT checkCode = (controlKey >> shift) & 0x3;
+  uintE edgeRead;
+  switch(checkCode) {
+    // 1 byte
+  case 0:
+    edgeRead = start[dOffset++]; 
+    //dOffset += 1;
+    break;
+    // 2 bytes
+  case 1:
+    edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+    //memcpy(&edgeRead, &start[dOffset], 2);
+    dOffset += 2;
+    break;
+    // 3 bytes
+  case 2:
+    edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+    //memcpy(&edgeRead, &start[dOffset], 3);	
+    dOffset += 3;
+    break;
+    // 4 bytes
+  default:
+    edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+    //memcpy(&edgeRead, &start[dOffset], 4);
+    dOffset += 4;
+  }
+  return edgeRead;
 }
+
 uchar compressFirstEdge(uchar* &start, long controlOffset, long dataOffset, uintE source, uintE target){
 //	uchar* saveStart = start;
 //	long saveOffset = dataOffset;

@@ -68,7 +68,6 @@ struct printAdjT {
   stringstream* ss;
   printAdjT(stringstream *_ss) : ss(_ss) {}
   bool srcTarg(uintE src, uintE target, uintT edgeNumber) {
-    if(target >= 3072627) { cout << "error\n"; exit(0); }
     *ss << target << endl;
     return true;
   }
