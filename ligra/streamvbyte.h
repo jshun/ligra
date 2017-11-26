@@ -387,46 +387,41 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 
 
 template <class T>
-	inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degree, const bool par=true){
-//	cout << "in decode" << endl;
-	size_t edgesRead = 0;
-	if(degree > 0) {
-	// space used by control stream
-	uintT controlLength = (degree + 3)/4;
-	// set data pointer to location after control stream (ie beginning of data stream)
-	long currentOffset = 0;
-	long dataOffset = controlLength + currentOffset;
-//	cout << "before set key" << endl;
-	uchar key = edgeStart[currentOffset];
-//	cout << "key: " << key << endl;
-//	uchar *dataOffset = (edgeStart + sizeof(uchar)*controlLength);
-		uintE startEdge = eatFirstEdge(key, source, dataOffset, currentOffset, edgeStart);
-//	cout << "after startEdge" << endl;
-		if(!t.srcTarg(source,startEdge,edgesRead)){
-			return;
-		}	
-	uintT shift = 2;
-	uintE edge = startEdge;
-	for (edgesRead = 1; edgesRead < degree; edgesRead++){
-//		cout << "key: " << (uintE)key << endl;
-//		cout << "edgesRead" << edgesRead << endl;
-		if(shift == 8){
-//			cout << "*edgeStart before " << (uintE)(*edgeStart) << endl;
-			currentOffset++;
-			key = edgeStart[currentOffset];
-//			cout << "*edgeStart after " << (uintE)(*edgeStart) << endl; 
-			shift = 0;
-		}
-		// decode stored value and add to previous edge value (stored using differential encoding)
-		uintE edgeRead = eatEdge(key, dataOffset, shift, currentOffset, edgeStart);
-		edge = edgeRead + startEdge;
-		startEdge = edge;
-		if (!t.srcTarg(source, edge, edgesRead)){
-			break;
-		}
-		shift += 2;
-	}
-	}
+inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degree, const bool par=true){
+  size_t edgesRead = 0;
+  if(degree > 0) {
+    // space used by control stream
+    uintT controlLength = (degree + 3)/4;
+    // set data pointer to location after control stream (ie beginning of data stream)
+    long currentOffset = 0;
+    long dataOffset = controlLength + currentOffset;
+    //	cout << "before set key" << endl;
+    uchar key = edgeStart[currentOffset];
+    //	cout << "key: " << key << endl;
+    //	uchar *dataOffset = (edgeStart + sizeof(uchar)*controlLength);
+    uintE startEdge = eatFirstEdge(key, source, dataOffset, currentOffset, edgeStart);
+    //	cout << "after startEdge" << endl;
+    if(!t.srcTarg(source,startEdge,edgesRead)){
+      return;
+    }	
+    uintT shift = 2;
+    uintE edge = startEdge;
+    for (edgesRead = 1; edgesRead < degree; edgesRead++){      
+      if(shift == 8){
+	currentOffset++;
+	key = edgeStart[currentOffset];
+	shift = 0;
+      }
+      // decode stored value and add to previous edge value (stored using differential encoding)
+      uintE edgeRead = eatEdge(key, dataOffset, shift, currentOffset, edgeStart);
+      edge = edgeRead + startEdge;
+      startEdge = edge;
+      if (!t.srcTarg(source, edge, edgesRead)){
+	break;
+      }
+      shift += 2;
+    }
+  }
 };
 
 template <class T>
