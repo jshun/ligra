@@ -532,48 +532,4 @@ uchar *parallelCompressWeightedEdges(intEPair *edges, uintT *offsets, long n, lo
 	cout << "would have been, " << (m*8) << endl;
 	return finalArr;
 }
-
-template <class P>
-inline size_t pack(P pred, uchar* edge_start, const uintE &source, const uintE &degree){
-	cout << "pack" << endl;
-	size_t new_deg = 0;
-	uintE last_read_edge = source;
-	uintE last_write_edge;
-	uchar* tail = edge_start;
-	uchar* cur = edge_start;
-	cout << "pack" << endl;
-	if (degree > 0) {
-		uchar controlLength  = (degree + 3)/4;
-		long dataOffset  =  controlLength;
-		uchar key = *edge_start;	
-		uintE start_edge = eatFirstEdge(key, source, dataOffset, 0, cur);
-		last_read_edge = start_edge;
-		if (pred(source, start_edge)){
-			long offset = compressFirstEdge(tail, 0, source, start_edge);
-			tail += offset;
-			last_write_edge = start_edge;
-			new_deg++;
-		}
-		for (size_t i = 1; i < degree; i++){
-			uintE cur_diff = edgeEat(cur);
-			uintE cur_edge = last_read_edge + cur_diff;
-			last_read_edge = cur_edge;
-			if (pred(source, cur_edge){
-				long offset;
-				if (tail == edge_start){
-					offset = compressFirstEdge(tail, 0, source, cur_edge);
-				}
-				else{
-					uintE difference = cur_edge - last_write_edge;
-					offset = compressEdge(tail, 0, difference);
-				}
-			tail += offset;
-			last_write_edge = cur_edge;
-			new_deg++;
-
-			}
-		}
-	}
-	return new_deg;
-}	
 #endif
