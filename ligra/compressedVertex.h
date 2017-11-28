@@ -245,7 +245,7 @@ namespace decode_compressed {
       }
     };
     auto gen = [&] (const uintE& ngh, const uintE& offset, const Maybe<uintE>& val = Maybe<uintE>()) {
-      tmp1[offset] = ngh;
+      tmp1[offset] = val.t;
     };
     copyOutNgh<V, uintE>(v, i, (uintT)0, f, gen);
 
