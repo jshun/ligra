@@ -9,9 +9,9 @@ import signal
 import time
 import subprocess
 
-# nibble = 0, byte = 1, rle = 2, streamvbyte = 3 
+# nibble = 0, byte = 1, rle = 2, streamvbyte = 3, streamcase = 4 
 
-compression_num = 1;	
+compression_num = 4;	
 
 def signal_handler(signal,frame):
   print "bye\n"
@@ -34,9 +34,9 @@ wapplications = ["BellmanFord"]
 rapplications = ["PageRank"]
 #testfiles = [("randLocalGraph_J_5_10000000_ordered","1"),("3Dgrid_J_10000000_ordered","1"),("soc-LiveJournal1.txt_J_psep_ordered","10000"),("cit-Patents.txt_J_psep_ordered","3000000"),("com-lj.ungraph.txt_J_psep_ordered","3000000"),("com-orkut.ungraph.txt_J_psep_ordered","10000"),("nlpkkt_bfsR_J","1")]
 
-testfiles = [("twitter_J", "1"),("com-orkut.ungraph.txt_J_psep_ordered","3000")]
+testfiles = [("twitter_J", "1")]
 ntestfiles = [("com-orkut.ungraph.txt_J_psep_ordered","3000")]
-compression = [(".nibble"), (".byte"), (".rle"), (".streamvbyte")]
+compression = [(".nibble"), (".byte"), (".rle"), (".streamvbyte"), (".streamcase")]
 
 # testfiles = ["nlpkkt_bfsR_J"]
 # testfiles = ["soc-LiveJournal1.txt_J_psep_ordered","com-orkut.ungraph.txt_J_psep_ordered"]
@@ -58,7 +58,7 @@ if debug:
   testfiles = [("cit-Patents.txt_J_psep_ordered","3000000")]
 
 #os.system("make clean; make -j16; ~/hog2 250")
-for testfile in ntestfiles :
+for testfile in testfiles :
 	for p in processors :
 		if p==1:
 			css = "export CILK_NWORKERS=1; ./decoderSpeed "+dataDir+testfile[0]+compression[compression_num]
@@ -71,7 +71,7 @@ for testfile in ntestfiles :
 
 
 for app in applications:
-  for testfile in ntestfiles :
+  for testfile in testfiles :
     for p in processors :
       if p == 1:
        # ss = "export CILK_NWORKERS=1; ./"+app+' -rounds 1 -maxiters 1 -r '+testfile[1]+' '+bdataDir+testfile[0]

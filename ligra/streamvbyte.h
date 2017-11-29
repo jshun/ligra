@@ -132,46 +132,34 @@ inline uintE eatEdge(uchar controlKey, long & dOffset, intT shift, long controlO
   return edgeRead;
 }
 
-uchar compressFirstEdge(uchar* &start, long controlOffset, long dataOffset, uintE source, uintE target){
-//	uchar* saveStart = start;
-//	long saveOffset = dataOffset;
-	
+uchar compressFirstEdge(uchar* &start, long controlOffset, long dataOffset, uintE source, uintE target){	
 	intE preCompress = (intE) target - source;
 	uintE toCompress = abs(preCompress);
 	uintT signBit = (preCompress < 0) ? 1:0;
 	uchar code; 
 	uintE *toCompressPtr = &toCompress;
 	// check how many bytes is required to store the data and a sign bit (MSB)
-//	cout << "first edge dOffset (should be 0) : " << dataOffset << endl;
 	if(toCompress < (1 << 7)) {
 		// concatenate sign bit with data and store
 		toCompress |= (signBit << 7);
 		memcpy(&start[dataOffset], toCompressPtr, 1);
-	//	start[dataOffset] = (signBit << 7) | toCompress;
 		code = 0;
 	}
 	else if(toCompress < (1 << 15)){
 		toCompress |= (signBit << 15);
 		memcpy(&start[dataOffset], toCompressPtr, 2);
-	//	start[dataOffset] = (signBit << 15) | toCompress;
 		code = 1;
-//		cout << "first edge case 1" << endl;
 	}
 	else if(toCompress < (1 << 23)){
 		toCompress |= (signBit << 23);
 		memcpy(&start[dataOffset], toCompressPtr, 3);
-	//	memcpy(&start[dataOffset], toCompressPtr, 3);
-	//	start[dataOffset] = (signBit << 23) | toCompress;
 		code = 2;
 	}
 	else{
 		toCompress |= (signBit << 31);
 		memcpy(&start[dataOffset], toCompressPtr, 4);
-//		memcpy(&start[dataOffset], toCompressPtr, 4);
-//		start[dataOffset] = (signBit << 31) | toCompress;
 		code = 3;
 	}
-//	cout << "first edge" << endl;
 	return code;
 }
 
@@ -179,33 +167,20 @@ uchar compressFirstEdge(uchar* &start, long controlOffset, long dataOffset, uint
 uchar encode_data(uintE d, long dataCurrentOffset, uchar* &start){
 	uchar code;
 	uintE* diffPtr = &d;
-//	cout << "d: " << d << endl;
-	// figure out how many bytes needed to store value and set code accordingly
 	if(d < (1 << 8)){
-//		memcpy(start+sizeof(uchar)*dataCurrentOffset, diffPtr, 1);
-//		cout << "case0: " << *(start+dataCurrentOffset);
 		memcpy(&start[dataCurrentOffset], diffPtr, 1);
-	//	start[dataCurrentOffset] = d;
 		code = 0;
-//		cout << "case0" << endl;
 	}
 	else if( d < (1 << 16)){
-//		memcpy(start+sizeof(uchar)*dataCurrentOffset, diffPtr, 2);
 		memcpy(&start[dataCurrentOffset], diffPtr, 2);
-	//	start[dataCurrentOffset] = d;
 		code = 1;
-//		cout << "case1 d: " << d << " *diffPtr: " << *diffPtr << endl;
 	}
 	else if (d < (1 << 24)){
-	//	memcpy(start+sizeof(uchar)*dataCurrentOffset, diffPtr, 3);
 		memcpy(&start[dataCurrentOffset], diffPtr, 3);
-	//	start[dataCurrentOffset] = d;
 		code = 2;
 	}
 	else{
-	//	memcpy(start+sizeof(uchar)*dataCurrentOffset, diffPtr, 4);
 		memcpy(&start[dataCurrentOffset], diffPtr, 4);	
-//		start[dataCurrentOffset] = d;
 		code = 3;
 	}
 	
@@ -270,11 +245,7 @@ long compressEdge(uchar* &start, long currentOffset, uintE *savedEdges, uchar ke
 			// check if used full byte in control stream; if yes, increment and reset vars
 			if(shift == 8){
 				shift = 0;
-//				cout << "storeCurrentOFfset: " << storeCurrentOffset << endl;
-//				cout << "storeKey " << (uintE) storeKey << endl;
 				start[storeCurrentOffset] = storeKey;
-//				uchar test = start[storeCurrentOffset];
-//				cout << "start[storecurrentoffset] : " << (uintE)(test) << endl;
 				storeCurrentOffset++;
 				storeKey = 0;
 			}		
@@ -282,7 +253,6 @@ long compressEdge(uchar* &start, long currentOffset, uintE *savedEdges, uchar ke
 			code = encode_data(difference, storeDOffset, start);
 			storeDOffset += (code + 1); 
 			storeKey |= (code << shift);
-		//	cout << "code " << code << " shift: " << shift << endl;
 			shift +=2;
 	}
 	start[storeCurrentOffset] = storeKey;
@@ -331,15 +301,19 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 			uintE toCompress = abs(preCompress);
 			if(toCompress < (1 << 7)){
 				count++;
+				temp = (1<<7) | toCompress;
 			}
 			else if(toCompress < (1 << 15)){
 				count += 2;
+				temp = (1 << 15) | toCompress; 
 			}
 			else if(toCompress < (1 << 23)){
 				count += 3;
+				temp = (1 << 23) | toCompress;
 			}
 			else{ 
 				count += 4;
+				temp = (1 << 31) | toCompress;
 			}
 			uintE prevEdge = *edgePtr;	
 			uintE difference;
@@ -364,7 +338,6 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 			charsUsedArr[i] = count;
 
 	}
- 
 	long totalSpace = sequence::plusScan(charsUsedArr, compressionStarts, n);
 	compressionStarts[n] = totalSpace;
 	uchar *finalArr = newA(uchar, totalSpace);	

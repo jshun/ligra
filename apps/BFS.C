@@ -50,7 +50,7 @@ void Compute(graph<vertex>& GA, commandLine P) {
     vertexSubset output = edgeMap(GA, Frontier, BFS_F(Parents));    
     Frontier.del();
     Frontier = output; //set new frontier
-    //cout << Frontier.numNonzeros() << endl;
+//    cout << Frontier.numNonzeros() << endl;
   } 
   Frontier.del();
   free(Parents); 
