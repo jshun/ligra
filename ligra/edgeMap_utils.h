@@ -42,7 +42,7 @@ auto get_emdense_forward_gen(tuple<bool, data>* next) {
 template <typename data, typename std::enable_if<
   std::is_same<data, pbbs::empty>::value, int>::type=0 >
 auto get_emsparse_gen(tuple<uintE, data>* outEdges) {
-  return [&] (uintE ngh, uintE offset, bool m=false) {
+  return [&] (uintE ngh, uintT offset, bool m=false) {
     if (m) {
       outEdges[offset] = make_tuple(ngh, pbbs::empty());
     } else {
@@ -54,7 +54,7 @@ auto get_emsparse_gen(tuple<uintE, data>* outEdges) {
 template <typename data, typename std::enable_if<
   !std::is_same<data, pbbs::empty>::value, int>::type=0 >
 auto get_emsparse_gen(tuple<uintE, data>* outEdges) {
-  return [&] (uintE ngh, uintE offset, Maybe<data> m=Maybe<data>()) {
+  return [&] (uintE ngh, uintT offset, Maybe<data> m=Maybe<data>()) {
     if (m.exists) {
       outEdges[offset] = make_tuple(ngh, m.t);
     } else {
@@ -69,7 +69,7 @@ auto get_emsparse_gen(tuple<uintE, data>* outEdges) {
 template <typename data, typename std::enable_if<
   std::is_same<data, pbbs::empty>::value, int>::type=0 >
 auto get_emsparse_no_filter_gen(tuple<uintE, data>* outEdges) {
-  return [&] (uintE ngh, uintE offset, bool m=false) {
+  return [&] (uintE ngh, uintT offset, bool m=false) {
     if (m) {
       outEdges[offset] = make_tuple(ngh, pbbs::empty());
       return true;
@@ -81,7 +81,7 @@ auto get_emsparse_no_filter_gen(tuple<uintE, data>* outEdges) {
 template <typename data, typename std::enable_if<
   !std::is_same<data, pbbs::empty>::value, int>::type=0 >
 auto get_emsparse_no_filter_gen(tuple<uintE, data>* outEdges) {
-  return [&] (uintE ngh, uintE offset, Maybe<data> m=Maybe<data>()) {
+  return [&] (uintE ngh, uintT offset, Maybe<data> m=Maybe<data>()) {
     if (m.exists) {
       outEdges[offset] = make_tuple(ngh, m.t);
       return true;
@@ -97,13 +97,13 @@ auto get_emsparse_no_filter_gen(tuple<uintE, data>* outEdges) {
 template <typename data, typename std::enable_if<
   std::is_same<data, pbbs::empty>::value, int>::type=0 >
 auto get_emsparse_nooutput_gen() {
-  return [&] (uintE ngh, uintE offset, bool m=false) { };
+  return [&] (uintE ngh, uintT offset, bool m=false) { };
 }
 
 template <typename data, typename std::enable_if<
   !std::is_same<data, pbbs::empty>::value, int>::type=0 >
 auto get_emsparse_nooutput_gen() {
-  return [&] (uintE ngh, uintE offset, Maybe<data> m=Maybe<data>()) { };
+  return [&] (uintE ngh, uintT offset, Maybe<data> m=Maybe<data>()) { };
 }
 
 template <typename data, typename std::enable_if<
