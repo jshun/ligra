@@ -199,6 +199,7 @@ void svb_decode_scalar(size_t edgesRead, uchar* dataPointer, uchar* controlPoint
 			shift = 0;
 			key = *controlPointer++;
 		}
+		val = 0;
 		val = _decode_data(&dataPointer, (key >> shift) & 0x3);
 		edge = edge + val; 
 //		cout << "edge: " << edge << " val: " << val << endl;

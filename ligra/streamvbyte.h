@@ -301,19 +301,19 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 			uintE toCompress = abs(preCompress);
 			if(toCompress < (1 << 7)){
 				count++;
-				temp = (1<<7) | toCompress;
+				//temp = (1<<7) | toCompress;
 			}
 			else if(toCompress < (1 << 15)){
 				count += 2;
-				temp = (1 << 15) | toCompress; 
+				//temp = (1 << 15) | toCompress; 
 			}
 			else if(toCompress < (1 << 23)){
 				count += 3;
-				temp = (1 << 23) | toCompress;
+				//temp = (1 << 23) | toCompress;
 			}
 			else{ 
 				count += 4;
-				temp = (1 << 31) | toCompress;
+				//temp = (1 << 31) | toCompress;
 			}
 			uintE prevEdge = *edgePtr;	
 			uintE difference;
