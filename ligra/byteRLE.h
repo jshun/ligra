@@ -83,24 +83,6 @@ inline intE eatFirstEdge(uchar* &start, uintE source) {
 }
 
 /*
-  Reads any edge of an out-edge list after the first edge.
-*/
-inline uintE eatEdge(uchar* &start) {
-  uintE edgeRead = 0;
-  int shiftAmount = 0;
-
-  while (1) {
-    uchar b = *start++;
-    edgeRead += ((b & 0x7f) << shiftAmount);
-    if (LAST_BIT_SET(b))
-      shiftAmount += EDGE_SIZE_PER_BYTE;
-    else
-      break;
-  }
-  return edgeRead;
-}
-
-/*
   The main decoding work-horse. First eats the specially coded first
   edge, and then eats the remaining |d-1| many edges that are normally
   coded.
