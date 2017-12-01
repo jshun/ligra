@@ -90,7 +90,7 @@ void copyGraph(graph<symmetricVertex> G, bool weighted, uintE** edges) {
   if(!weighted) {
     parallel_for(long i=0; i < G.n; i++) {
       for(long j=0; j < V[i].getOutDegree(); j++) {
-	edges[i][j] = V[i].neighbors[2*j];
+	edges[i][j] = V[i].neighbors[j];
       }
     }
   } else {
@@ -111,6 +111,7 @@ int parallel_main(int argc, char* argv[]) {
   bool weighted = P.getOptionValue("-w");
   long rounds = P.getOptionLongValue("-rounds",5);
   bool compressed = P.getOptionValue("-c");
+  srand(0);
   if(compressed) {
     graph<compressedSymmetricVertex> G = readCompressedGraph<compressedSymmetricVertex>(iFile,1,0);
     uintE** edges = newA(uintE*,G.n);
@@ -122,9 +123,13 @@ int parallel_main(int argc, char* argv[]) {
       decodeGraph(G,weighted,edges);
       t.reportTotal("decoding time");
     }
+    uintE v = rand() % G.n;
+    if(G.V[v].getOutDegree() > 0) cout << edges[v][rand() % G.V[v].getOutDegree()] << endl;
+    else cout << "-1" << endl;
     for(long i=0;i<G.n;i++)
       free(edges[i]);
     free(edges);
+    G.del();
   } else {
     graph<symmetricVertex> G =
       readGraph<symmetricVertex>(iFile,0,1,0,0); //symmetric graph
@@ -137,8 +142,12 @@ int parallel_main(int argc, char* argv[]) {
       copyGraph(G,weighted,edges);
       t.reportTotal("decoding time");
     }
+    uintE v = rand() % G.n;
+    if(G.V[v].getOutDegree() > 0) cout << edges[v][rand() % G.V[v].getOutDegree()] << endl;
+    else cout << "-1" << endl;
     for(long i=0;i<G.n;i++)
       free(edges[i]);
     free(edges);
+    G.del();
   }
 }
