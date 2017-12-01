@@ -7021,8 +7021,6 @@ inline bool eatByte(uchar controlKey, long & dOffset, uintE source, T t, uintE &
     }
   }  	
   //asm volatile ("" : "+r" (edge)); 
-  //*edgesReadPtr = edgesRead;
-  //*startEdgePtr = startEdge;
   return 0;
   };
 
@@ -7307,7 +7305,6 @@ inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degr
     for(size_t i = 1; i < scalar_count; i++){
       uintE edgeRead = eatEdge(key, dataOffset, shift, currentOffset, edgeStart);
       edge = edgeRead + startEdge;
-      //asm volatile ("" : "+r" (edge)); 
       startEdge = edge;
       edgesRead++;
       if(!t.srcTarg(source, edge, edgesRead)){
@@ -7335,7 +7332,6 @@ inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degr
       for(uintT i = 0; i < scalar_count; i++){
 	uintE edgeRead = eatEdge(key, dataOffset, shift, currentOffset, edgeStart);
 	edge = edgeRead + startEdge;
-	//asm volatile ("" : "+r" (edge)); 
 	startEdge = edge;
 	edgesRead++;
 	if(!t.srcTarg(source, edge, edgesRead)){
