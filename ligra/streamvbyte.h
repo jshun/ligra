@@ -358,7 +358,6 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 	return ((uintE *)finalArr);
 }
 
-
 template <class T>
 inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degree, const bool par=true){
   size_t edgesRead = 0;
@@ -388,6 +387,9 @@ inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degr
       // decode stored value and add to previous edge value (stored using differential encoding)
       uintE edgeRead = eatEdge(key, dataOffset, shift, currentOffset, edgeStart);
       edge = edgeRead + startEdge;
+      //artificial read of edgeRead to prevent this function from
+      //being optimized out when testing decoding speed
+      asm volatile ("" : "+r" (edge)); 
       startEdge = edge;
       if (!t.srcTarg(source, edge, edgesRead)){
 	break;
@@ -409,6 +411,9 @@ template <class T>
 			uchar key = edgeStart[currentOffset];
 			uintE startEdge = eatFirstEdge(key, source, dataOffset, currentOffset, edgeStart);	
 			intE weight = eatWeight(key, dataOffset, 2, currentOffset, edgeStart);	
+			//artificial read of weight to prevent this function from
+			//being optimized out when testing decoding speed
+			asm volatile ("" : "+r" (weight)); 
 			if (!t.srcTarg(source, startEdge, weight, edgesRead)){
 				return;
 			}
@@ -423,6 +428,9 @@ template <class T>
 				}
 				uintE edgeRead = eatEdge(key, dataOffset, shift, currentOffset, edgeStart);
 				edge = edge + edgeRead;
+				//artificial read of edgeRead to prevent this function from
+				//being optimized out when testing decoding speed
+				asm volatile ("" : "+r" (edge)); 
 				shift += 2;
 
 				if(shift == 8){
@@ -431,6 +439,9 @@ template <class T>
 					shift = 0;
 				}
 				intE weight = eatWeight(key, dataOffset, shift, currentOffset, edgeStart);
+				//artificial read of weight to prevent this function from
+				//being optimized out when testing decoding speed
+				asm volatile ("" : "+r" (weight)); 
 				shift += 2;
 				if (!t.srcTarg(source, edge, weight, edgesRead)){
 					break;
