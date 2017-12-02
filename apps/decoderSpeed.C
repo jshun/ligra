@@ -32,6 +32,8 @@
 #include "streamvbyte.h"
 #elif defined STREAMCASE
 #include "streamvbyte_256.h"
+#elif defined BP
+#include "bitpacking.h"
 #else
 #include "byteRLE.h"
 #endif
@@ -44,6 +46,8 @@
 #include "streamvbyte.h"
 #elif defined STREAMCASE
 #include "streamvbyte_256.h"
+#elif defined BP
+#include "bitpacking.h"
 #else
 #include "byteRLE-pd.h"
 #endif
