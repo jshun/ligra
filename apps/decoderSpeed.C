@@ -59,52 +59,35 @@
 using namespace std;
 
 struct F {
-  uintE** edges;
-  F(uintE** _edges) : edges(_edges) {}
-
+  uintE* edges;
+  uintT* offsets;
+  F(uintE* _edges, uintT* _offsets) : edges(_edges), offsets(_offsets) {}
   inline bool srcTarg(uintE src, uintE target, uintT edgeNumber) {
-    edges[src][edgeNumber] = target;
-    return true;
-  }
-  inline bool srcTarg(uintE src, uintE target, intE weight, uintT edgeNumber) {
-    edges[src][edgeNumber*2] = target;
-    edges[src][edgeNumber*2+1] = target;
+    edges[offsets[src]+edgeNumber] = target;
     return true;
   }
 };
 
-void decodeGraph(graph<compressedSymmetricVertex> G, bool weighted, uintE** edges) {
+void decodeGraph(graph<compressedSymmetricVertex> G, uintE* edges, uintT* offsets) {
   compressedSymmetricVertex *V = G.V;
   parallel_for (long i = 0; i < G.n; i++) {
     uchar *nghArr = V[i].getOutNeighbors();
     uintT d = V[i].getOutDegree();
-    if(weighted)
-      decodeWgh(F(edges), nghArr, i, d);
-    else
-      decode(F(edges), nghArr, i, d);
+    decode(F(edges,offsets), nghArr, i, d);
   }
 }
 
-void copyGraph(graph<symmetricVertex> G, bool weighted, uintE** edges) {
+void copyGraph(graph<symmetricVertex> G, uintE* edges, uintT* offsets) {
   symmetricVertex *V = G.V;
-  if(!weighted) {
-    parallel_for(long i=0; i < G.n; i++) {
-      for(long j=0; j < V[i].getOutDegree(); j++) {
-	edges[i][j] = V[i].neighbors[j];
-      }
-    }
-  } else {
-    parallel_for(long i=0; i < G.n; i++) {
-      for(long j=0; j < V[i].getOutDegree(); j++) {
-	edges[i][2*j] = V[i].neighbors[2*j];
-	edges[i][2*j+1] = V[i].neighbors[2*j+1];
-      }
+  parallel_for(long i=0; i < G.n; i++) {
+    for(long j=0; j < V[i].getOutDegree(); j++) {
+      edges[offsets[i]+j] = V[i].neighbors[j];
     }
   }
 }
 
-//Converts binary compressed graph to text format. For weighted
-//graphs, pass the "-w" flag.
+//Tests the speed of decoding the entire graph. Currently works for
+//unweighted graphs. For compressed graphs, pass the "-c" flag.
 int parallel_main(int argc, char* argv[]) {  
   commandLine P(argc,argv,"[-w] <inFile>");
   char* iFile = P.getArgument(0);
@@ -114,39 +97,37 @@ int parallel_main(int argc, char* argv[]) {
   srand(0);
   if(compressed) {
     graph<compressedSymmetricVertex> G = readCompressedGraph<compressedSymmetricVertex>(iFile,1,0);
-    uintE** edges = newA(uintE*,G.n);
-    for(long i=0;i<G.n;i++) edges[i] = newA(uintE,G.V[i].getOutDegree());
+    uintE* edges = newA(uintE,G.m);
+    uintT* offsets = newA(uintT,G.n);
+    parallel_for(long i=0;i<G.n;i++) offsets[i] = G.V[i].getOutDegree(); 
+    sequence::plusScan(offsets, offsets, G.n);
     timer t;
-    decodeGraph(G,weighted,edges);
+    decodeGraph(G,edges,offsets);
     for(long i=0;i<rounds;i++) {
       t.start();
-      decodeGraph(G,weighted,edges);
+      decodeGraph(G,edges,offsets);
       t.reportTotal("decoding time");
     }
-    uintE v = rand() % G.n;
-    if(G.V[v].getOutDegree() > 0) cout << edges[v][rand() % G.V[v].getOutDegree()] << endl;
-    else cout << "-1" << endl;
-    for(long i=0;i<G.n;i++)
-      free(edges[i]);
+    cout << edges[rand() % G.m] << endl;
+    free(offsets);
     free(edges);
     G.del();
   } else {
     graph<symmetricVertex> G =
       readGraph<symmetricVertex>(iFile,0,1,0,0); //symmetric graph
-    uintE** edges = newA(uintE*,G.n);
-    for(long i=0;i<G.n;i++) edges[i] = newA(uintE,G.V[i].getOutDegree());
+    uintE* edges = newA(uintE,G.m);
+    uintT* offsets = newA(uintT,G.n);
+    parallel_for(long i=0;i<G.n;i++) offsets[i] = G.V[i].getOutDegree(); 
+    sequence::plusScan(offsets, offsets, G.n);
     timer t;
-    copyGraph(G,weighted,edges);
+    copyGraph(G,edges,offsets);
     for(long i=0;i<rounds;i++) {
       t.start();
-      copyGraph(G,weighted,edges);
+      copyGraph(G,edges,offsets);
       t.reportTotal("decoding time");
     }
-    uintE v = rand() % G.n;
-    if(G.V[v].getOutDegree() > 0) cout << edges[v][rand() % G.V[v].getOutDegree()] << endl;
-    else cout << "-1" << endl;
-    for(long i=0;i<G.n;i++)
-      free(edges[i]);
+    cout << edges[rand() % G.m] << endl;
+    free(offsets);
     free(edges);
     G.del();
   }
