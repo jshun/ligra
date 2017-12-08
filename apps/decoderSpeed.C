@@ -94,6 +94,7 @@ int parallel_main(int argc, char* argv[]) {
   bool weighted = P.getOptionValue("-w");
   long rounds = P.getOptionLongValue("-rounds",5);
   bool compressed = P.getOptionValue("-c");
+  bool binary = P.getOptionValue("-b");
   srand(0);
   if(compressed) {
     graph<compressedSymmetricVertex> G = readCompressedGraph<compressedSymmetricVertex>(iFile,1,0);
@@ -114,7 +115,7 @@ int parallel_main(int argc, char* argv[]) {
     G.del();
   } else {
     graph<symmetricVertex> G =
-      readGraph<symmetricVertex>(iFile,0,1,0,0); //symmetric graph
+      readGraph<symmetricVertex>(iFile,0,1,binary,0); //symmetric graph
     uintE* edges = newA(uintE,G.m);
     uintT* offsets = newA(uintT,G.n);
     parallel_for(long i=0;i<G.n;i++) offsets[i] = G.V[i].getOutDegree(); 
