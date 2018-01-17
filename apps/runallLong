@@ -9,7 +9,7 @@ import signal
 import time
 import subprocess
 
-# nibble = 0, byte = 1, rle = 2, streamvbyte = 3, streamcase = 4
+# nibble = 0, byte = 1, rle = 2, streamvbyte = 3, streamcase = 4, bitpacking = 5, varint-GB = 6
 compression_num = 0;	
 
 def signal_handler(signal,frame):
@@ -37,7 +37,7 @@ rapplications = ["PageRank"]
 
 btestfiles = [("uk-union-2006-06-2007-05_J","100"),("uk-union-2006-06-2007-05_J_reordered","100")]
 
-compression = [(".nibble"), (".byte"), (".rle"), (".streamvbyte"), (".streamcase")]
+compression = [(".nibble"), (".byte"), (".rle"), (".streamvbyte"), (".streamcase"), (".bp"), (".varintGB")]
 
 # testfiles = ["nlpkkt_bfsR_J"]
 # testfiles = ["soc-LiveJournal1.txt_J_psep_ordered","com-orkut.ungraph.txt_J_psep_ordered"]

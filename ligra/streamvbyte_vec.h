@@ -204,7 +204,7 @@ void svb_decode_scalar(size_t edgesRead, uchar* dataPointer, uchar* controlPoint
 		edge = edge + val; 
 //		cout << "edge: " << edge << " val: " << val << endl;
 		if(!t.srcTarg(source, edge, edgesRead))
-			break;
+			return;
 		edgesRead++;
 		// do someting with value... Pass in t and call t.Src? need to "undo" differential encoding
 		shift+= 2;	
@@ -488,12 +488,12 @@ template <class T>
 				}
 				break_var = _write_avx(Data, &prevEdge, source, t, edgesRead);
 				if(break_var)
-					break;
+					return;
 				edgesRead += 4;
 				Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
 				break_var = _write_avx(Data, &prevEdge, source, t, edgesRead);
 				if(break_var)
-					break;
+					return;
 				edgesRead += 4;
 
 				keys >>= 16;
@@ -501,13 +501,13 @@ template <class T>
 				//_write_avx(edgeStart + 8, Data, prevEdge);	
 				break_var = _write_avx(Data, &prevEdge, source, t, edgesRead);		
 				if(break_var)
-					break;
+					return;
 				edgesRead += 4;
 				Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
 				//_write_avx(edgeStart + 12, Data, prevEdge);
 				break_var = _write_avx(Data, &prevEdge, source, t, edgesRead);
 				if(break_var)
-					break;
+					return;
 				edgesRead +=4;
 
 				keys >>= 16;
@@ -515,27 +515,27 @@ template <class T>
 			//	_write_avx(edgeStart + 16, Data, prevEdge);
 				break_var = _write_avx(Data, &prevEdge, source, t, edgesRead);
 				if(break_var)
-					break;
+					return;
 				edgesRead += 4;
 				Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
 			//	_write_avx(edgeStart + 20, Data, prevEdge);
 				break_var = _write_avx(Data, &prevEdge, source, t, edgesRead);
 				if(break_var)
-					break;
+					return;
 				edgesRead += 4;
 
 				keys >>= 16;
 				Data = _decode_avx((keys & 0xFF), &dataPtr);
 				break_var = _write_avx(Data, &prevEdge, source, t, edgesRead);
 				if(break_var)
-					break;
+					return;
 				edgesRead += 4;
 			//	_write_avx(edgeStart + 24, Data, prevEdge);
 				Data = _decode_avx((keys & 0xFF00) >> 8, &dataPtr);
 			//	_write_avx(edgeStart + 28, Data, prevEdge);
 				break_var = _write_avx(Data, &prevEdge, source, t, edgesRead);
 				if(break_var)
-					break;
+					return;
 				edgesRead += 4;
     			}	
 	if(!break_var){

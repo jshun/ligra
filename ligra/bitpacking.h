@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <cmath>
 
-// to use this compression scheme, compile with STREAMVBYTE=1 make -j
+// to use this compression scheme, compile with BP=1 make -j
 
 typedef unsigned char uchar;
 
@@ -246,25 +246,28 @@ long compressEdge(uchar* &start, long currentOffset, uintE *savedEdges, uchar ke
 	return storeDOffset;
 }
 
-
-/*
-
-Calculate first edge -- concatenate with sign bit
-Calculate and store differences between other edges
-Pass those values into function to calculate b
-Calculate numbers per block
-Store b in first byte of block
-Call correct fastpack function to pack values 
-
-*/
+long bp(uint index, uintE* diff, uint block_size, uchar b, long currentOffset, uchar* &saveArray){
+	saveArray[currentOffset] = b;	
+	currentOffset++;
+	uintE int_store = 0; 
+	uint num_bytes = b/8; 
+	for(uint i=0; i < block_size; i++){
+		int_store = diff[index++];
+		for(uint j = 0; j < num_bytes; j++){
+			saveArray[currentOffset] = int_store >> j*8;
+			currentOffset++;
+		}	
+//		int_store = 0; 
+	}
+	
+	return currentOffset;
+}
 
 long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degree, uintE vertexNum, uintE *savedEdges){
+	// use to find bit width needed per block
 	uint max_number = 0;
-	int temp=0;
-	int block_size = 0;
-
+	uint block_size = 0;
 	if (degree > 0){
-		// figure out block size
 		if(degree >= 128){
 			block_size = 128;
 		}
@@ -284,50 +287,54 @@ long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degre
 			block_size = 4;
 		}
 
-		int num_blocks = degree/block_size;
-		int num_remaining = degree - block_size*num_blocks;
+		uint num_blocks = degree/block_size;
+		uint num_remaining = degree - block_size*num_blocks;
 	
 		// calculate bit width per block & use 	;
 			uintE edge = savedEdges[0];
 			bool first_edge = 1;
+			bool first_edge2 = 0;
 			uintE prevEdge = savedEdges[0];	
 			uintE difference[degree];
-			uintE b[num_blocks];
-			uint k,j;
-			//calculate first edge -- double for loop over number of blocks and size of blocks
-			//calculate singles using continue bit or 4 num header?
-		for(k=0; k < num_blocks; k++){	
-			for(j=k;j<block_size+k;j++){
+			uchar b[num_blocks+1];
+			long k,j;
+			uchar signBit = 0;
+			uintE toCompress;
+			long start, end;
+		for(k=0; k < 1+ num_blocks; k++){	
+			start = k*block_size;
+			end = block_size*(k+1);
+			if(k == num_blocks){
+				end = degree;
+			}
+			max_number = 0;
+			for(j=start;j<end;j++){
 				if(first_edge){		
 					intE preCompress = (intE)(edge - vertexNum);
-					uintE toCompress = abs(preCompress);
+					signBit = (preCompress < 0) ? 1 : 0;
+					toCompress = abs(preCompress);
 					if(toCompress < (1 << 7)){
-						temp = (1<<7) | toCompress;
-						max_number = (max_number < temp) ? temp : max_number;
+						max_number = (1 <<7) | toCompress;
 					}
 					else if(toCompress < (1 << 15)){
-						temp = (1 << 15) | toCompress; 
-						max_number = (max_number < temp) ? temp : max_number;
+						max_number = (1 << 15) | toCompress; 
 					}
 					else if(toCompress < (1 << 23)){
-						temp = (1 << 23) | toCompress;
-						max_number = (max_number < temp) ? temp : max_number;		
+						max_number = (1 << 23) | toCompress;
 					}
 					else{ 
-						temp = (1 << 31) | toCompress;
-						max_number = (max_number < temp) ? temp : max_number;		
+						max_number = (1 << 31) | toCompress;
 					}
-					difference[0] = toCompress;
-					first_edge= 0;
-				}
+					first_edge = 0;
+					first_edge2 = 1;
+					}
 				else{
 					edge = savedEdges[j];
 					difference[j] = edge - prevEdge;
-					if(difference[j] > max_number){
-						max_number = difference[j];
-					}
+					max_number = (max_number < difference[j]) ? difference[j] : max_number;		
 					prevEdge = edge;	
 				}
+			}
 			if(max_number < (1 << 8)){
 				b[k] = 8;
 			}
@@ -340,40 +347,36 @@ long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degre
 			else{
 				b[k]=32;
 			}
+			if(first_edge2){
+				toCompress |= (signBit << (b[k]-1)); 
+				first_edge2 = 0;
+				difference[0] = toCompress;
 			}
+			
 		}
-		// figure out how many bits needed for remaining edges	
-		parallel_for(long i=0;i<num_blocks;i++){
-			int index = i*(ceil(b[i]*block_size/32)+1);
-			// insert header with bitwidth
-			edgeArray[index] = b[i];
-			// call function for correct bit number? --> pass in edgeArray, differences, index, block_size?
+		uint index = 0;
+		long i = 0;
+		for(i;i<num_blocks;i++){
+			index = block_size * i;
+			currentOffset = bp(index, difference, block_size, b[i], currentOffset, edgeArray);
 		}
-		for(j; j< degree; j++){
-		//use diff array & encode remaining elements	
-		//somehow need to keep track of currentOffset value && return at the end
-		}	
-		}	
+		if(num_remaining > 0){
+			index = block_size*i;
+			currentOffset = bp(index, difference, num_remaining, b[i], currentOffset, edgeArray);
+		}
+		}
 		return currentOffset;
 }
 
 uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE* Degrees){
-	// compresses edges for vertices in parallel & prints compression stats
-	cout << "paralleli compressing, (n,m) = (" << n << "," << m << ")"  << endl;
+	cout << "parallel compressing, (n,m) = (" << n << "," << m << ")"  << endl;
 	long *charsUsedArr = newA(long, n);
 	long *compressionStarts = newA(long, n+1);
-	//long count;
-
-	// for each vertex, find the max number of bits needed to represent edges and use that as bit width
 	parallel_for(long i=0;i<n;i++){
-//	for(long i=0; i<n; i++){
-	int max_number = 0;
-	int temp=0;
+	uint max_number = 0;
 	long count = 0;
-	int block_size = 0;
-
-	if (Degrees[i] > 0){
-		// figure out block size
+	uint block_size = 0;
+		if (Degrees[i] > 0){
 		if(Degrees[i] >= 128){
 			block_size = 128;
 		}
@@ -393,41 +396,42 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 			block_size = 4;
 		}
 
-		int num_blocks = Degrees[i]/block_size;
-		int num_remaining = Degrees[i] - block_size*num_blocks;
-		//calculate number of bytes needed for headers (1 byte per block and 2 bits per remaining edge)
-		count += num_blocks + (num_remaining+3)/4;
-		
-		// calculate bit width per block & use 	
+		uint num_blocks = Degrees[i]/block_size;
+		uint num_remaining = Degrees[i] - block_size*num_blocks;
+		count += num_blocks;
+		if(num_remaining > 0){
+			count++;
+		}
 			uintE* edgePtr = edges+offsets[i];
 			uintE edge = *edgePtr;
 			bool first_edge = 1;
 			uintE prevEdge = *edgePtr;	
 			uintE difference;
 			long k,j;
-			//calculate first edge -- double for loop over number of blocks and size of blocks
-			//calculate singles using continue bit or 4 num header?
-		for(k=0; k < num_blocks; k++){	
-			int b = 0;
-			for(j=k;j<block_size+k;j++){
+		for(k=0; k < 1+ num_blocks; k++){	
+			uchar b = 0;
+			uint start = k*block_size;
+			uint end = block_size*(k+1);
+			if(k== num_blocks){
+				end = Degrees[i];
+			}
+			max_number = 0;
+			for(j= start;j<end;j++){
 				if(first_edge){		
 					intE preCompress = (intE)(edge - i);
 					uintE toCompress = abs(preCompress);
+					uintT signBit = (preCompress < 0) ? 1 : 0;
 					if(toCompress < (1 << 7)){
-						temp = (1<<7) | toCompress;
-						max_number = (max_number < temp) ? temp : max_number;
+						max_number = (1 <<7) | toCompress;
 					}
 					else if(toCompress < (1 << 15)){
-						temp = (1 << 15) | toCompress; 
-						max_number = (max_number < temp) ? temp : max_number;
+						max_number = (1 << 15) | toCompress; 
 					}
 					else if(toCompress < (1 << 23)){
-						temp = (1 << 23) | toCompress;
-						max_number = (max_number < temp) ? temp : max_number;		
+						max_number = (1 << 23) | toCompress;
 					}
 					else{ 
-						temp = (1 << 31) | toCompress;
-						max_number = (max_number < temp) ? temp : max_number;		
+						max_number = (1 << 31) | toCompress;
 					}
 					first_edge=0;
 				}
@@ -439,6 +443,7 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 					}
 					prevEdge = edge;	
 				}
+			}
 			if(max_number < (1 << 8)){
 				b = 8;
 			}
@@ -451,61 +456,30 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 			else{
 				b=32;
 			}
-				count += block_size*b;
-			}
+				if(k ==num_blocks && num_remaining >0){
+					count+= (num_remaining)*b/8;
+				}
+				else if(k < num_blocks){
+					count += (block_size)*b/8;
+				}
+				else{}
+			
 		}
-		// figure out how many bits needed for remaining edges	
-		
-
-		for(j; j< Degrees[i]; j++){
-				if(first_edge){		
-				intE preCompress = (intE)(edge - i);
-				uintE toCompress = abs(preCompress);
-				if(toCompress < (1 << 7)){
-					count += 1;
-				}
-				else if(toCompress < (1 << 15)){
-					count += 2;
-				}
-				else if(toCompress < (1 << 23)){
-					count += 3;
-				}
-				else{ 
-					count += 4;
-				}
-				first_edge=0;
-				}
-				else{
-					edge = *(edgePtr+j);
-					difference = edge - prevEdge;
-					prevEdge = edge;	
-					if(difference < (1<<8)){
-						count +=1;
-					}
-					else if(difference < (1 << 16)){
-						count += 2;
-					}
-					else if(difference < (1 << 24)){
-						count += 3;
-					}
-					else{
-						count += 4;
-					}
-				}
-		}	
-		}
-					charsUsedArr[i] = count;
+	}
+			charsUsedArr[i] = count;	
 	}
 	long totalSpace = sequence::plusScan(charsUsedArr, compressionStarts, n);
 	compressionStarts[n] = totalSpace;
 	uchar *finalArr = newA(uchar, totalSpace);	
+	free(charsUsedArr);
 	{parallel_for(long i=0;i<n;i++){
 
 		long charsUsed = sequentialCompressEdgeSet((uchar *)(finalArr+compressionStarts[i]), 0, Degrees[i], i, edges + offsets[i]);
 		offsets[i] = compressionStarts[i];
 	}}
+	cout << "after sequentialCompress loop " << endl;
+
 	offsets[n] = totalSpace;
-	free(charsUsedArr);
 	
 	cout << "total space requested is: " << totalSpace << endl;
 	float avgBitsPerEdge = (float)totalSpace*8 / (float)m;
@@ -516,42 +490,128 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 	return ((uintE *)finalArr);
 }
 
+uintE bp_decode(uchar* edgeStart, long &currentOffset, uint num_bytes){
+	uintE edgeRead = 0;
+	for(uint j = 0; j < num_bytes; j++){
+		edgeRead |= edgeStart[currentOffset] << j*8;
+		currentOffset++;
+	}	
+	return edgeRead;
+}
+
+
+intE bp_decode_first(uintE source, long &currentOffset, uchar* edgeStart, uint num_bytes){
+	intE edgeRead = 0;
+	uchar b = num_bytes * 8;
+	// decode first edge
+	uchar signBit = 0;
+	
+	for(uint j = 0; j < num_bytes; j++){
+		if(j == (num_bytes-1)){
+			signBit = 0x80 & edgeStart[currentOffset];
+			edgeRead |= (edgeStart[currentOffset] & 0x7f) << j*8;
+		}
+		else{
+			edgeRead |= edgeStart[currentOffset] << j*8;
+		}
+		currentOffset++;
+	}
+	return edgeRead;
+}
 
 template <class T>
 inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degree, const bool par=true){
-  size_t edgesRead = 0;
+	uint block_size = 0;	
+  uintE edgesRead = 0;
   if(degree > 0) {
-    // space used by control stream
-    uintT controlLength = (degree + 3)/4;
-    // set data pointer to location after control stream (ie beginning of data stream)
-    long currentOffset = 0;
-    long dataOffset = controlLength + currentOffset;
-    //	cout << "before set key" << endl;
-    uchar key = edgeStart[currentOffset];
-    //	cout << "key: " << key << endl;
-    //	uchar *dataOffset = (edgeStart + sizeof(uchar)*controlLength);
-    uintE startEdge = eatFirstEdge(key, source, dataOffset, currentOffset, edgeStart);
-    //	cout << "after startEdge" << endl;
-    if(!t.srcTarg(source,startEdge,edgesRead)){
-      return;
-    }	
-    uintT shift = 2;
-    uintE edge = startEdge;
-    for (edgesRead = 1; edgesRead < degree; edgesRead++){      
-      if(shift == 8){
+		if(degree >= 128){
+			block_size = 128;
+		}
+		else if(degree >= 64){
+			block_size = 64;
+		}
+		else if(degree >= 32){
+			block_size = 32;
+		}
+		else if(degree >= 16){
+			block_size = 16;
+		}
+		else if(degree >= 8){
+			block_size = 8;
+		}
+		else{
+			block_size = 4;
+		}
+
+	uint num_blocks = degree/block_size;
+	uint num_remaining = degree - block_size*num_blocks;
+	long currentOffset = 0;
+//	bool firstEdge = true;
+	uintE startEdge = 0;
+	uintE edge = 0;
+	uintE edgeRead = 0;
+	
+	// read first header
+	uchar b = edgeStart[currentOffset];
+	uint num_bytes = b/8;
 	currentOffset++;
-	key = edgeStart[currentOffset];
-	shift = 0;
-      }
-      // decode stored value and add to previous edge value (stored using differential encoding)
-      uintE edgeRead = eatEdge(key, dataOffset, shift, currentOffset, edgeStart);
-      edge = edgeRead + startEdge;
-      startEdge = edge;
-      if (!t.srcTarg(source, edge, edgesRead)){
-	break;
-      }
-      shift += 2;
-    }
+	edge = bp_decode_first(source, currentOffset, edgeStart, num_bytes);
+	// if first edge block is only block, save
+	startEdge = edge;
+	if(!t.srcTarg(source, edge, edgesRead++)){
+		return;
+	}
+
+	if(num_blocks == 0){
+		for(uint i =1; i < num_remaining; i++){
+			edgeRead  = bp_decode(edgeStart, currentOffset, num_bytes);
+			edge = edgeRead + startEdge;
+			startEdge = edge;
+			if(!t.srcTarg(source, edge, edgesRead++)){
+				return;
+			}
+		}
+	}
+	else{
+		// otherwise, iterate over rest of elements in block
+		for(long i=1; i < block_size; i++){
+			edgeRead = bp_decode(edgeStart, currentOffset, num_bytes);
+			edge = edgeRead + startEdge;
+			startEdge = edge;
+			if(!t.srcTarg(source, edge, edgesRead++)){
+				return;
+			}
+
+		}
+		// try parallelizing by calculating index
+		for(long i=1; i < num_blocks; i++){
+			b = edgeStart[currentOffset];
+			currentOffset++;
+			num_bytes = b/8;
+			for(int j = 0; j < block_size; j++){
+				edgeRead = bp_decode(edgeStart, currentOffset, num_bytes);
+				edge = edgeRead + startEdge;
+				startEdge = edge;
+				if(!t.srcTarg(source, edge, edgesRead++)){
+					return;
+				}
+
+			}
+		}
+		if(num_remaining > 0){
+			b = edgeStart[currentOffset];
+			currentOffset++;
+			num_bytes = b/8;
+			for(long i=0; i < num_remaining; i++){
+				edgeRead = bp_decode(edgeStart,currentOffset, num_bytes);
+				edge = edgeRead + startEdge;
+				startEdge = edge;
+				if(!t.srcTarg(source, edge, edgesRead++)){
+					return;
+				}
+			}
+		}
+	}
   }
 };
 

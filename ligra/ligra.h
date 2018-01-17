@@ -473,6 +473,7 @@ int parallel_main(int argc, char* argv[]) {
     if (symmetric) {
       graph<compressedSymmetricVertex> G =
         readCompressedGraph<compressedSymmetricVertex>(iFile,symmetric,mmap); //symmetric graph
+	//getchar();
       Compute(G,P);
       for(int r=0;r<rounds;r++) {
         startTime();
@@ -483,7 +484,8 @@ int parallel_main(int argc, char* argv[]) {
     } else {
       graph<compressedAsymmetricVertex> G =
         readCompressedGraph<compressedAsymmetricVertex>(iFile,symmetric,mmap); //asymmetric graph
-      Compute(G,P);
+   // getchar();
+	  Compute(G,P);
       if(G.transposed) G.transpose();
       for(int r=0;r<rounds;r++) {
         startTime();
@@ -497,6 +499,7 @@ int parallel_main(int argc, char* argv[]) {
     if (symmetric) {
       graph<symmetricVertex> G =
         readGraph<symmetricVertex>(iFile,compressed,symmetric,binary,mmap); //symmetric graph
+//	getchar();
       Compute(G,P);
       for(int r=0;r<rounds;r++) {
         startTime();
@@ -507,7 +510,8 @@ int parallel_main(int argc, char* argv[]) {
     } else {
       graph<asymmetricVertex> G =
         readGraph<asymmetricVertex>(iFile,compressed,symmetric,binary,mmap); //asymmetric graph
-      Compute(G,P);
+//	getchar(); 
+     Compute(G,P);
       if(G.transposed) G.transpose();
       for(int r=0;r<rounds;r++) {
         startTime();

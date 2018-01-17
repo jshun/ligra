@@ -36,6 +36,8 @@
 #include "streamvbyte_vec.h"
 #elif defined BP
 #include "bitpacking.h"
+#elif defined VARINTGB
+#include "varintGB.h"
 #else
 #include "byteRLE.h"
 #endif
@@ -52,6 +54,8 @@
 #include "streamvbyte_vec.h"
 #elif defined BP
 #include "bitpacking.h"
+#elif defined VARINTGB
+#include "varintGB.h"
 #else
 #include "byteRLE-pd.h"
 #endif
@@ -72,8 +76,13 @@ struct printAdjT {
   stringstream* ss;
   printAdjT(stringstream *_ss) : ss(_ss) {}
   bool srcTarg(uintE src, uintE target, uintT edgeNumber) {
+    if(edgeNumber == 0){
+	*ss << "first edge: " << target << endl;
+    }
+    else{
     *ss << target << endl;
-    return true;
+    }  
+  return true;
   }
   bool srcTarg(uintE src, uintE target, intE weight, uintT edgeNumber) {
     *ss << target << endl;
@@ -135,7 +144,8 @@ int parallel_main(int argc, char* argv[]) {
   sequence::plusScan(DegreesSum,DegreesSum,n);
   stringstream ss;
   setWorkers(1); //writing sequentially to file
-  for(long i=0;i<n;i++) ss << DegreesSum[i] << endl;
+  //comment out so that only have answers written, not degree sums?
+//  for(long i=0;i<n;i++) ss << DegreesSum[i] << endl;
   free(DegreesSum);
   out << ss.str();
   cout << "writing edges..."<<endl;

@@ -34,6 +34,8 @@
 #include "streamvbyte_256.h"
 #elif defined BP
 #include "bitpacking.h"
+#elif defined VARINTGB
+#include "varintGB.h"
 #else
 #include "byteRLE.h"
 #endif
@@ -48,6 +50,8 @@
 #include "streamvbyte_256.h"
 #elif defined BP
 #include "bitpacking.h"
+#elif defined VARINTGB
+#include "varintGB.h"
 #else
 #include "byteRLE-pd.h"
 #endif
@@ -122,6 +126,7 @@ int parallel_main(int argc, char* argv[]) {
     for(long i=0;i<G.n;i++) edges[i] = newA(uintE,G.V[i].getOutDegree());
     timer t;
     decodeGraph(G,weighted,edges);
+	//getchar();
     for(long i=0;i<rounds;i++) {
       t.start();
       decodeGraph(G,weighted,edges);

@@ -14,6 +14,8 @@
 #include "streamvbyte_vec.h"
 #elif defined BP
 #include "bitpacking.h"
+#elif defined VARINTGB
+#include "varintGB.h"
 #else
 #include "byteRLE.h"
 #endif
@@ -30,6 +32,8 @@
 #include "streamvbyte_vec.h"
 #elif defined BP
 #include "bitpacking.h"
+#elif defined VARINTGB
+#include "varintGB.h"
 #else
 #include "byteRLE-pd.h"
 #endif
