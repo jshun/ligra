@@ -516,6 +516,7 @@ intE bp_decode_first(uintE source, long &currentOffset, uchar* edgeStart, uint n
 		}
 		currentOffset++;
 	}
+	edgeRead = (signBit) ? source - edgeRead : source + edgeRead;
 	return edgeRead;
 }
 

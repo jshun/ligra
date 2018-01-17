@@ -61,9 +61,9 @@ if debug:
 for testfile in ntestfiles :
 	for p in processors :
 		if p==1:
-			css = "export CILK_NWORKERS=1; ./decoderSpeed -s -rounds 5 "+dataDir+testfile[0]+compression[compression_num]
+			css = "export CILK_NWORKERS=1; ./decoderSpeed -s -c -rounds 5 "+dataDir+testfile[0]+compression[compression_num]
 		else:
-			css = "export CILK_NWORKERS="+`p`+"; numactl -i all ./decoderSpeed -s -rounds 5 "+' '+dataDir+testfile[0]+compression[compression_num]
+			css = "export CILK_NWORKERS="+`p`+"; numactl -i all ./decoderSpeed -s -c -rounds 5 "+' '+dataDir+testfile[0]+compression[compression_num]
 		print "decoderSpeed"+" "+`p`+" "+testfile[0]+" Ligra+"
 		print shellGetOutput(css)
 		sys.stdout.flush()
@@ -105,67 +105,67 @@ for app in applications:
 
 
 #os.system("make clean; make -j16; ~/hog2 250")
-for testfile in testfiles :
-	for p in processors :
-		if p==1:
-			css = "export CILK_NWORKERS=1; ./decoderSpeed -rounds 5 "+dataDir+testfile[0]+compression[compression_num]
-		else:
-			css = "export CILK_NWORKERS="+`p`+"; numactl -i all ./decoderSpeed -rounds 5 "+' '+dataDir+testfile[0]+compression[compression_num]
-		print "decoderSpeed"+" "+`p`+" "+testfile[0]+" Ligra+"
-		print shellGetOutput(css)
-		sys.stdout.flush()
+#for testfile in testfiles :
+#	for p in processors :
+#		if p==1:
+#			css = "export CILK_NWORKERS=1; ./decoderSpeed -rounds 5 "+dataDir+testfile[0]+compression[compression_num]
+#		else:
+#			css = "export CILK_NWORKERS="+`p`+"; numactl -i all ./decoderSpeed -rounds 5 "+' '+dataDir+testfile[0]+compression[compression_num]
+#		print "decoderSpeed"+" "+`p`+" "+testfile[0]+" Ligra+"
+#		print shellGetOutput(css)
+#		sys.stdout.flush()
 
 
 
-for app in applications:
-  for testfile in testfiles :
-    for p in processors :
-      if p == 1:
+#for app in applications:
+ # for testfile in testfiles :
+  #  for p in processors :
+   #   if p == 1:
        # ss = "export CILK_NWORKERS=1; ./"+app+' -rounds 1 -maxiters 1 -r '+testfile[1]+' '+bdataDir+testfile[0]
-        css = "export CILK_NWORKERS=1; ./"+app+' -rounds 5 -c -r '+testfile[1]+' '+dataDir+testfile[0]+compression[compression_num]
-      else:
+    #    css = "export CILK_NWORKERS=1; ./"+app+' -rounds 5 -c -r '+testfile[1]+' '+dataDir+testfile[0]+compression[compression_num]
+     # else:
       #  ss = "export CILK_NWORKERS="+`p`+"; numactl -i all ./" + app + ' -maxiters 1 -r '+testfile[1]+ ' ' + bdataDir + testfile[0]
-        css = "export CILK_NWORKERS="+`p`+"; numactl -i all ./" + app + ' -rounds 5 -c -r '+testfile[1]+ ' ' + dataDir + testfile[0]+ compression[compression_num]
+      #  css = "export CILK_NWORKERS="+`p`+"; numactl -i all ./" + app + ' -rounds 5 -c -r '+testfile[1]+ ' ' + dataDir + testfile[0]+ compression[compression_num]
      # print app+" "+`p` + " " + testfile[0] + " Ligra"
      # print shellGetOutput(ss)
      # sys.stdout.flush()
-      print app+" "+`p` + " " + testfile[0] + " Ligra+" 
-      print shellGetOutput(css)
-      sys.stdout.flush()
+    #  print app+" "+`p` + " " + testfile[0] + " Ligra+" 
+     # print shellGetOutput(css)
+     # sys.stdout.flush()
 
 
-for app in rapplications:
-  for testfile in testfiles :
-    for p in processors :
-      if p == 1:
+#for app in rapplications:
+ # for testfile in testfiles :
+   # for p in processors :
+     # if p == 1:
        # ss = "export CILK_NWORKERS=1; ./"+app+' -rounds 1 -maxiters 1 -r '+testfile[1]+' '+bdataDir+testfile[0]
-        css = "export CILK_NWORKERS=1; ./"+app+' -c -rounds 5 -maxiters 1 -r '+testfile[1]+' '+dataDir+testfile[0]+compression[compression_num]
-      else:
+      #  css = "export CILK_NWORKERS=1; ./"+app+' -c -rounds 5 -maxiters 1 -r '+testfile[1]+' '+dataDir+testfile[0]+compression[compression_num]
+     # else:
       #  ss = "export CILK_NWORKERS="+`p`+"; numactl -i all ./" + app + ' -maxiters 1 -r '+testfile[1]+ ' ' + bdataDir + testfile[0]
-        css = "export CILK_NWORKERS="+`p`+"; numactl -i all ./" + app + ' -c -rounds 5 -maxiters 1 -r '+testfile[1]+ ' ' + dataDir + testfile[0]+ compression[compression_num]
+      #  css = "export CILK_NWORKERS="+`p`+"; numactl -i all ./" + app + ' -c -rounds 5 -maxiters 1 -r '+testfile[1]+ ' ' + dataDir + testfile[0]+ compression[compression_num]
      # print app+" "+`p` + " " + testfile[0] + " Ligra"
      # print shellGetOutput(ss)
      # sys.stdout.flush()
-      print app+" "+`p` + " " + testfile[0] + " Ligra+" 
-      print shellGetOutput(css)
-      sys.stdout.flush()
+     # print app+" "+`p` + " " + testfile[0] + " Ligra+" 
+     # print shellGetOutput(css)
+      #sys.stdout.flush()
 
 	
-for app in wapplications:
-  for testfile in wtestfiles :
-    for p in processors :
-      if p == 1:
+#for app in wapplications:
+ # for testfile in wtestfiles :
+  #  for p in processors :
+   #   if p == 1:
     #    ss = "export CILK_NWORKERS=1; ./"+app+' -rounds 1 -r '+testfile[1]+' '+bdataDir+testfile[0]
-        css = "export CILK_NWORKERS=1; ./"+app+' -c -rounds 1 -r '+testfile[1]+' '+dataDir+testfile[0]+compression[compression_num]
-      else:
+     #   css = "export CILK_NWORKERS=1; ./"+app+' -c -rounds 1 -r '+testfile[1]+' '+dataDir+testfile[0]+compression[compression_num]
+    #  else:
    #     ss = "export CILK_NWORKERS="+`p`+"; numactl -i all ./" + app + ' -r '+testfile[1]+ ' ' + bdataDir + testfile[0]
-        css = "export CILK_NWORKERS="+`p`+"; numactl -i all ./" + app + ' -c -r '+testfile[1]+ ' ' + dataDir + testfile[0]+ compression[compression_num]
+      #  css = "export CILK_NWORKERS="+`p`+"; numactl -i all ./" + app + ' -c -r '+testfile[1]+ ' ' + dataDir + testfile[0]+ compression[compression_num]
 #      print app+" "+`p` + " " + testfile[0] + " Ligra"
  #     print shell.getoutput(ss)
   #    sys.stdout.flush()
-      print app+" "+`p` + " " + testfile[0] + " Ligra+" 
-      print shellGetOutput(css)
-      sys.stdout.flush()
+    #  print app+" "+`p` + " " + testfile[0] + " Ligra+" 
+   #   print shellGetOutput(css)
+     # sys.stdout.flush()
 
 
 # for app in applications:
