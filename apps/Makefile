@@ -44,7 +44,7 @@ PLFLAGS = -fcilkplus -lcilkrts
 
 else ifdef MKLROOT
 PCC = icpc
-PCFLAGS = -std=c++14 -O3 -DCILKP $(INTT) $(INTE) $(CODE) $(PD) $(MEM)
+PCFLAGS = -std=c++14 -O3 -g -DCILKP $(INTT) $(INTE) $(CODE) $(PD) $(MEM)
 
 else ifdef OPENMP
 PCC = g++

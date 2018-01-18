@@ -495,11 +495,11 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 	compressionStarts[n] = totalSpace;
 	uchar *finalArr = newA(uchar, totalSpace);	
 	free(charsUsedArr);
-	{parallel_for(long i=0;i<n;i++){
+	for(long i=0;i<n;i++){
 
 		long charsUsed = sequentialCompressEdgeSet((uchar *)(finalArr+compressionStarts[i]), 0, Degrees[i], i, edges + offsets[i]);
 		offsets[i] = compressionStarts[i];
-	}}
+	}
 	cout << "after sequentialCompress loop " << endl;
 
 	offsets[n] = totalSpace;
@@ -516,10 +516,28 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 uintE bp_decode(uchar* edgeStart, long &currentOffset, uint num_bytes){
 	uintE edgeRead = 0;
 	// recover diff stored in block
-	for(uint j = 0; j < num_bytes; j++){
+	/*for(uint j = 0; j < num_bytes; j++){
 		edgeRead |= edgeStart[currentOffset] << j*8;
 		currentOffset++;
-	}	
+	}	*/
+
+	switch(num_bytes){
+		case 1: 
+			edgeRead = edgeStart[currentOffset++];
+			break;
+		case 2: 
+			edgeRead = edgeStart[currentOffset] + (edgeStart[currentOffset+1] << 8);
+			currentOffset += 2;
+			break;
+		case 3:
+			edgeRead = edgeStart[currentOffset] + (edgeStart[currentOffset+1] << 8) + (edgeStart[currentOffset+2] << 16);
+			currentOffset += 3;
+			break;
+		case 4:
+			edgeRead = edgeStart[currentOffset] + (edgeStart[currentOffset+1] << 8) + (edgeStart[currentOffset+2] << 16) + (edgeStart[currentOffset+3] << 24);
+			currentOffset += 4;
+			break;
+	}
 	return edgeRead;
 }
 
@@ -530,7 +548,7 @@ intE bp_decode_first(uintE source, long &currentOffset, uchar* edgeStart, uint n
 	// decode first edge
 	uchar signBit = 0;
 	
-	for(uint j = 0; j < num_bytes; j++){
+	/*for(uint j = 0; j < num_bytes; j++){
 		// if byte containing MSB, use mask to save signBit and then remove it from edgeRead
 		if(j == (num_bytes-1)){
 			signBit = 0x80 & edgeStart[currentOffset];
@@ -540,6 +558,28 @@ intE bp_decode_first(uintE source, long &currentOffset, uchar* edgeStart, uint n
 			edgeRead |= edgeStart[currentOffset] << j*8;
 		}
 		currentOffset++;
+	}*/
+
+	switch(num_bytes){
+		case 1:
+			signBit = 0x80 & edgeStart[currentOffset];
+			edgeRead = (edgeStart[currentOffset++] & 0x7f);
+			break;
+		case 2:
+			signBit = 0x80 & edgeStart[currentOffset+1];
+			edgeRead = edgeStart[currentOffset] + ((edgeStart[currentOffset+1] & 0x7f) << 8);
+			currentOffset+=2;
+			break;
+		case 3:
+			signBit = 0x80 & edgeStart[currentOffset+2];
+			edgeRead = edgeStart[currentOffset] + (edgeStart[currentOffset+1] << 8) + ((edgeStart[currentOffset+2] & 0x7f) << 16);
+			currentOffset += 3;
+			break;
+		case 4:
+			signBit = 0x80 & edgeStart[currentOffset+3];
+			edgeRead = edgeStart[currentOffset] + (edgeStart[currentOffset+1] << 8) + (edgeStart[currentOffset+2] << 16) + ((edgeStart[currentOffset+3] & 0x7f) << 24);
+			currentOffset +=4;
+			break;
 	}
 	edgeRead = (signBit) ? source - edgeRead : source + edgeRead;
 	return edgeRead;

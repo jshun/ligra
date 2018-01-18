@@ -145,7 +145,7 @@ int parallel_main(int argc, char* argv[]) {
   stringstream ss;
   setWorkers(1); //writing sequentially to file
   //comment out so that only have answers written, not degree sums?
-//  for(long i=0;i<n;i++) ss << DegreesSum[i] << endl;
+  for(long i=0;i<n;i++) ss << DegreesSum[i] << endl;
   free(DegreesSum);
   out << ss.str();
   cout << "writing edges..."<<endl;
