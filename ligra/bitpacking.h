@@ -290,97 +290,67 @@ long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degre
 		// find number of remaining elements in partial block
 		uint num_remaining = (degree-1) - block_size*num_blocks;
 	
-		// for first edge
-	//	bool first_edge = 1;
-	//	bool first_edge2 = 0;
-	//	uchar signBit = 0;
-	//	uintE toCompress;
-
 		uintE edge = savedEdges[0];
 		uintE prevEdge = savedEdges[0];	
-		uintE difference[degree];
-			
-		// array containing bit widths per blocks
-		uchar b[num_blocks+1];
+		currentOffset = compressFirstEdge(edgeArray, currentOffset, vertexNum, savedEdges[0]);
+
+		uchar b;
 		long k,j;
 		long start, end;
 		// iterate over blocks (last iteration doesn't store anything if num_remaining==0)
-		for(k=0; k < 1+ num_blocks; k++){	
+		uintE difference[block_size];
+		for(k=0; k < num_blocks; k++){	
 			// indices for diff array
 			start = k*block_size;
 			end = block_size*(k+1);
-			if(k == num_blocks){
-				end = degree-1;
-			}
 			max_number = 0;
-			// iterate over elements stored in one block
+			uint index = 0;
 			for(j=start;j<end;j++){
-				// first edge computations
-	/*			if(first_edge){		
-					intE preCompress = (intE)(edge - vertexNum);
-					signBit = (preCompress < 0) ? 1 : 0;
-					toCompress = abs(preCompress);
-					if(toCompress < (1 << 7)){
-						max_number = (1 <<7) | toCompress;
-					}
-					else if(toCompress < (1 << 15)){
-						max_number = (1 << 15) | toCompress; 
-					}
-					else if(toCompress < (1 << 23)){
-						max_number = (1 << 23) | toCompress;
-					}
-					else{ 
-						max_number = (1 << 31) | toCompress;
-					}
-					first_edge = 0;
-					first_edge2 = 1;
-					}
-				else{*/
-					// find diff 
-					edge = savedEdges[j+1];
-					difference[j] = edge - prevEdge;
-					max_number = (max_number < difference[j]) ? difference[j] : max_number;		
-					prevEdge = edge;	
-			//	}
+					difference[index] = savedEdges[j+1] - savedEdges[j];
+					max_number = (max_number < difference[index]) ? difference[index] : max_number;		
+					index++;
 			}
 			// decide bit width depending on the max number
 			if(max_number < (1 << 8)){
-				b[k] = 8;
+				b = 8;
 			}
 			else if(max_number < (1 << 16)){
-				b[k]=16;
+				b=16;
 			}
 			else if(max_number < (1 << 24)){
-				b[k]=24;
+				b=24;
 			}
 			else{
-				b[k]=32;
+				b=32;
 			}
-			// once know bit width for first block, store sign bit as MSB
-		/*	if(first_edge2){
-				toCompress |= (signBit << (b[k]-1)); 
-				first_edge2 = 0;
-				difference[0] = toCompress;
+			currentOffset = bp(0, difference, block_size, b, currentOffset, edgeArray);
+		}
+		if(num_remaining>0){
+			// indices for diff array
+			start = num_blocks*block_size;
+			end = degree-1;
+			max_number = 0;
+			uint index = 0;
+			for(j=start;j<end;j++){
+				difference[index] = savedEdges[j+1] - savedEdges[j];
+				max_number = (max_number < difference[index]) ? difference[index] : max_number;	
+				index++;	
 			}
-		*/	
-		}
-		// index into diff array
-		uint index = 0;
-		long i = 0;
-		// iterate over full blocks
-
-		// encoder first edge by calling function 
-		currentOffset = compressFirstEdge(edgeArray, currentOffset, vertexNum, savedEdges[0]);
-	
-		for(i;i<num_blocks;i++){
-			index = block_size * i;
-			currentOffset = bp(index, difference, block_size, b[i], currentOffset, edgeArray);
-		}
-		// iterate over partial block if there is one
-		if(num_remaining > 0){
-			index = block_size*i;
-			currentOffset = bp(index, difference, num_remaining, b[i], currentOffset, edgeArray);
-		}
+			// decide bit width depending on the max number
+			if(max_number < (1 << 8)){
+				b = 8;
+			}
+			else if(max_number < (1 << 16)){
+				b=16;
+			}
+			else if(max_number < (1 << 24)){
+				b=24;
+			}
+			else{
+				b=32;
+			}
+			currentOffset = bp(0, difference, num_remaining, b, currentOffset, edgeArray);
+			}
 		}
 		return currentOffset;
 }
@@ -417,7 +387,6 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 	uintE edge = *edgePtr;
 
 	  intE preCompress = (intE) *edgePtr - i;
-	  //int bytesUsed = 0;
 	  uchar firstByte = 0;
 	  intE toCompress = abs(preCompress);
 	  firstByte = toCompress & 0x3f; // 0011|1111
@@ -428,20 +397,16 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 	  if (toCompress > 0) {
 	    firstByte |= 0x80;
 	  }
-//	  start[offset] = firstByte;
 	  count++;
 
 	  uchar curByte = toCompress & 0x7f;
 	  while ((curByte > 0) || (toCompress > 0)) {
-	    //bytesUsed++;
 	    uchar toWrite = curByte;
 	    toCompress = toCompress >> 7;
-	    // Check to see if there's any bits left to represent
 	    curByte = toCompress & 0x7f;
 	    if (toCompress > 0) {
 	      toWrite |= 0x80;
 	    }
-	    //start[offset] = toWrite;
 	    count++;
 	  }
 
@@ -451,7 +416,6 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 		if(num_remaining > 0){
 			count++;
 		}
-			//bool first_edge = 1;
 			uintE prevEdge = *edgePtr;	
 			uintE difference;
 			long k,j;
@@ -464,32 +428,12 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 			}
 			max_number = 0;
 			for(j= start;j<end;j++){
-			/*	if(first_edge){		
-					intE preCompress = (intE)(edge - i);
-					uintE toCompress = abs(preCompress);
-					uintT signBit = (preCompress < 0) ? 1 : 0;
-					if(toCompress < (1 << 7)){
-						max_number = (1 <<7) | toCompress;
-					}
-					else if(toCompress < (1 << 15)){
-						max_number = (1 << 15) | toCompress; 
-					}
-					else if(toCompress < (1 << 23)){
-						max_number = (1 << 23) | toCompress;
-					}
-					else{ 
-						max_number = (1 << 31) | toCompress;
-					}
-					first_edge=0;
-				}
-				else{*/
 					edge = *(edgePtr+j+1);
 					difference = edge - prevEdge;
 					if(difference > max_number){
 						max_number = difference;
 					}
 					prevEdge = edge;	
-			//	}
 			}
 			if(max_number < (1 << 8)){
 				b = 8;
@@ -520,7 +464,7 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 	uchar *finalArr = newA(uchar, totalSpace);	
 	free(charsUsedArr);
 	for(long i=0;i<n;i++){
-
+		
 		long charsUsed = sequentialCompressEdgeSet((uchar *)(finalArr+compressionStarts[i]), 0, Degrees[i], i, edges + offsets[i]);
 		offsets[i] = compressionStarts[i];
 	}
@@ -539,12 +483,6 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 
 uintE bp_decode(uchar* edgeStart, long &currentOffset, uint num_bytes){
 	uintE edgeRead = 0;
-	// recover diff stored in block
-	/*for(uint j = 0; j < num_bytes; j++){
-		edgeRead |= edgeStart[currentOffset] << j*8;
-		currentOffset++;
-	}	*/
-
 	switch(num_bytes){
 		case 1: 
 			edgeRead = edgeStart[currentOffset++];
@@ -571,19 +509,6 @@ intE bp_decode_first(uintE source, long &currentOffset, uchar* edgeStart, uint n
 	uchar b = num_bytes * 8;
 	// decode first edge
 	uchar signBit = 0;
-	
-	/*for(uint j = 0; j < num_bytes; j++){
-		// if byte containing MSB, use mask to save signBit and then remove it from edgeRead
-		if(j == (num_bytes-1)){
-			signBit = 0x80 & edgeStart[currentOffset];
-			edgeRead |= (edgeStart[currentOffset] & 0x7f) << j*8;
-		}
-		else{
-			edgeRead |= edgeStart[currentOffset] << j*8;
-		}
-		currentOffset++;
-	}*/
-
 	switch(num_bytes){
 		case 1:
 			signBit = 0x80 & edgeStart[currentOffset];
