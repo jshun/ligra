@@ -10,7 +10,7 @@ import time
 import subprocess
 
 # nibble = 0, byte = 1, rle = 2, streamvbyte = 3, streamcase = 4, bitpacking = 5, varint-GB = 6
-compression_num = 0;	
+compression_num = 5;	
 
 def signal_handler(signal,frame):
   print "bye\n"
@@ -45,7 +45,7 @@ compression = [(".nibble"), (".byte"), (".rle"), (".streamvbyte"), (".streamcase
 
 #wtestfiles = [("randLocalGraph_WJ_5_10000000_ordered","1"),("3Dgrid_WJ_10000000_ordered","1"),("soc-LiveJournal1.txt_WJ_psep_ordered","10000"),("cit-Patents.txt_WJ_psep_ordered","3000000"),("com-lj.ungraph.txt_WJ_psep_ordered","3000000"),("com-orkut.ungraph.txt_WJ_psep_ordered","10000"),("nlpkkt_bfsR_WJ","1")]
 
-processors = [32]
+processors = [2,4,8,32]
 #processors = [1,2,4,8]
 #processors = [1,2,4]+range(8,80+1,8)
 #processors = [1]+range(40,81,8)
@@ -60,9 +60,9 @@ if debug:
 for testfile in btestfiles :
 	for p in processors :
 		if p==1:
-			css = "export CILK_NWORKERS=1; ./decoderSpeed -rounds 5"+dataDir+testfile[0]+compression[compression_num]
+			css = "export CILK_NWORKERS=1; ./decoderSpeed -c -rounds 5"+dataDir+testfile[0]+compression[compression_num]
 		else:
-			css = "export CILK_NWORKERS="+`p`+"; numactl -i all ./decoderSpeed  -rounds 5"+' '+dataDir+testfile[0]+compression[compression_num]
+			css = "export CILK_NWORKERS="+`p`+"; numactl -i all ./decoderSpeed -c  -rounds 5"+' '+dataDir+testfile[0]+compression[compression_num]
 		print "decoderSpeed"+" "+`p`+" "+testfile[0]+" Ligra+"
 		print shellGetOutput(css)
 		sys.stdout.flush()

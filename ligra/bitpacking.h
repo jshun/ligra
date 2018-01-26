@@ -463,11 +463,14 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 	compressionStarts[n] = totalSpace;
 	uchar *finalArr = newA(uchar, totalSpace);	
 	free(charsUsedArr);
-	for(long i=0;i<n;i++){
+//	long test_counter =0;
+	parallel_for(long i=0;i<n;i++){
 		
 		long charsUsed = sequentialCompressEdgeSet((uchar *)(finalArr+compressionStarts[i]), 0, Degrees[i], i, edges + offsets[i]);
+//		test_counter += charsUsed;
 		offsets[i] = compressionStarts[i];
 	}
+//	cout << "charsUsed " << test_counter << endl;
 	cout << "after sequentialCompress loop " << endl;
 
 	offsets[n] = totalSpace;
@@ -481,84 +484,43 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 	return ((uintE *)finalArr);
 }
 
-uintE bp_decode(uchar* edgeStart, long &currentOffset, uint num_bytes){
-	uintE edgeRead = 0;
-	switch(num_bytes){
-		case 1: 
-			edgeRead = edgeStart[currentOffset++];
-			break;
-		case 2: 
-			edgeRead = edgeStart[currentOffset] + (edgeStart[currentOffset+1] << 8);
-			currentOffset += 2;
-			break;
-		case 3:
-			edgeRead = edgeStart[currentOffset] + (edgeStart[currentOffset+1] << 8) + (edgeStart[currentOffset+2] << 16);
-			currentOffset += 3;
-			break;
-		case 4:
-			edgeRead = edgeStart[currentOffset] + (edgeStart[currentOffset+1] << 8) + (edgeStart[currentOffset+2] << 16) + (edgeStart[currentOffset+3] << 24);
-			currentOffset += 4;
-			break;
-	}
-	return edgeRead;
-}
-
-
-intE bp_decode_first(uintE source, long &currentOffset, uchar* edgeStart, uint num_bytes){
-	intE edgeRead = 0;
-	uchar b = num_bytes * 8;
-	// decode first edge
-	uchar signBit = 0;
-	switch(num_bytes){
-		case 1:
-			signBit = 0x80 & edgeStart[currentOffset];
-			edgeRead = (edgeStart[currentOffset++] & 0x7f);
-			break;
-		case 2:
-			signBit = 0x80 & edgeStart[currentOffset+1];
-			edgeRead = edgeStart[currentOffset] + ((edgeStart[currentOffset+1] & 0x7f) << 8);
-			currentOffset+=2;
-			break;
-		case 3:
-			signBit = 0x80 & edgeStart[currentOffset+2];
-			edgeRead = edgeStart[currentOffset] + (edgeStart[currentOffset+1] << 8) + ((edgeStart[currentOffset+2] & 0x7f) << 16);
-			currentOffset += 3;
-			break;
-		case 4:
-			signBit = 0x80 & edgeStart[currentOffset+3];
-			edgeRead = edgeStart[currentOffset] + (edgeStart[currentOffset+1] << 8) + (edgeStart[currentOffset+2] << 16) + ((edgeStart[currentOffset+3] & 0x7f) << 24);
-			currentOffset +=4;
-			break;
-	}
-	edgeRead = (signBit) ? source - edgeRead : source + edgeRead;
-	return edgeRead;
-}
-
 template <class T>
 inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degree, const bool par=true){
   uint block_size = 0;	
   uintE edgesRead = 0;
   if(degree > 0) {
+	uint num_blocks = 0;
 	if(degree > 128){
 		block_size = 128;
+		num_blocks = (degree-1) >> 7;
+	//	num_blocks = (degree-1)*0.0078125;
 	}
 	else if(degree > 64){
 		block_size = 64;
+		num_blocks = (degree-1) >> 6;
+		//num_blocks = (degree-1)*0.015625;
 	}
 	else if(degree > 32){
 		block_size = 32;
+		num_blocks = (degree-1) >> 5;
+		//num_blocks = (degree-1)*0.03125;
 	}
 	else if(degree > 16){
 		block_size = 16;
+		num_blocks = (degree-1) >> 4;
+		//num_blocks = (degree-1)*0.0625;
 	}
 	else if(degree > 8){
 		block_size = 8;
+		num_blocks = (degree-1) >> 3;
+		//num_blocks = (degree-1)*0.125;
 	}
 	else{
 		block_size = 4;
+		num_blocks = (degree-1) >> 2;
+		//num_blocks = (degree-1)*0.25;
 	}
-
-	uint num_blocks = (degree-1)/block_size;
+	//uint num_blocks = (degree-1)/block_size;
 	uint num_remaining = (degree-1) - block_size*num_blocks;
 	long currentOffset = 0;
 	uintE startEdge = 0;
@@ -570,76 +532,155 @@ inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degr
 		return;
 	}	
 	edgesRead = 1;
-	// read first header
-/*	uchar b = edgeStart[currentOffset];
-	uint num_bytes = b/8;
-	currentOffset++;
-*/
-	// decode first edge
-/*	edge = bp_decode_first(source, currentOffset, edgeStart, num_bytes);
-	startEdge = edge;
-	if(!t.srcTarg(source, edge, edgesRead++)){
-		return;
-	}
-*/	
-	// if no full blocks, finish decoding partial block only
-/*	if(num_blocks == 0){
-		for(uint i =1; i < num_remaining; i++){
-			edgeRead  = bp_decode(edgeStart, currentOffset, num_bytes);
-			edge = edgeRead + startEdge;
-			startEdge = edge;
-			if(!t.srcTarg(source, edge, edgesRead++)){
-				return;
-			}
-		}
-	}
-	// otherwise, iterate over rest of elements in block
-	else{
-		// finish decoding first block
-		for(long i=1; i < block_size; i++){
-			edgeRead = bp_decode(edgeStart, currentOffset, num_bytes);
-			edge = edgeRead + startEdge;
-			startEdge = edge;
-			if(!t.srcTarg(source, edge, edgesRead++)){
-				return;
-			}
-		}
-		// try parallelizing by calculating index
-*/		// decode rest of full blocks
-		uchar b = 0;
-		uint num_bytes = 0;
-		currentOffset = 0;
-		for(long i=0; i < num_blocks; i++){
+	uchar b = 0;
+	uint num_bytes = 0;
+	currentOffset = 0;
+	//cout << "before num blocks loop" << endl;
+	for(long i=0; i < num_blocks; i++){
 			b = edgeStart[currentOffset];
 			currentOffset++;
 			num_bytes = b/8;
-			for(int j = 0; j < block_size; j++){
-				edgeRead = bp_decode(edgeStart, currentOffset, num_bytes);
-				edge = edgeRead + startEdge;
-				startEdge = edge;
-				if(!t.srcTarg(source, edge, edgesRead++)){
-					return;
-				}
-
+	//		cout << "num bytes " << num_bytes << endl;
+			switch(num_bytes){
+				case 1: 
+					for(int j=0; j< block_size;j++){
+						edgeRead = 0;
+						edgeRead = edgeStart[currentOffset++];
+						//edgeRead = *(edgeStart);
+						//edgeStart++;
+						edge = edgeRead + startEdge;
+						startEdge = edge;
+						if(!t.srcTarg(source, edge, edgesRead++)){
+							return;
+						}
+					}
+					break;
+				case 2:
+					for(int j=0; j< block_size;j++){
+						edgeRead = 0;
+						//edgeRead = edgeStart[currentOffset] + edgeStart[currentOffset+1] << 8;
+						edgeRead = edgeStart[currentOffset] + ((uintE)(edgeStart[currentOffset+1]) << 8);
+						 //memcpy(&edgeRead, edgeStart, 2);
+						// edgeStart +=2;
+						currentOffset += 2;
+						edge = edgeRead + startEdge;
+						startEdge = edge;
+						if(!t.srcTarg(source, edge, edgesRead++)){
+							return;
+						}
+					}
+					break;
+				case 3:
+	//				cout << "case 3 block_size " << endl;
+					for(int j=0; j<block_size;j++){
+						 edgeRead = 0;
+						edgeRead = edgeStart[currentOffset] + ((uintE)(edgeStart[currentOffset+1]) << 8) + ((uintE)(edgeStart[currentOffset+2]) << 16);
+						 //memcpy(&edgeRead, edgeStart, 3);
+						 //edgeStart+=3;
+						//edgeRead = edgeStart[currentOffset] + edgeStart[currentOffset+1] << 8 + edgeStart[currentOffset+2] << 16;
+						currentOffset += 3;
+						edge = edgeRead + startEdge;
+						startEdge = edge;
+	//					cout << "edgeRead " << edgeRead << endl;
+						if(!t.srcTarg(source, edge, edgesRead++)){
+							return;
+						}
+	//					cout << "end of case 3" << endl;
+					}	
+					break;
+				case 4:
+					for(int j=0; j< block_size;j++){
+						 edgeRead = 0;
+						edgeRead = edgeStart[currentOffset] + ((uintE)(edgeStart[currentOffset+1]) << 8) + ((uintE)(edgeStart[currentOffset+2]) << 16) + ((uintE)(edgeStart[currentOffset+3]) << 24);
+						 //memcpy(&edgeRead, edgeStart, 4);
+						// edgeStart +=4;
+					//	edgeRead = edgeStart[currentOffset] + edgeStart[currentOffset+1] << 8 + edgeStart[currentOffset+2] << 16 + edgeStart[currentOffset+3] << 24;
+						currentOffset += 4;
+						edge = edgeRead + startEdge;
+						startEdge = edge;
+						if(!t.srcTarg(source, edge, edgesRead++)){
+							return;
+						}
+					}	
+					break;
 			}
-		}
-		// decode partial block if there is one
+			}
+			// decode partial block if there is one
+	//	cout << "before num remaining if " << endl;
 		if(num_remaining > 0){
 			b = edgeStart[currentOffset];
 			currentOffset++;
 			num_bytes = b/8;
-			for(long i=0; i < num_remaining; i++){
-				edgeRead = bp_decode(edgeStart,currentOffset, num_bytes);
-				edge = edgeRead + startEdge;
-				startEdge = edge;
-				if(!t.srcTarg(source, edge, edgesRead++)){
-					return;
-				}
+			switch(num_bytes){
+				case 1: 
+					for(int j=0; j< num_remaining;j++){
+						edgeRead = 0;
+						edgeRead = edgeStart[currentOffset++];
+						//edgeRead = *(edgeStart);
+						//edgeStart++;
+						edge = edgeRead + startEdge;
+						startEdge = edge;
+						if(!t.srcTarg(source, edge, edgesRead++)){
+							return;
+						}
+					}
+					break;
+				case 2:
+					for(int j=0; j< num_remaining;j++){
+						edgeRead =0;
+						edgeRead = edgeStart[currentOffset] + ((uintE)(edgeStart[currentOffset+1]) << 8);
+						//edgeRead = edgeStart[currentOffset] + edgeStart[currentOffset+1] << 8;
+						currentOffset += 2;
+						//edgeRead = 0;
+						//memcpy(&edgeRead, edgeStart, 2);
+						//edgeStart+=2;
+						edge = edgeRead + startEdge;
+						startEdge = edge;
+						if(!t.srcTarg(source, edge, edgesRead++)){
+							return;
+						}
+					}
+					break;
+				case 3:
+					for(int j=0; j<num_remaining;j++){
+						edgeRead = 0;
+						edgeRead = edgeStart[currentOffset] + ((uintE)(edgeStart[currentOffset+1]) << 8) + ((uintE)(edgeStart[currentOffset+2]) << 16);
+						//edgeRead = edgeStart[currentOffset] + edgeStart[currentOffset+1] << 8 + edgeStart[currentOffset+2] << 16;
+						currentOffset += 3;
+						//edgeRead = 0;
+						//memcpy(&edgeRead, edgeStart, 3);
+						//edgeStart+=3;
+						edge = edgeRead + startEdge;
+						startEdge = edge;
+						if(!t.srcTarg(source, edge, edgesRead++)){
+							return;
+						}
+					}	
+					break;
+				case 4:
+					for(int j=0; j< num_remaining;j++){
+						edgeRead = 0;
+						edgeRead = edgeStart[currentOffset] + ((uintE)(edgeStart[currentOffset+1]) << 8) + ((uintE)(edgeStart[currentOffset+2]) << 16) + ((uintE)(edgeStart[currentOffset+3]) << 24);
+						//edgeRead = edgeStart[currentOffset] + edgeStart[currentOffset+1] << 8 + edgeStart[currentOffset+2] << 16 + edgeStart[currentOffset+3] << 24;
+						currentOffset += 4;
+					//	edgeRead = 0;
+					//	memcpy(&edgeRead, edgeStart, 4);
+					//	edgeStart+=4;
+						edge = edgeRead + startEdge;
+						startEdge = edge;
+						if(!t.srcTarg(source, edge, edgesRead++)){
+							return;
+						}
+					}	
+
+					break;
 			}
-		}
+
+
+			}
+
   }
 };
-
 template <class T>
 	inline void decodeWgh(T t, uchar* edgeStart, const uintE &source, const uintT &degree, const bool par=true){
 		size_t edgesRead = 0;
