@@ -60,26 +60,26 @@ inline intE eatFirstEdge(uchar controlKey, uintE source, long &dOffset, long con
   // 1 byte
   switch(checkCode) {
   case 0:
-    edgeRead = start[dOffset] & 0x7f;
+    edgeRead = (uintE)(start[dOffset] & 0x7f);
     // check sign bit and then get rid of it from actual value 
     signBit = start[dOffset] & 0x80;
     dOffset += 1;
     break;
     // 2 bytes
   case 1:
-    edgeRead = start[dOffset] + ((start[dOffset+1] & 0x7f) << 8);
+    edgeRead = (uintE)(start[dOffset]) + ((uintE)(start[dOffset+1] & 0x7f) << 8);
     signBit = 0x80 & start[dOffset+1];
     dOffset += 2;
     break;
     // 3 bytes
   case 2:
-    edgeRead = start[dOffset] + (start[dOffset+1] << 8) + ((start[dOffset+2] & 0x7f) << 16);
+    edgeRead = (uintE)(start[dOffset]) + ((uintE)start[dOffset+1] << 8) + ((uintE)(start[dOffset+2] & 0x7f) << 16);
     signBit = 0x80 & start[dOffset+2];
     dOffset += 3;
     break;
     // 4 bytes
   default:
-    edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + ((start[dOffset+3] & 0x7f) << 24);
+    edgeRead = (uintE)(start[dOffset]) + ((uintE)start[dOffset+1] << 8) + ((uintE)start[dOffset+2] << 16) + ((uintE)(start[dOffset+3] & 0x7f) << 24);
     signBit = start[dOffset+3] & 0x80;
     dOffset += 4;
   }
@@ -87,29 +87,29 @@ inline intE eatFirstEdge(uchar controlKey, uintE source, long &dOffset, long con
 }
 
 // decode remaining edges
-inline uintE eatEdge(uchar controlKey, long &dOffset, intT shift, long controlOffset, uchar* start){
+inline uintE eatEdge(uchar controlKey, long &dOffset, long controlOffset, uchar* start){
   // check two bit code in control stream
-  uintT checkCode = (controlKey >> shift) & 0x3;
+  //uintT checkCode = (controlKey >> shift) & 0x3;
   uintE edgeRead;
 
-  switch(checkCode) {
+  switch(controlKey & 0x3) {
     // 1 byte
   case 0:
-    edgeRead = start[dOffset++]; 
+    edgeRead = (uintE)start[dOffset++]; 
     break;
     // 2 bytes
   case 1:
-    edgeRead = start[dOffset] + (start[dOffset+1] << 8);
+    edgeRead = (uintE)(start[dOffset]) + ((uintE)start[dOffset+1] << 8);
     dOffset += 2;
     break;
     // 3 bytes
   case 2:
-    edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
+    edgeRead = (uintE)(start[dOffset]) + ((uintE)start[dOffset+1] << 8) + ((uintE)start[dOffset+2] << 16);
     dOffset += 3;
     break;
     // 4 bytes
   default:
-    edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
+    edgeRead = (uintE)(start[dOffset]) + ((uintE)start[dOffset+1] << 8) + ((uintE)start[dOffset+2] << 16) + ((uintE)start[dOffset+3] << 24);
     dOffset += 4;
   }
   return edgeRead;
@@ -393,8 +393,8 @@ inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degr
     size_t num_in_first_block = (degree >4) ? 4 : degree;
     uintT shift = 2;
     edgesRead++;
-   for(size_t i = 1; i < num_in_first_block; i++){
-	uintE edgeRead = eatEdge(key, dataOffset, shift, currentOffset, edgeStart);
+   for(uchar i = 1; i < num_in_first_block; i++){
+	uintE edgeRead = eatEdge((key >> shift), dataOffset, currentOffset, edgeStart);
 	uintE edge = edgeRead + startEdge; 
 	startEdge = edge;
 	if(!t.srcTarg(source, edge, edgesRead++)){
@@ -403,31 +403,31 @@ inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degr
 	shift+=2;		
     }
 if(degree > 4){
-	long block_four = degree/4;
+	long block_four = degree >> 2;
 	long remaining = degree - 4*block_four;
 	currentOffset = dataOffset;
 	dataOffset++;
 	for(long i=1; i < block_four; i++){
 		key = edgeStart[currentOffset];
-		uintE edgeRead = eatEdge(key, dataOffset, 0, currentOffset, edgeStart);
+		uintE edgeRead = eatEdge(key, dataOffset,currentOffset, edgeStart);
 		uintE edge = edgeRead + startEdge; 
 		startEdge = edge;
 		if(!t.srcTarg(source, edge, edgesRead++)){
 			return;
 		}
-		edgeRead = eatEdge(key, dataOffset, 2, currentOffset, edgeStart);
+		edgeRead = eatEdge((key >> 2), dataOffset, currentOffset, edgeStart);
 		edge = edgeRead + startEdge; 
 		startEdge = edge;
 		if(!t.srcTarg(source, edge, edgesRead++)){
 			return;
 		}
-		edgeRead = eatEdge(key, dataOffset, 4, currentOffset, edgeStart);
+		edgeRead = eatEdge((key >> 4), dataOffset, currentOffset, edgeStart);
 		edge = edgeRead + startEdge; 
 		startEdge = edge;
 		if(!t.srcTarg(source, edge, edgesRead++)){
 			return;
 		}
-		edgeRead = eatEdge(key, dataOffset, 6, currentOffset, edgeStart);
+		edgeRead = eatEdge((key >> 6), dataOffset, currentOffset, edgeStart);
 		edge = edgeRead + startEdge; 
 		startEdge = edge;
 		if(!t.srcTarg(source, edge, edgesRead++)){
@@ -441,7 +441,7 @@ if(degree > 4){
 		key = edgeStart[currentOffset];
 	}
 	for(int i=0; i < remaining; i++){
-		uintE edgeRead = eatEdge(key, dataOffset, shift, currentOffset, edgeStart);
+		uintE edgeRead = eatEdge((key >> shift), dataOffset, currentOffset, edgeStart);
 		uintE edge = edgeRead + startEdge; 
 		startEdge = edge;
 		if(!t.srcTarg(source,edge,edgesRead++)){
@@ -479,7 +479,7 @@ inline void decodeWgh(T t, uchar* edgeStart, const uintE &source, const uintT &d
 	key= edgeStart[currentOffset];
 	shift = 0;
       }
-      uintE edgeRead = eatEdge(key, dataOffset, shift, currentOffset, edgeStart);
+      uintE edgeRead = eatEdge((key >> shift), dataOffset, currentOffset, edgeStart);
       edge = edge + edgeRead;
       shift += 2;
 
