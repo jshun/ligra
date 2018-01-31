@@ -83,7 +83,6 @@ struct F {
 void decodeGraph(graph<compressedSymmetricVertex> G, uintE* edges, uintT* offsets) {
   compressedSymmetricVertex *V = G.V;
   parallel_for (long i = 0; i < G.n; i++) {
-	cout << "in loop " << G.n <<  endl;
     uchar *nghArr = V[i].getOutNeighbors();
     uintT d = V[i].getOutDegree();
     decode(F(edges,offsets), nghArr, i, d);
