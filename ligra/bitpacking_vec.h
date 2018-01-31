@@ -290,25 +290,14 @@ long bp_8(uintE* diff, uint block_size, long currentOffset, uchar* &saveArray){
 long bp_16(uintE* diff, uint block_size, long currentOffset, uchar* &saveArray){
         const __m128i *in = reinterpret_cast<const __m128i *>(diff);
 	__m128i outReg, inReg;
-	uintE test[4] = {0,0,0,0};
 	const __m128i mask = _mm_set1_epi32((1U << 16) -1);
 	for(uint i=0; i < block_size; i+= 16){
 		inReg = _mm_and_si128(_mm_loadu_si128(in), mask);
 		outReg = inReg;
 
-//		cout << "i, 4 edges " << i << " " << diff[i] << ", " << diff[i+1] << ", " << diff[i+2] << ", " << diff[i+3] << endl;
-/*		test[0] = _mm_cvtsi128_si32(outReg);
-		test[1] = _mm_cvtsi128_si32(_mm_shuffle_epi32(outReg,_MM_SHUFFLE(0,3,2,1)));
-		test[2] = _mm_cvtsi128_si32(_mm_shuffle_epi32(outReg,_MM_SHUFFLE(0,1,3,2)));
-		test[3] = _mm_cvtsi128_si32(_mm_shuffle_epi32(outReg,_MM_SHUFFLE(0,1,2,3)));
-		cout << "i, temps " << i << " " << test[0] << " " << test[1] << " " << test[2] << " " << test[3] << endl;
-*/
-
 		inReg = _mm_and_si128(_mm_loadu_si128(in+1), mask);
 		outReg = _mm_or_si128(outReg, _mm_slli_epi32(inReg, 16));
 		_mm_storeu_si128( (__m128i *)&saveArray[currentOffset], outReg);
-	//	cout << "saveArray16[currentOffset] " << (uintE) saveArray[currentOffset] << " " << (uintE) saveArray[currentOffset+1] << " " << (uintE) saveArray[currentOffset+2] << endl;
-//	 	cout << "saveArray[currentOffset] " << (uintE) saveArray[currentOffset] << " " << (uintE) saveArray[currentOffset+1] << " " << (uintE) saveArray[currentOffset+2] << " " << (uintE) saveArray[currentOffset+3] << endl;
 		currentOffset+=16;
 
 		inReg = _mm_and_si128(_mm_loadu_si128(in + 2), mask);
@@ -355,7 +344,6 @@ long bp_24(uintE* diff, uint block_size, long currentOffset, uchar* &saveArray){
 		// storing 24 bits of last 4 numbers
 		outReg = _mm_or_si128(outReg, _mm_slli_epi32(inReg, 8));
 		_mm_storeu_si128((__m128i *)&saveArray[currentOffset], outReg);
-//		cout << "saveArray24[currentOffset] " << (uintE) saveArray[currentOffset] << " " << (uintE) saveArray[currentOffset+1] << " " << (uintE) saveArray[currentOffset+2] << endl;
 
 		currentOffset+=16;
 	}
@@ -385,7 +373,6 @@ long bp_32(uintE* diff, uint block_size, long currentOffset, uchar* &saveArray){
 		inReg = _mm_loadu_si128(in++);
 		outReg = inReg;
 		_mm_storeu_si128((__m128i *)&saveArray[currentOffset],outReg);
-		//cout << "saveArray32[currentOffset] " << (uintE) saveArray[currentOffset] << " " << (uintE) saveArray[currentOffset+1] << " " << (uintE) saveArray[currentOffset+2] << endl;
 
 		currentOffset+=16;	
 	}
@@ -399,19 +386,15 @@ long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degre
 		// decide block_size based on degree
 		if(degree > 128){
 			block_size = 128;
-			//currentOffset = bp_blocks_simd(block_size, savedEdges, edgeArray, currentOffset, degree);
 		}
 		else if(degree > 64){
 			block_size = 64;
-			//currentOffset = bp_blocks_simd(block_size, savedEdges, edgeArray, currentOffset, degree);
 		}
 		else if(degree > 32){
 			block_size = 32;
-			//currentOffset = bp_blocks_simd(block_size, savedEdges, edgeArray, currentOffset, degree);
 		}
 		else{
 			block_size = 16;
-			//currentOffset = bp_blocks_simd(block_size, savedEdges, edgeArray, currentOffset, degree);
 		}
 
 		currentOffset = compressFirstEdge(edgeArray, currentOffset, vertexNum, savedEdges[0]);
@@ -431,43 +414,28 @@ long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degre
 					end = block_size*(k+1);
 					max_number = 0;
 					uint index = 0;
-					//__m128i startEdge = _mm_set1_epi32(savedEdges[0]);
-					//__m128i inReg;
 					for(j=start;j<end;j++){
-							//inReg =  _mm_lddqu_si128((__m128 *) savedEdges +j + 1);
-							//inReg = _mm_sub_epi32(inReg, startEdge);
-							//_mm_storeu_si128((__m128*)diff+j, inReg);
-							//startEdge  = inReg;
 							difference[index] = savedEdges[j+1] - savedEdges[j];
 							max_number = (max_number < difference[index]) ? difference[index] : max_number;		
 							index++;
 					}
-//		cout << "edge differences " << savedEdges[start + 1] << "-" << savedEdges[start] << ", " << savedEdges[start+2] << "-" << savedEdges[start+1] << ", " << savedEdges[start+3] << "-" << savedEdges[start+2] << ", " << savedEdges[start+4] << "-" << savedEdges[start+3] << endl;
-//					cout << "max number " << max_number << endl;
-					//for(uint i=0; i < index; i++){
-					//	max_number = (max_number < difference[index]) ? difference[index] : max_number;
-				//	}
 					// decide bit width depending on the max number
 					if(max_number < (1 << 8)){
-						//cout << "differences " << difference[0] << " " << difference[1] << " " << difference[2] << " " << difference[3] << endl;
 						edgeArray[currentOffset] = 8;	
 						currentOffset++;
 						currentOffset = bp_8(difference, block_size, currentOffset, edgeArray);
 					}
 					else if(max_number < (1 << 16)){
-//						cout << "savedEdges[start] : " << savedEdges[start + 1] << " " << savedEdges[start+2] << " " << savedEdges[start+3] << " " << savedEdges[start+4] << endl;
 						edgeArray[currentOffset] = 16;	
 						currentOffset++;
 						currentOffset = bp_16(difference, block_size, currentOffset, edgeArray);
 					}
 					else if(max_number < (1 << 24)){
-					//	cout << "b " << (uint) b << endl;
 						edgeArray[currentOffset] = 24;	
 						currentOffset++;
 						currentOffset = bp_24(difference, block_size, currentOffset, edgeArray);
 					}
 					else{
-					//	cout << "b " << (uint) b << endl;
 						edgeArray[currentOffset] = 32;	
 						currentOffset++;
 						currentOffset = bp_32(difference, block_size, currentOffset, edgeArray);
@@ -571,11 +539,6 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 			}
 			max_number = 0;
 			for(j= start;j<end;j++){
-				//	inReg =  _mm_lddqu_si128((__m128 *) savedEdges +j + 1);
-				//	inReg = _mm_sub_epi32(inReg, startEdge);
-				//	_mm_storeu_si128((__m128*)diff+j, inReg);
-				//	startEdge  = inReg;
-
 					edge = *(edgePtr+j+1);
 					difference = edge - prevEdge;
 					if(difference > max_number){
@@ -606,23 +569,16 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 		}
 	}
 			charsUsedArr[i] = count;
-//			test += count;	
 	}}
-//	cout << "parallel test add " << test << endl;
 	long totalSpace = sequence::plusScan(charsUsedArr, compressionStarts, n);
 	compressionStarts[n] = totalSpace;
-//	finalArr = (uchar *)_mm_malloc(totalSpace*(uchar),16);
-//	uchar *finalArr = (uchar *) aligned_alloc(16, totalSpace*sizeof(uchar));
 	uchar *finalArr = newA(uchar, totalSpace);	
 	free(charsUsedArr);
-//	long counter_test = 0;
 	for(long i=0;i<n;i++){
 		
 		long charsUsed = sequentialCompressEdgeSet((uchar *)(finalArr+compressionStarts[i]), 0, Degrees[i], i, edges + offsets[i]);
-//		counter_test += charsUsed;
 		offsets[i] = compressionStarts[i];
 	}
-//	cout << "counter test " << counter_test << endl;
 	cout << "after sequentialCompress loop " << endl;
 
 	offsets[n] = totalSpace;
@@ -639,41 +595,21 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 template <class T>
 uchar bp_decode8(uintE &startEdge, long &currentOffset, const uintE &source, uint block_size, T t, uchar* edgeStart, size_t edgesRead){
 	uintE edge[4] = {0,0,0,0};
-	// debugging
-	uintE test[4] = {0, 0, 0, 0};
-	//__m128i *in = reinterpret_cast<__m128i *>(edgeStart);
 	__m128i outReg, inReg, temp;
 	const __m128i mask = _mm_set1_epi32((1U << 8)-1);
 	for(uint i=0; i < block_size; i+=16){
-	//	inReg = _mm_load_si128((__m128i *)&in[currentOffset]);
 		inReg = _mm_loadu_si128(reinterpret_cast<const __m128i *>(edgeStart + currentOffset));
-		//inReg = _mm_set_epi8(edgeStart[currentOffset], edgeStart[currentOffset+1], edgeStart[currentOffset+2], edgeStart[currentOffset+3], edgeStart[currentOffset+4], edgeStart[currentOffset+5], edgeStart[currentOffset+6], edgeStart[currentOffset+7], edgeStart[currentOffset+8], edgeStart[currentOffset+9], edgeStart[currentOffset+10], edgeStart[currentOffset+11], edgeStart[currentOffset+12], edgeStart[currentOffset+13], edgeStart[currentOffset+14], edgeStart[currentOffset+15]);
 		outReg = _mm_and_si128(inReg, mask);
-/*		if(edgesRead == 1){
-			cout << "second edgeset" << endl;
-		}
-		test[0] = _mm_cvtsi128_si32(outReg);
-		test[1] = _mm_cvtsi128_si32(_mm_shuffle_epi32(outReg,_MM_SHUFFLE(0,3,2,1)));
-		test[2] = _mm_cvtsi128_si32(_mm_shuffle_epi32(outReg,_MM_SHUFFLE(0,1,3,2)));
-		test[3] = _mm_cvtsi128_si32(_mm_shuffle_epi32(outReg,_MM_SHUFFLE(0,1,2,3)));
-		cout << "i, temps " << i << " " << test[0] << " " << test[1] << " " << test[2] << " " << test[3] << endl;
-*/
-//		temp = _mm_add_epi32(outReg, _mm_srli_si128(outReg, 4));
 		temp = _mm_add_epi32(outReg, _mm_slli_si128(outReg, 4));
 		outReg = _mm_set1_epi32(startEdge);
 		temp = _mm_add_epi32(temp, _mm_slli_si128(temp, 8));
-
-//		outReg = _mm_set1_epi32(startEdge);
-//		temp = _mm_add_epi32(temp, _mm_srli_si128(temp, 8));
 		// final edge values
 		temp = _mm_add_epi32(temp, outReg);
-//		_mm_store_si128((__m128i *)edge, temp);
 		edge[0] = _mm_cvtsi128_si32 (temp);
 		edge[1] = _mm_cvtsi128_si32(_mm_shuffle_epi32(temp, 0x55));
 		edge[2] = _mm_cvtsi128_si32(_mm_shuffle_epi32(temp,0xAA));
 		edge[3] = _mm_cvtsi128_si32(_mm_shuffle_epi32(temp, 0xFF));
 		startEdge = edge[3];
-		//cout << "startEdge8 : " << startEdge << endl;
 		if(!t.srcTarg(source, edge[0], edgesRead++)){
 			return 1;
 		}
@@ -768,24 +704,11 @@ template <class T>
 uchar bp_decode16(uintE &startEdge, long &currentOffset, const uintE &source, uint block_size, T t, uchar* edgeStart, size_t &edgesRead){
 	__m128i outReg, inReg, temp;
 	uintE edge[4] = {0,0,0,0};
-	uintE test[4] = {0,0,0,0};
 	const __m128i mask = _mm_set1_epi32((1U << 16)-1);
 	// check how many elements need in edge
 	for(uint i=0; i < block_size; i+=8){
-		//inReg = _mm_load_si128((__m128i *)&startEdge[currentOffset]);	
 		inReg = _mm_loadu_si128(reinterpret_cast<const __m128i *>(edgeStart + currentOffset));		
-//inReg = _mm_loadu_si128((__m128i*)edgeStart + currentOffset);		
-//inReg = _mm_set_epi8(edgeStart[currentOffset], edgeStart[currentOffset+1], edgeStart[currentOffset+2], edgeStart[currentOffset+3], edgeStart[currentOffset+4], edgeStart[currentOffset+5], edgeStart[currentOffset+6], edgeStart[currentOffset+7], edgeStart[currentOffset+8], edgeStart[currentOffset+9], edgeStart[currentOffset+10], edgeStart[currentOffset+11], edgeStart[currentOffset+12], edgeStart[currentOffset+13], edgeStart[currentOffset+14], edgeStart[currentOffset+15]);
 		outReg = _mm_and_si128(inReg, mask);
-	/*	test[0] = _mm_cvtsi128_si32(outReg);
-		test[1] = _mm_cvtsi128_si32(_mm_shuffle_epi32(outReg,_MM_SHUFFLE(0,3,2,1)));
-		test[2] = _mm_cvtsi128_si32(_mm_shuffle_epi32(outReg,_MM_SHUFFLE(0,1,3,2)));
-		test[3] = _mm_cvtsi128_si32(_mm_shuffle_epi32(outReg,_MM_SHUFFLE(0,1,2,3)));
-		cout << "i, temps " << i << " " << test[0] << " " << test[1] << " " << test[2] << " " << test[3] << endl;
-*/
-
-//		cout << "address of edgeStart + currentOffset " << edgeStart + currentOffset << " address of inReg " << *inReg << endl;
-
 		temp = _mm_add_epi32(outReg, _mm_slli_si128(outReg, 4));
 		outReg = _mm_set1_epi32(startEdge);
 		temp = _mm_add_epi32(temp, _mm_slli_si128(temp, 8));
@@ -795,9 +718,6 @@ uchar bp_decode16(uintE &startEdge, long &currentOffset, const uintE &source, ui
 		edge[2] = _mm_cvtsi128_si32(_mm_shuffle_epi32(temp,0xAA));
 		edge[3] = _mm_cvtsi128_si32(_mm_shuffle_epi32(temp, 0xFF));
 		startEdge = edge[3];
-//		cout << "i, 4 edges " << i << " "  << edge[0] << ", " << edge[1] << ", " << edge[2] << ", " << edge[3] << endl;  
-
-		//cout << "startEdge16 : " << startEdge << endl;
 		if(!t.srcTarg(source, edge[0], edgesRead++)){
 			return 1;
 		}
@@ -846,12 +766,8 @@ uchar bp_decode24(uintE &startEdge, long &currentOffset, const uintE &source, ui
 	const __m128i mask = _mm_set1_epi32((1U << 24)-1);
 	// check how many elements need in edge
 	for(uint i=0; i < block_size; i+=16){
-		//inReg = _mm_load_si128((__m128i *)&edgeStart[currentOffset]);	
 		inReg = _mm_loadu_si128(reinterpret_cast<const __m128i *>(edgeStart + currentOffset));
-		//inReg = _mm_loadu_si128((__m128i*)edgeStart + currentOffset);
-		//inReg = _mm_set_epi8(edgeStart[currentOffset], edgeStart[currentOffset+1], edgeStart[currentOffset+2], edgeStart[currentOffset+3], edgeStart[currentOffset+4], edgeStart[currentOffset+5], edgeStart[currentOffset+6], edgeStart[currentOffset+7], edgeStart[currentOffset+8], edgeStart[currentOffset+9], edgeStart[currentOffset+10], edgeStart[currentOffset+11], edgeStart[currentOffset+12], edgeStart[currentOffset+13], edgeStart[currentOffset+14], edgeStart[currentOffset+15]);
 		outReg = _mm_and_si128(inReg, mask);
-		//temp = _mm_hadd_epi32(outReg, _mm_srli_epi32(outReg, 32));
 		temp = _mm_add_epi32(outReg, _mm_slli_si128(outReg, 4));
 		outReg = _mm_set1_epi32(startEdge);
 		temp = _mm_add_epi32(temp, _mm_slli_si128(temp, 8));
@@ -860,11 +776,7 @@ uchar bp_decode24(uintE &startEdge, long &currentOffset, const uintE &source, ui
 		edge[1] = _mm_cvtsi128_si32(_mm_shuffle_epi32(temp, 0x55));
 		edge[2] = _mm_cvtsi128_si32(_mm_shuffle_epi32(temp,0xAA));
 		edge[3] = _mm_cvtsi128_si32(_mm_shuffle_epi32(temp, 0xFF));
-	//	_mm_store_si128((__m128i *)edge, temp);
-//		cout << "startEdge before " << startEdge << endl;	
 		startEdge = edge[3];
-//		cout << "startEdge " << startEdge << endl;
-//		cout << "startEdge after " << startEdge << endl;
 		if(!t.srcTarg(source, edge[0], edgesRead++)){
 			return 1;
 		}
@@ -877,13 +789,9 @@ uchar bp_decode24(uintE &startEdge, long &currentOffset, const uintE &source, ui
 		if(!t.srcTarg(source, edge[3], edgesRead++)){
 			return 1;
 		}
-//finsh the rest of the integers in this block
 		currentOffset += 16;
 		outReg = _mm_srli_epi32(inReg, 24);
 		inReg = _mm_loadu_si128(reinterpret_cast<const __m128i *>(edgeStart + currentOffset));
-		//inReg = _mm_load_si128((__m128i *)&edgeStart[currentOffset]);	
-		//inReg = _mm_loadu_si128((__m128i*)edgeStart + currentOffset);
-//		inReg = _mm_set_epi8(edgeStart[currentOffset], edgeStart[currentOffset+1], edgeStart[currentOffset+2], edgeStart[currentOffset+3], edgeStart[currentOffset+4], edgeStart[currentOffset+5], edgeStart[currentOffset+6], edgeStart[currentOffset+7], edgeStart[currentOffset+8], edgeStart[currentOffset+9], edgeStart[currentOffset+10], edgeStart[currentOffset+11], edgeStart[currentOffset+12], edgeStart[currentOffset+13], edgeStart[currentOffset+14], edgeStart[currentOffset+15]);
 		outReg = _mm_or_si128(outReg, _mm_and_si128(_mm_slli_epi32(inReg, 24-16),mask));
 		temp = _mm_add_epi32(outReg, _mm_slli_si128(outReg, 4));
 		outReg = _mm_set1_epi32(startEdge);
@@ -894,7 +802,6 @@ uchar bp_decode24(uintE &startEdge, long &currentOffset, const uintE &source, ui
 		edge[2] = _mm_cvtsi128_si32(_mm_shuffle_epi32(temp,0xAA));
 		edge[3] = _mm_cvtsi128_si32(_mm_shuffle_epi32(temp, 0xFF));
 		startEdge = edge[3];
-//		cout << "second round edge[2] " << edge[2] << " startEdge " << startEdge << endl;
 		if(!t.srcTarg(source, edge[0], edgesRead++)){
 			return 1;
 		}
@@ -909,10 +816,7 @@ uchar bp_decode24(uintE &startEdge, long &currentOffset, const uintE &source, ui
 		}
 		outReg = _mm_srli_epi32(inReg, 16);
 		currentOffset+=16;
-		//inReg = _mm_load_si128((__m128i *)&edgeStart[currentOffset]);	
 		inReg = _mm_loadu_si128(reinterpret_cast<const __m128i *>(edgeStart + currentOffset));
-//		inReg = _mm_loadu_si128((__m128i*)edgeStart + currentOffset);
-//		inReg = _mm_set_epi8(edgeStart[currentOffset], edgeStart[currentOffset+1], edgeStart[currentOffset+2], edgeStart[currentOffset+3], edgeStart[currentOffset+4], edgeStart[currentOffset+5], edgeStart[currentOffset+6], edgeStart[currentOffset+7], edgeStart[currentOffset+8], edgeStart[currentOffset+9], edgeStart[currentOffset+10], edgeStart[currentOffset+11], edgeStart[currentOffset+12], edgeStart[currentOffset+13], edgeStart[currentOffset+14], edgeStart[currentOffset+15]);
 		outReg = _mm_or_si128(outReg, _mm_and_si128(_mm_slli_epi32(inReg, 24-8),mask));
 		temp = _mm_add_epi32(outReg, _mm_slli_si128(outReg, 4));
 		outReg = _mm_set1_epi32(startEdge);
@@ -923,7 +827,6 @@ uchar bp_decode24(uintE &startEdge, long &currentOffset, const uintE &source, ui
 		edge[2] = _mm_cvtsi128_si32(_mm_shuffle_epi32(temp,0xAA));
 		edge[3] = _mm_cvtsi128_si32(_mm_shuffle_epi32(temp, 0xFF));
 		startEdge = edge[3];
-		//cout << "startEdge 3: " << startEdge << endl; 
 		if(!t.srcTarg(source, edge[0], edgesRead++)){
 			return 1;
 		}
@@ -971,71 +874,7 @@ uchar bp_decode32(uintE &startEdge, long &currentOffset, const uintE &source, ui
 	uintE edge[4] = {0,0,0,0};
 	// check how many elements need in edge
 	for(uint i=0; i < block_size; i+=16){
-		//cout << "inside for loop bp_decode32" << endl;
-		//outReg = _mm_load_si128((__m128i *)&edgeStart[currentOffset]);
-		//outReg = _mm_set_epi8(edgeStart[currentOffset], edgeStart[currentOffset+1], edgeStart[currentOffset+2], edgeStart[currentOffset+3], edgeStart[currentOffset+4], edgeStart[currentOffset+5], edgeStart[currentOffset+6], edgeStart[currentOffset+7], edgeStart[currentOffset+8], edgeStart[currentOffset+9], edgeStart[currentOffset+10], edgeStart[currentOffset+11], edgeStart[currentOffset+12], edgeStart[currentOffset+13], edgeStart[currentOffset+14], edgeStart[currentOffset+15]);
 		outReg = _mm_loadu_si128(reinterpret_cast<const __m128i *>(edgeStart + currentOffset));
-//		outReg = _mm_loadu_si128((__m128i*)edgeStart + currentOffset);
-		currentOffset+=16;
-		//cout << "after load into reg" << endl;
-		temp = _mm_add_epi32(outReg, _mm_slli_si128(outReg, 4));
-		outReg = _mm_set1_epi32(startEdge);
-		temp = _mm_add_epi32(temp, _mm_slli_si128(temp, 8));
-		temp = _mm_add_epi32(temp, outReg);
-		edge[0] = _mm_cvtsi128_si32 (temp);
-		edge[1] = _mm_cvtsi128_si32(_mm_shuffle_epi32(temp, 0x55));
-		edge[2] = _mm_cvtsi128_si32(_mm_shuffle_epi32(temp,0xAA));
-		edge[3] = _mm_cvtsi128_si32(_mm_shuffle_epi32(temp, 0xFF));
-		//_mm_store_si128((__m128i *)edge, temp);
-//		cout << "after first store " << endl;
-		startEdge = edge[3];
-//		cout << "startEdge: " << startEdge;
-		if(!t.srcTarg(source, edge[0], edgesRead++)){
-			return 1;
-		}
-		if(!t.srcTarg(source, edge[1], edgesRead++)){
-			return 1;
-		}
-		if(!t.srcTarg(source, edge[2], edgesRead++)){
-			return 1;
-		}
-		if(!t.srcTarg(source, edge[3], edgesRead++)){
-			return 1;
-		}
-//		cout << "after first set of srcTargs" << endl;
-		outReg = _mm_loadu_si128(reinterpret_cast<const __m128i *>(edgeStart + currentOffset));
-//		outReg = _mm_loadu_si128((__m128i*)edgeStart + currentOffset);
-//		outReg = _mm_set_epi8(edgeStart[currentOffset], edgeStart[currentOffset+1], edgeStart[currentOffset+2], edgeStart[currentOffset+3], edgeStart[currentOffset+4], edgeStart[currentOffset+5], edgeStart[currentOffset+6], edgeStart[currentOffset+7], edgeStart[currentOffset+8], edgeStart[currentOffset+9], edgeStart[currentOffset+10], edgeStart[currentOffset+11], edgeStart[currentOffset+12], edgeStart[currentOffset+13], edgeStart[currentOffset+14], edgeStart[currentOffset+15]);
-		//outReg = _mm_load_si128((__m128i *)&edgeStart[currentOffset]);
-		currentOffset+=16;
-//		cout << "after second loads" << endl;
-		temp = _mm_add_epi32(outReg, _mm_slli_si128(outReg, 4));
-		outReg = _mm_set1_epi32(startEdge);
-		temp = _mm_add_epi32(temp, _mm_slli_si128(temp, 8));
-		temp = _mm_add_epi32(temp, outReg);
-		edge[0] = _mm_cvtsi128_si32 (temp);
-		edge[1] = _mm_cvtsi128_si32(_mm_shuffle_epi32(temp, 0x55));
-		edge[2] = _mm_cvtsi128_si32(_mm_shuffle_epi32(temp,0xAA));
-		edge[3] = _mm_cvtsi128_si32(_mm_shuffle_epi32(temp, 0xFF));
-		//_mm_store_si128((__m128i *)edge, temp);
-//		cout << "after second store" << endl;
-		startEdge = edge[3];
-		if(!t.srcTarg(source, edge[0], edgesRead++)){
-			return 1;
-		}
-		if(!t.srcTarg(source, edge[1], edgesRead++)){
-			return 1;
-		}
-		if(!t.srcTarg(source, edge[2], edgesRead++)){
-			return 1;
-		}
-		if(!t.srcTarg(source, edge[3], edgesRead++)){
-			return 1;
-		}
-		outReg = _mm_loadu_si128(reinterpret_cast<const __m128i *>(edgeStart + currentOffset));
-//		outReg = _mm_loadu_si128((__m128i*)edgeStart + currentOffset);
-//		outReg = _mm_set_epi8(edgeStart[currentOffset], edgeStart[currentOffset+1], edgeStart[currentOffset+2], edgeStart[currentOffset+3], edgeStart[currentOffset+4], edgeStart[currentOffset+5], edgeStart[currentOffset+6], edgeStart[currentOffset+7], edgeStart[currentOffset+8], edgeStart[currentOffset+9], edgeStart[currentOffset+10], edgeStart[currentOffset+11], edgeStart[currentOffset+12], edgeStart[currentOffset+13], edgeStart[currentOffset+14], edgeStart[currentOffset+15]);
-		//outReg = _mm_load_si128((__m128i *)&edgeStart[currentOffset]);
 		currentOffset+=16;
 		temp = _mm_add_epi32(outReg, _mm_slli_si128(outReg, 4));
 		outReg = _mm_set1_epi32(startEdge);
@@ -1059,9 +898,52 @@ uchar bp_decode32(uintE &startEdge, long &currentOffset, const uintE &source, ui
 			return 1;
 		}
 		outReg = _mm_loadu_si128(reinterpret_cast<const __m128i *>(edgeStart + currentOffset));
-//		outReg = _mm_loadu_si128((__m128i*)edgeStart + currentOffset);
-//		outReg = _mm_set_epi8(edgeStart[currentOffset], edgeStart[currentOffset+1], edgeStart[currentOffset+2], edgeStart[currentOffset+3], edgeStart[currentOffset+4], edgeStart[currentOffset+5], edgeStart[currentOffset+6], edgeStart[currentOffset+7], edgeStart[currentOffset+8], edgeStart[currentOffset+9], edgeStart[currentOffset+10], edgeStart[currentOffset+11], edgeStart[currentOffset+12], edgeStart[currentOffset+13], edgeStart[currentOffset+14], edgeStart[currentOffset+15]);
-		//outReg = _mm_load_si128((__m128i *)&edgeStart[currentOffset]);
+		currentOffset+=16;
+		temp = _mm_add_epi32(outReg, _mm_slli_si128(outReg, 4));
+		outReg = _mm_set1_epi32(startEdge);
+		temp = _mm_add_epi32(temp, _mm_slli_si128(temp, 8));
+		temp = _mm_add_epi32(temp, outReg);
+		edge[0] = _mm_cvtsi128_si32 (temp);
+		edge[1] = _mm_cvtsi128_si32(_mm_shuffle_epi32(temp, 0x55));
+		edge[2] = _mm_cvtsi128_si32(_mm_shuffle_epi32(temp,0xAA));
+		edge[3] = _mm_cvtsi128_si32(_mm_shuffle_epi32(temp, 0xFF));
+		startEdge = edge[3];
+		if(!t.srcTarg(source, edge[0], edgesRead++)){
+			return 1;
+		}
+		if(!t.srcTarg(source, edge[1], edgesRead++)){
+			return 1;
+		}
+		if(!t.srcTarg(source, edge[2], edgesRead++)){
+			return 1;
+		}
+		if(!t.srcTarg(source, edge[3], edgesRead++)){
+			return 1;
+		}
+		outReg = _mm_loadu_si128(reinterpret_cast<const __m128i *>(edgeStart + currentOffset));
+		currentOffset+=16;
+		temp = _mm_add_epi32(outReg, _mm_slli_si128(outReg, 4));
+		outReg = _mm_set1_epi32(startEdge);
+		temp = _mm_add_epi32(temp, _mm_slli_si128(temp, 8));
+		temp = _mm_add_epi32(temp, outReg);
+		edge[0] = _mm_cvtsi128_si32 (temp);
+		edge[1] = _mm_cvtsi128_si32(_mm_shuffle_epi32(temp, 0x55));
+		edge[2] = _mm_cvtsi128_si32(_mm_shuffle_epi32(temp,0xAA));
+		edge[3] = _mm_cvtsi128_si32(_mm_shuffle_epi32(temp, 0xFF));
+		startEdge = edge[3];
+		if(!t.srcTarg(source, edge[0], edgesRead++)){
+			return 1;
+		}
+		if(!t.srcTarg(source, edge[1], edgesRead++)){
+			return 1;
+		}
+		if(!t.srcTarg(source, edge[2], edgesRead++)){
+			return 1;
+		}
+		if(!t.srcTarg(source, edge[3], edgesRead++)){
+			return 1;
+		}
+		outReg = _mm_loadu_si128(reinterpret_cast<const __m128i *>(edgeStart + currentOffset));
 		currentOffset+=16;
 		temp = _mm_add_epi32(outReg, _mm_slli_si128(outReg, 4));
 		outReg = _mm_set1_epi32(startEdge);
@@ -1071,7 +953,6 @@ uchar bp_decode32(uintE &startEdge, long &currentOffset, const uintE &source, ui
 		edge[1] = _mm_cvtsi128_si32(_mm_shuffle_epi32(temp, 0x55));
 		edge[2] = _mm_cvtsi128_si32(_mm_shuffle_epi32(temp,0xAA));
 		edge[3] = _mm_cvtsi128_si32(_mm_shuffle_epi32(temp, 0xFF)); 
-//		cout << "after last store" << endl;
 		startEdge = edge[3];
 		if(!t.srcTarg(source, edge[0], edgesRead++)){
 			return 1;
@@ -1090,96 +971,6 @@ uchar bp_decode32(uintE &startEdge, long &currentOffset, const uintE &source, ui
 	return 0;
 }
 template <class T>
-uintE bp_decode_simd(uintE &startEdge, long &currentOffset, const uintE &source, uint block_size, T t, uchar* edgeStart, const uintT &degree){
-	uintE edgesRead = 1;
-	uint num_blocks = (degree-1)/block_size;
-	uchar b = 0;
-	for(long i=0; i < num_blocks; i++){
-		b = edgeStart[currentOffset];
-		currentOffset++;
-		switch(b){
-			case 8:
-				currentOffset = bp_decode8(startEdge, currentOffset, source, block_size, t, edgeStart, edgesRead);
-				break;
-			case 16:
-				currentOffset = bp_decode16(startEdge, currentOffset, source, block_size, t, edgeStart, edgesRead);
-				break;
-			case 24:
-				currentOffset = bp_decode24(startEdge, currentOffset, source, block_size, t, edgeStart, edgesRead);
-				break;
-			default:
-				currentOffset = bp_decode32(startEdge, currentOffset, source, block_size, t, edgeStart, edgesRead);
-				break;
-		}
-	}
-	return edgesRead;
-}
-
-//		edgesRead = bp_decode(startEdge, currentOffset, source, block_size, t, edgeStart, degree);
-template <class T>
-uintE bp_decode(uintE &startEdge, long &currentOffset, const uintE &source, uint block_size, T t, uchar* edgeStart, const uintT &degree){
-	uintE edgesRead = 1;
-	uint num_blocks = (degree-1)/block_size;
-	uintE edge = 0;
-	uintE edgeRead = 0;
-	uchar b = 0;
-	uint num_bytes = 0;
-	for(long i=0; i < num_blocks; i++){
-		b = edgeStart[currentOffset];
-		currentOffset++;
-		num_bytes = b/8;
-		switch(num_bytes){
-			case 1:
-				for(uint i=0; i < block_size; i++){
-					edgeRead = edgeStart[currentOffset++];
-					edge = startEdge + edgeRead;
-					startEdge = edge;
-					if(!t.srcTarg(source, edge, edgesRead++)){
-						return;
-					}
-				}
-				break;
-			case 2:
-				for(uint i=0; i < block_size; i++){
-					edgeRead = edgeStart[currentOffset] + (edgeStart[currentOffset+1] << 8);
-					currentOffset += 2;
-					edge = edgeRead + startEdge;
-					startEdge = edge;
-					if(!t.srcTarg(source, edge, edgesRead++)){
-						return;
-					}
-				}
-				break;
-
-			case 3:
-				for(uint i =0; i < block_size; i++){
-					edgeRead = edgeStart[currentOffset] + (edgeStart[currentOffset+1] << 8) + (edgeStart[currentOffset+2] << 16);
-					currentOffset += 3;
-					edge = edgeRead + startEdge;
-					startEdge = edge;
-					if(!t.srcTarg(source, edge, edgesRead++)){
-						return;
-					}
-				}
-				break;
-			case 4:
-				for(uint i =0; i < block_size; i++){	
-					edgeRead = edgeStart[currentOffset] + (edgeStart[currentOffset+1] << 8) + (edgeStart[currentOffset+2] << 16) + (edgeStart[currentOffset+3] << 24);
-					currentOffset += 4;
-					edge = edgeRead + startEdge;
-					startEdge = edge;
-					if(!t.srcTarg(source, edge, edgesRead++)){
-						return;
-					}
-				}
-				break;
-		}	
-	}
-	return edgesRead;
-}
-
-
-template <class T>
 inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degree, const bool par=true){
   if(degree > 0) {
 	uintE startEdge = 0;
@@ -1193,57 +984,45 @@ inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degr
 	if(degree > 128){
 		block_size = 128;
 		num_blocks = (degree-1) >> 7;
-	//	edgesRead = bp_decode_simd(startEdge, currentOffset, source, block_size, t, edgeStart, degree);
 	}
 	else if(degree > 64){
 		block_size = 64;
 		num_blocks = (degree-1) >> 6;
-	//	edgesRead = bp_decode_simd(startEdge, currentOffset, source, block_size, t, edgeStart, degree);
 	}
 	else if(degree > 32){
 		block_size = 32;
 		num_blocks = (degree -1) >> 5;
-	//	edgesRead = bp_decode_simd(startEdge, currentOffset, source, block_size, t, edgeStart, degree);
 	}
 	else{
 		block_size = 16;
 		num_blocks = (degree-1) >> 4;
-	//	edgesRead = bp_decode_simd(startEdge, currentOffset, source, block_size, t, edgeStart, degree);
 	}
 	edgesRead = 1;
 	uchar b = 0;
 	uchar break_var =0;
 	long currentOffset = 0;
-			//uint num_blocks = (degree-1)/block_size;
 	uint num_remaining = (degree-1) - block_size*num_blocks;
 			for(long i=0; i < num_blocks; i++){
 			b = edgeStart[currentOffset];
 			currentOffset++;
-//			cout << " b " << (uint) b << endl;
 			switch(b){
 				case 8:
-//					cout << "inside case 8 " << endl;
 					break_var = bp_decode8(startEdge, currentOffset, source, block_size, t, edgeStart, edgesRead);
 					break;
 				case 16:
-//					cout << "inside case 16" << endl;
 					break_var = bp_decode16(startEdge, currentOffset, source, block_size, t, edgeStart, edgesRead);
 					break;
 				case 24:
-//					cout << "inside case 24 " << endl;
 					break_var = bp_decode24(startEdge, currentOffset, source, block_size, t, edgeStart, edgesRead);
 					break;
 				default:
-//					cout << "inside default case; b: " << (uint) b << endl;
 					break_var = bp_decode32(startEdge, currentOffset, source, block_size, t, edgeStart, edgesRead);
 					break;
 			}
-//			cout << "outside of switch statement. Yay! " << endl;
 			if(break_var){
 				return;
 			}
 			}
-//	cout << "outside of first for loop" << endl;
 	uintE edge = 0;
 	uintE edgeRead = 0;
 	uint num_bytes = 0;
