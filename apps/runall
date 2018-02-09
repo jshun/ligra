@@ -10,7 +10,7 @@ import time
 import subprocess
 
 # nibble = 0, byte = 1, rle = 2, streamvbyte = 3, streamcase = 4, bitpacking = 5, varint-GB = 6 
-
+# change the compression number depending on the method
 compression_num = 5;	
 
 def signal_handler(signal,frame):
@@ -32,27 +32,18 @@ bdataDir = "~/data/scratch/jshun/"
 applications = ["BFS","BC","Radii","Components"]
 wapplications = ["BellmanFord"]
 rapplications = ["PageRank"]
-#testfiles = [("randLocalGraph_J_5_10000000_ordered","1"),("3Dgrid_J_10000000_ordered","1"),("soc-LiveJournal1.txt_J_psep_ordered","10000"),("cit-Patents.txt_J_psep_ordered","3000000"),("com-lj.ungraph.txt_J_psep_ordered","3000000"),("com-orkut.ungraph.txt_J_psep_ordered","10000"),("nlpkkt_bfsR_J","1")]
 
+# this file tests twitter_J and com-orkut.. all results in the spreadsheet use 1 for twitter_J and 3000 for com-orkut
 testfiles = [("twitter_J", "1")]
 ntestfiles = [("com-orkut.ungraph.txt_J_psep_ordered","3000")]
-compression = [(".nibble"), (".byte"), (".rle"), (".streamvbyte"), (".streamcase"), (".bp"), (".varint-GB")]
-
-# testfiles = ["nlpkkt_bfsR_J"]
-# testfiles = ["soc-LiveJournal1.txt_J_psep_ordered","com-orkut.ungraph.txt_J_psep_ordered"]
-# testfiles = ["cit-Patents.txt_J_psep_ordered","com-lj.ungraph.txt_J_psep_ordered"]
-
-#wtestfiles = [("randLocalGraph_WJ_5_10000000_ordered","1"),("3Dgrid_WJ_10000000_ordered","1"),("soc-LiveJournal1.txt_WJ_psep_ordered","10000"),("cit-Patents.txt_WJ_psep_ordered","3000000"),("com-lj.ungraph.txt_WJ_psep_ordered","3000000"),("com-orkut.ungraph.txt_WJ_psep_ordered","10000"),("nlpkkt_bfsR_WJ","1")]
-
+compression = [(".nibble"), (".byte"), (".rle"), (".streamvbyte"), (".streamcase"), (".bp"), (".varintgb")]
 wtestfiles = [("twitter_WJ", "1")]
+
+# below, you can change the range of number of processors; all of the current test results use 32 cores
 
 #processors = [8]
 #processors = [1,2,4,8]
-processors = [2,4,8,32]
-#processors = [4]
-#processors = [1,2,4]+range(8,80+1,8)
-#processors = [1]+range(40,81,8)
-
+processors = [32]
 debug = 0
 if debug:
   processors = [80]
@@ -73,14 +64,9 @@ for app in rapplications:
   for testfile in ntestfiles :
     for p in processors :
       if p == 1:
-       # ss = "export CILK_NWORKERS=1; ./"+app+' -rounds 1 -maxiters 1 -r '+testfile[1]+' '+bdataDir+testfile[0]
         css = "export CILK_NWORKERS=1; ./"+app+' -s -c -maxiters 1 -rounds 5 -r '+testfile[1]+' '+dataDir+testfile[0]+compression[compression_num]
       else:
-      #  ss = "export CILK_NWORKERS="+`p`+"; numactl -i all ./" + app + ' -maxiters 1 -r '+testfile[1]+ ' ' + bdataDir + testfile[0]
         css = "export CILK_NWORKERS="+`p`+"; numactl -i all ./" + app + ' -s -rounds 5 -maxiters 1  -c -r '+testfile[1]+ ' ' + dataDir + testfile[0]+ compression[compression_num]
-     # print app+" "+`p` + " " + testfile[0] + " Ligra"
-     # print shellGetOutput(ss)
-     # sys.stdout.flush()
       print app+" "+`p` + " " + testfile[0] + " Ligra+" 
       print shellGetOutput(css)
       sys.stdout.flush()
@@ -91,21 +77,15 @@ for app in applications:
   for testfile in ntestfiles :
     for p in processors :
       if p == 1:
-       # ss = "export CILK_NWORKERS=1; ./"+app+' -rounds 1 -maxiters 1 -r '+testfile[1]+' '+bdataDir+testfile[0]
         css = "export CILK_NWORKERS=1; ./"+app+' -s -c -r -rounds 5 '+testfile[1]+' '+dataDir+testfile[0]+compression[compression_num]
       else:
-      #  ss = "export CILK_NWORKERS="+`p`+"; numactl -i all ./" + app + ' -maxiters 1 -r '+testfile[1]+ ' ' + bdataDir + testfile[0]
         css = "export CILK_NWORKERS="+`p`+"; numactl -i all ./" + app + ' -s -rounds 5 -c -r '+testfile[1]+ ' ' + dataDir + testfile[0]+ compression[compression_num]
-     # print app+" "+`p` + " " + testfile[0] + " Ligra"
-     # print shellGetOutput(ss)
-     # sys.stdout.flush()
       print app+" "+`p` + " " + testfile[0] + " Ligra+" 
       print shellGetOutput(css)
       sys.stdout.flush()
 
 
 
-#os.system("make clean; make -j16; ~/hog2 250")
 for testfile in testfiles :
 	for p in processors :
 		if p==1:
@@ -122,35 +102,23 @@ for app in applications:
  for testfile in testfiles :
     for p in processors :
       if p == 1:
-       # ss = "export CILK_NWORKERS=1; ./"+app+' -rounds 1 -maxiters 1 -r '+testfile[1]+' '+bdataDir+testfile[0]
         css = "export CILK_NWORKERS=1; ./"+app+' -rounds 5 -c -r '+testfile[1]+' '+dataDir+testfile[0]+compression[compression_num]
       else:
-      #  ss = "export CILK_NWORKERS="+`p`+"; numactl -i all ./" + app + ' -maxiters 1 -r '+testfile[1]+ ' ' + bdataDir + testfile[0]
         css = "export CILK_NWORKERS="+`p`+"; numactl -i all ./" + app + ' -rounds 5 -c -r '+testfile[1]+ ' ' + dataDir + testfile[0]+ compression[compression_num]
       print app+" "+`p` + " " + testfile[0] + " Ligra"
       print shellGetOutput(css)
       sys.stdout.flush()
-    #  print app+" "+`p` + " " + testfile[0] + " Ligra+" 
-     # print shellGetOutput(css)
-     # sys.stdout.flush()
-
 
 for app in rapplications:
   for testfile in testfiles :
     for p in processors :
       if p == 1:
-        #ss = "export CILK_NWORKERS=1; ./"+app+' -rounds 1 -maxiters 1 -r '+testfile[1]+' '+bdataDir+testfile[0]
         css = "export CILK_NWORKERS=1; ./"+app+' -c -rounds 5 -maxiters 1 -r '+testfile[1]+' '+dataDir+testfile[0]+compression[compression_num]
       else:
-      #  ss = "export CILK_NWORKERS="+`p`+"; numactl -i all ./" + app + ' -maxiters 1 -r '+testfile[1]+ ' ' + bdataDir + testfile[0]
         css = "export CILK_NWORKERS="+`p`+"; numactl -i all ./" + app + ' -c -rounds 5 -maxiters 1 -r '+testfile[1]+ ' ' + dataDir + testfile[0]+ compression[compression_num]
       print app+" "+`p` + " " + testfile[0] + " Ligra"
       print shellGetOutput(css)
       sys.stdout.flush()
-     # print app+" "+`p` + " " + testfile[0] + " Ligra+" 
-     # print shellGetOutput(css)
-      #sys.stdout.flush()
-
 	
 #for app in wapplications:
  # for testfile in wtestfiles :
@@ -167,18 +135,6 @@ for app in rapplications:
     #  print app+" "+`p` + " " + testfile[0] + " Ligra+" 
    #   print shellGetOutput(css)
      # sys.stdout.flush()
-
-
-# for app in applications:
-#   for p in processors :
-#     if p == 1:
-#       ss = "CILK_NWORKERS="+`p`+" ./" + app + " -rounds 1 -r 1 data/twitter_J"
-#     else:
-#       ss = "CILK_NWORKERS="+`p`+" numactl -i all ./" + app + " -r 1 data/twitter_J"
-#     print app+" "+`p` + " twitter"
-#     print shellGetOutput(ss)
-#     sys.stdout.flush()
-
 
 # for app in wapplications:
 #   for p in processors :

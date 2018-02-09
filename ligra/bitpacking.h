@@ -11,11 +11,12 @@
 #include <cmath>
 
 /*
-	to use this compression scheme, compile with BP=1 make -j
 
-	Functions in this file used for BP:
-		Encoding: parallelCompressEdges --> sequentialCompressEdgeset --> bp
-		Decoding: decode --> bp_decode_first --> bp_decode
+compiler flag: BP=1
+status: working and tested for twitter, com-orkut, uk-union, uk-union reordered (results in spreadsheet), weighted version hasn't been written yet
+Functions in this file used for BP:
+	Encoding: parallelCompressEdges --> sequentialCompressEdgeset --> compressFirstEdge -- > bp
+	Decoding: decode --> eatFirstEdge
 
 */
 typedef unsigned char uchar;
@@ -24,7 +25,6 @@ typedef unsigned char uchar;
 
 // decode weights
 inline intE eatWeight(uchar controlKey, long & dOffset, intT shift, long controlOffset, uchar* start){
-//	uchar fb = start[controlOffset];
 	// check two bit code in control stream
 	uintT checkCode = (controlKey >> shift) & 0x3;
 	uintE edgeRead = 0;
@@ -66,11 +66,9 @@ inline intE eatWeight(uchar controlKey, long & dOffset, intT shift, long control
 
 inline intE eatFirstEdge(uchar* &start, uintE source) {
   uchar fb = *start++;
-  //int sign = (fb & 0x40) ? -1 : 1;
   intE edgeRead = (fb & 0x3f);
   if (LAST_BIT_SET(fb)) {
     int shiftAmount = 6;
-    //shiftAmount += 6;
     while (1) {
       uchar b = *start;
       edgeRead |= ((b & 0x7f) << shiftAmount);
@@ -81,7 +79,6 @@ inline intE eatFirstEdge(uchar* &start, uintE source) {
         break;
     }
   }
-  //edgeRead *= sign;
   return (fb & 0x40) ? source - edgeRead : source + edgeRead;
 }
 
@@ -206,7 +203,6 @@ long compressWeightedEdge(uchar *start, long currentOffset, intEPair *savedEdges
 				storeKey = 0;
 			}		
 			// compress the weights in same manner as first edge (ie with sign bit)
-//			code = compressFirstEdge(start, storeCurrentOffset, storeDOffset, 0, savedEdges[edgeI].second);
 			storeDOffset += (code + 1)*sizeof(uchar); 
 			storeKey |= (code << shift);
 			shift +=2;
@@ -463,14 +459,10 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 	compressionStarts[n] = totalSpace;
 	uchar *finalArr = newA(uchar, totalSpace);	
 	free(charsUsedArr);
-//	long test_counter =0;
 	parallel_for(long i=0;i<n;i++){
-		
 		long charsUsed = sequentialCompressEdgeSet((uchar *)(finalArr+compressionStarts[i]), 0, Degrees[i], i, edges + offsets[i]);
-//		test_counter += charsUsed;
 		offsets[i] = compressionStarts[i];
 	}
-//	cout << "charsUsed " << test_counter << endl;
 	cout << "after sequentialCompress loop " << endl;
 
 	offsets[n] = totalSpace;
@@ -490,43 +482,35 @@ inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degr
   uintE edgesRead = 0;
   if(degree > 0) {
 	uint num_blocks = 0;
+	// determine block size based on degree
 	if(degree > 128){
 		block_size = 128;
 		num_blocks = (degree-1) >> 7;
-	//	num_blocks = (degree-1)*0.0078125;
 	}
 	else if(degree > 64){
 		block_size = 64;
 		num_blocks = (degree-1) >> 6;
-		//num_blocks = (degree-1)*0.015625;
 	}
 	else if(degree > 32){
 		block_size = 32;
 		num_blocks = (degree-1) >> 5;
-		//num_blocks = (degree-1)*0.03125;
 	}
 	else if(degree > 16){
 		block_size = 16;
 		num_blocks = (degree-1) >> 4;
-		//num_blocks = (degree-1)*0.0625;
 	}
 	else if(degree > 8){
 		block_size = 8;
 		num_blocks = (degree-1) >> 3;
-		//num_blocks = (degree-1)*0.125;
 	}
 	else{
 		block_size = 4;
 		num_blocks = (degree-1) >> 2;
-		//num_blocks = (degree-1)*0.25;
 	}
-	//uint num_blocks = (degree-1)/block_size;
 	uint num_remaining = (degree-1) - block_size*num_blocks;
 	long currentOffset = 0;
 	uintE startEdge = 0;
-	uintE edge = 0;
-	uintE edgeRead = 0;
-	
+
 	startEdge = eatFirstEdge(edgeStart, source);
 	if(!t.srcTarg(source, startEdge, edgesRead)){
 		return;
@@ -535,140 +519,88 @@ inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degr
 	uchar b = 0;
 	uint num_bytes = 0;
 	currentOffset = 0;
-	//cout << "before num blocks loop" << endl;
+	// decode edges in block
 	for(long i=0; i < num_blocks; i++){
 			b = edgeStart[currentOffset];
 			currentOffset++;
-			num_bytes = b/8;
-	//		cout << "num bytes " << num_bytes << endl;
+			num_bytes = b >> 3;
 			switch(num_bytes){
 				case 1: 
 					for(int j=0; j< block_size;j++){
-						edgeRead = 0;
-						edgeRead = edgeStart[currentOffset++];
-						//edgeRead = *(edgeStart);
-						//edgeStart++;
-						edge = edgeRead + startEdge;
-						startEdge = edge;
-						if(!t.srcTarg(source, edge, edgesRead++)){
+						startEdge += (uintE) edgeStart[currentOffset++];
+						if(!t.srcTarg(source, startEdge, edgesRead++)){
 							return;
 						}
 					}
 					break;
 				case 2:
 					for(int j=0; j< block_size;j++){
-						edgeRead = 0;
-						//edgeRead = edgeStart[currentOffset] + edgeStart[currentOffset+1] << 8;
-						edgeRead = edgeStart[currentOffset] + ((uintE)(edgeStart[currentOffset+1]) << 8);
-						 //memcpy(&edgeRead, edgeStart, 2);
-						// edgeStart +=2;
+						startEdge += (uintE) edgeStart[currentOffset] + ((uintE)(edgeStart[currentOffset+1]) << 8);
 						currentOffset += 2;
-						edge = edgeRead + startEdge;
-						startEdge = edge;
-						if(!t.srcTarg(source, edge, edgesRead++)){
+						if(!t.srcTarg(source, startEdge, edgesRead++)){
 							return;
 						}
 					}
 					break;
 				case 3:
-	//				cout << "case 3 block_size " << endl;
 					for(int j=0; j<block_size;j++){
-						 edgeRead = 0;
-						edgeRead = edgeStart[currentOffset] + ((uintE)(edgeStart[currentOffset+1]) << 8) + ((uintE)(edgeStart[currentOffset+2]) << 16);
-						 //memcpy(&edgeRead, edgeStart, 3);
-						 //edgeStart+=3;
-						//edgeRead = edgeStart[currentOffset] + edgeStart[currentOffset+1] << 8 + edgeStart[currentOffset+2] << 16;
+						startEdge += (uintE) edgeStart[currentOffset] + ((uintE)(edgeStart[currentOffset+1]) << 8) + ((uintE)(edgeStart[currentOffset+2]) << 16); 
 						currentOffset += 3;
-						edge = edgeRead + startEdge;
-						startEdge = edge;
-	//					cout << "edgeRead " << edgeRead << endl;
-						if(!t.srcTarg(source, edge, edgesRead++)){
+						if(!t.srcTarg(source, startEdge, edgesRead++)){
 							return;
 						}
-	//					cout << "end of case 3" << endl;
 					}	
 					break;
 				case 4:
 					for(int j=0; j< block_size;j++){
-						 edgeRead = 0;
-						edgeRead = edgeStart[currentOffset] + ((uintE)(edgeStart[currentOffset+1]) << 8) + ((uintE)(edgeStart[currentOffset+2]) << 16) + ((uintE)(edgeStart[currentOffset+3]) << 24);
-						 //memcpy(&edgeRead, edgeStart, 4);
-						// edgeStart +=4;
-					//	edgeRead = edgeStart[currentOffset] + edgeStart[currentOffset+1] << 8 + edgeStart[currentOffset+2] << 16 + edgeStart[currentOffset+3] << 24;
+						startEdge += (uintE) edgeStart[currentOffset] + ((uintE)(edgeStart[currentOffset+1]) << 8) + ((uintE)(edgeStart[currentOffset+2]) << 16) + ((uintE)(edgeStart[currentOffset+3]) << 24);
 						currentOffset += 4;
-						edge = edgeRead + startEdge;
-						startEdge = edge;
-						if(!t.srcTarg(source, edge, edgesRead++)){
+
+						if(!t.srcTarg(source, startEdge, edgesRead++)){
 							return;
 						}
 					}	
 					break;
 			}
 			}
-			// decode partial block if there is one
-	//	cout << "before num remaining if " << endl;
+		// decode remaining edges that didn't fit in a block
 		if(num_remaining > 0){
 			b = edgeStart[currentOffset];
 			currentOffset++;
-			num_bytes = b/8;
+			num_bytes = b >> 3;
 			switch(num_bytes){
 				case 1: 
 					for(int j=0; j< num_remaining;j++){
-						edgeRead = 0;
-						edgeRead = edgeStart[currentOffset++];
-						//edgeRead = *(edgeStart);
-						//edgeStart++;
-						edge = edgeRead + startEdge;
-						startEdge = edge;
-						if(!t.srcTarg(source, edge, edgesRead++)){
+						startEdge += (uintE) edgeStart[currentOffset++];
+						if(!t.srcTarg(source, startEdge, edgesRead++)){					
 							return;
 						}
 					}
 					break;
 				case 2:
 					for(int j=0; j< num_remaining;j++){
-						edgeRead =0;
-						edgeRead = edgeStart[currentOffset] + ((uintE)(edgeStart[currentOffset+1]) << 8);
-						//edgeRead = edgeStart[currentOffset] + edgeStart[currentOffset+1] << 8;
+						startEdge += (uintE) edgeStart[currentOffset] + ((uintE)(edgeStart[currentOffset+1]) << 8);
 						currentOffset += 2;
-						//edgeRead = 0;
-						//memcpy(&edgeRead, edgeStart, 2);
-						//edgeStart+=2;
-						edge = edgeRead + startEdge;
-						startEdge = edge;
-						if(!t.srcTarg(source, edge, edgesRead++)){
+						if(!t.srcTarg(source, startEdge, edgesRead++)){
 							return;
 						}
 					}
 					break;
 				case 3:
 					for(int j=0; j<num_remaining;j++){
-						edgeRead = 0;
-						edgeRead = edgeStart[currentOffset] + ((uintE)(edgeStart[currentOffset+1]) << 8) + ((uintE)(edgeStart[currentOffset+2]) << 16);
-						//edgeRead = edgeStart[currentOffset] + edgeStart[currentOffset+1] << 8 + edgeStart[currentOffset+2] << 16;
+						startEdge += (uintE) edgeStart[currentOffset] + ((uintE)(edgeStart[currentOffset+1]) << 8) + ((uintE)(edgeStart[currentOffset+2]) << 16);
 						currentOffset += 3;
-						//edgeRead = 0;
-						//memcpy(&edgeRead, edgeStart, 3);
-						//edgeStart+=3;
-						edge = edgeRead + startEdge;
-						startEdge = edge;
-						if(!t.srcTarg(source, edge, edgesRead++)){
+						if(!t.srcTarg(source, startEdge, edgesRead++)){
 							return;
 						}
 					}	
 					break;
 				case 4:
 					for(int j=0; j< num_remaining;j++){
-						edgeRead = 0;
-						edgeRead = edgeStart[currentOffset] + ((uintE)(edgeStart[currentOffset+1]) << 8) + ((uintE)(edgeStart[currentOffset+2]) << 16) + ((uintE)(edgeStart[currentOffset+3]) << 24);
-						//edgeRead = edgeStart[currentOffset] + edgeStart[currentOffset+1] << 8 + edgeStart[currentOffset+2] << 16 + edgeStart[currentOffset+3] << 24;
+						startEdge += (uintE) edgeStart[currentOffset] + ((uintE)(edgeStart[currentOffset+1]) << 8) + ((uintE)(edgeStart[currentOffset+2]) << 16) + ((uintE)(edgeStart[currentOffset+3]) << 24);
+
 						currentOffset += 4;
-					//	edgeRead = 0;
-					//	memcpy(&edgeRead, edgeStart, 4);
-					//	edgeStart+=4;
-						edge = edgeRead + startEdge;
-						startEdge = edge;
-						if(!t.srcTarg(source, edge, edgesRead++)){
+						if(!t.srcTarg(source, startEdge, edgesRead++)){
 							return;
 						}
 					}	
@@ -691,7 +623,6 @@ template <class T>
 			long currentOffset = 0; 
 			long dataOffset = currentOffset + controlLength;
 			uchar key = edgeStart[currentOffset];
-//			uintE startEdge = eatFirstEdge(key, source, dataOffset, currentOffset, edgeStart);	
 			uintE startEdge = 0;
 			intE weight = eatWeight(key, dataOffset, 2, currentOffset, edgeStart);	
 			if (!t.srcTarg(source, startEdge, weight, edgesRead)){
@@ -731,11 +662,9 @@ long sequentialCompressWeightedEdgeSet(uchar *edgeArray, long currentOffset, uin
 		// space needed by control stream
 		uintT controlLength = (2*degree + 3)/4;
 		long dataCurrentOffset = currentOffset + controlLength;
-	//	uintT key = compressFirstEdge(edgeArray, currentOffset, dataCurrentOffset, vertexNum, savedEdges[0].first);
 		uintT key=0;
 		dataCurrentOffset += (1 + key)*sizeof(uchar); 
 		// compress weight of first edge
-//		uintT temp_key = compressFirstEdge(edgeArray, currentOffset, dataCurrentOffset, 0, savedEdges[0].second);
 		uintT temp_key = 0;
 		dataCurrentOffset += (temp_key + 1)*sizeof(uchar);
 		key |= temp_key << 2;
@@ -759,7 +688,6 @@ uchar *parallelCompressWeightedEdges(intEPair *edges, uintT *offsets, long n, lo
 	long *charsUsedArr = newA(long, n);
 	long *compressionStarts = newA(long, n+1);
 	{parallel_for(long i=0; i<n; i++){
-	    //		charsUsedArr[i] = (2*degrees[i]+3)/4 + 8*degrees[i];
 		charsUsedArr[i] = 10*Degrees[i];
 	}}
 	long toAlloc = sequence::plusScan(charsUsedArr, charsUsedArr, n);

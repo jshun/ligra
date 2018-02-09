@@ -1,5 +1,5 @@
-#ifndef STREAMVBYTE_H
-#define STREAMVBYTE_H
+#ifndef VARINTGB_H
+#define VARINTGB_H
 
 #include "parallel.h"
 #include "utils.h"
@@ -10,6 +10,17 @@
 #include <stdlib.h>
 #include <cmath>
 
+/*
+
+Compiler flag: VARINTGB=1 
+Order functions are called: 
+	Encoding: parallelCompressEdges -- > sequentialCompressEdgeset -- > compressFirstEdge --> encode_data --> compressEdge
+	Decoding: decode --> eatFirstEdge --> eatEdge
+Status of code:
+	Non-weighted version works and has bee tested for com-orkut, twitter, uk-union, uk-union reordered
+	Weighted version still needs to be written
+	Results for non-weighted version in spreadsheet 
+*/
 
 typedef unsigned char uchar;
 
@@ -53,7 +64,7 @@ inline intE eatWeight(uchar controlKey, long & dOffset, intT shift, long control
 
 // decode first edge
 inline intE eatFirstEdge(uchar controlKey, uintE source, long &dOffset, long controlOffset, uchar* start){
-  // check the two bit code in control stream
+  // check the two bit code 
   uintT checkCode = (controlKey) & 0x3;
   uchar signBit;
   uintE edgeRead = 0;
@@ -88,10 +99,8 @@ inline intE eatFirstEdge(uchar controlKey, uintE source, long &dOffset, long con
 
 // decode remaining edges
 inline uintE eatEdge(uchar controlKey, long &dOffset, long controlOffset, uchar* start){
-  // check two bit code in control stream
-  //uintT checkCode = (controlKey >> shift) & 0x3;
   uintE edgeRead;
-
+ // check two bit code
   switch(controlKey & 0x3) {
     // 1 byte
   case 0:
@@ -215,10 +224,13 @@ long compressWeightedEdge(uchar *start, long currentOffset, intEPair *savedEdges
 }
 
 long compressEdge(uchar* &start, long currentOffset, uintE *savedEdges, long dataCurrentOffset, uintT degree){
+  // two bit code for an edge (represents how many bytes required to encode)
   uchar code = 0;
+  // byte containing the control codes for four edges (2 bits per edge * 4)
   uchar storeKey = 0;
   long storeDOffset = dataCurrentOffset;
   long storeCurrentOffset = currentOffset;
+  // process in groups of four
  uintT block_four = degree/4;
  uintT remaining = degree - 4*block_four; 
   uintE difference;
@@ -244,7 +256,7 @@ long compressEdge(uchar* &start, long currentOffset, uintE *savedEdges, long dat
     code = encode_data(difference, storeDOffset, start);
     storeDOffset += (code + 1); 
     storeKey |= (code << 6);
-	// store header byte      
+// store header byte      
    start[storeCurrentOffset] = storeKey;
      storeCurrentOffset = storeDOffset;
    storeDOffset++; 
@@ -253,6 +265,7 @@ long compressEdge(uchar* &start, long currentOffset, uintE *savedEdges, long dat
 
 uintE shift = 0;
 uintT index = 4*block_four;
+// process any remaining edges that didn't fit into blocks
 for(int i=0; i < remaining; i++){
     difference = savedEdges[index] - savedEdges[index - 1];
     code = encode_data(difference, storeDOffset, start);
@@ -270,10 +283,9 @@ else{
    return storeDOffset;
 }
 
-//finish encoding remainders
 long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degree, uintE vertexNum, uintE *savedEdges){
   if(degree > 0){
-
+    // currentOffset points to control byte for current four edges; dataCurrentOffset points to the data bytes for the four edges
      long dataCurrentOffset = currentOffset + 1;
      uchar key = compressFirstEdge(edgeArray, currentOffset, dataCurrentOffset, vertexNum, savedEdges[0]);
     // offset data pointer by amount of space required by first edge
@@ -295,6 +307,7 @@ uchar code = 0;
     	shift +=2;
   }
   edgeArray[currentOffset] = key;
+// if still remaining edges, process
 if(degree > 4){  
   currentOffset = dataCurrentOffset;
   dataCurrentOffset++;
@@ -393,6 +406,7 @@ inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degr
     size_t num_in_first_block = (degree >4) ? 4 : degree;
     uintT shift = 2;
     edgesRead++;
+	// decode the rest of first block
    for(uchar i = 1; i < num_in_first_block; i++){
 	uintE edgeRead = eatEdge((key >> shift), dataOffset, currentOffset, edgeStart);
 	uintE edge = edgeRead + startEdge; 
@@ -407,6 +421,7 @@ if(degree > 4){
 	long remaining = degree - 4*block_four;
 	currentOffset = dataOffset;
 	dataOffset++;
+	// decode blocks of four
 	for(long i=1; i < block_four; i++){
 		key = edgeStart[currentOffset];
 		uintE edgeRead = eatEdge(key, dataOffset,currentOffset, edgeStart);
@@ -437,6 +452,7 @@ if(degree > 4){
 		dataOffset++;
 	}
 	shift = 0;
+	// if still edges remaining, read in last control byte and decode edges
 	if(remaining > 0){
 		key = edgeStart[currentOffset];
 	}

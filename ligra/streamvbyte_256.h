@@ -1,5 +1,5 @@
-#ifndef STREAMVBYTE_H
-#define STREAMVBYTE_H
+#ifndef STREAMCASE_H
+#define STREAMCASE_H
 
 #include "parallel.h"
 #include "utils.h"
@@ -10,13 +10,19 @@
 #include <stdlib.h>
 #include <cmath>
 
-// to use this compression scheme, compile with STREAMCASE=1 make -j
+/*
 
+compiler flag: STREAMCASE=1 
+status: works but slower than other version of streamvbyte (without large case statement); test results in spreadsheet
+Functions:
+	Encoding: parallelCompressEdges -- > sequentialCompressEdgeSet -- > compresEdge --> encode_data
+	Decoding: decode --> eatFirstEdge -- > eatEdge --> eatByte
+
+*/
 typedef unsigned char uchar;
 
 // decode weights
 inline intE eatWeight(uchar controlKey, long & dOffset, intT shift, long controlOffset, uchar* start){
-  //	uchar fb = start[controlOffset];
   // check two bit code in control stream
   uintT checkCode = (controlKey >> shift) & 0x3;
   uintE edgeRead = 0;
@@ -72,29 +78,20 @@ inline intE eatFirstEdge(uchar controlKey, uintE source, long & dOffset, long co
     break;
     // 2 bytes
   case 1:
-    edgeRead = start[dOffset] + ((start[dOffset+1] & 0x7f) << 8);
-    //memcpy(&edgeRead, &start[dOffset], 2);
+    edgeRead = start[dOffset] + ((uintE)(start[dOffset+1] & 0x7f) << 8);
     signBit = 0x80 & start[dOffset+1];
-    //signBit = 0x8000 & edgeRead;
-    //edgeRead = edgeRead & 0x7FFF; 
     dOffset += 2;
     break;
     // 3 bytes
   case 2:
-    //memcpy(&edgeRead, &start[dOffset], 3);
-    edgeRead = start[dOffset] + (start[dOffset+1] << 8) + ((start[dOffset+2] & 0x7f) << 16);
+    edgeRead = start[dOffset] + ((uintE)start[dOffset+1] << 8) + ((uintE)(start[dOffset+2] & 0x7f) << 16);
     signBit = 0x80 & start[dOffset+2];
-    //signBit = 0x800000 & edgeRead;
-    //edgeRead = edgeRead & 0x7FFFFF;
     dOffset += 3;
     break;
     // 4 bytes
   default:
-    edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + ((start[dOffset+3] & 0x7f) << 24);
-    //memcpy(&edgeRead, &start[dOffset], 4);
+    edgeRead = start[dOffset] + ((uintE)start[dOffset+1] << 8) + ((uintE)start[dOffset+2] << 16) + ((uintE)(start[dOffset+3] & 0x7f) << 24);
     signBit = start[dOffset+3] & 0x80;
-    //signBit = edgeRead & 0x80000000;
-    //edgeRead = (edgeRead) & 0x7FFFFFFF; 
     dOffset += 4;
   }
   return (signBit) ? source - edgeRead : source + edgeRead;
@@ -103,10 +100,7 @@ inline intE eatFirstEdge(uchar controlKey, uintE source, long & dOffset, long co
 template <class T>
 inline bool eatByte(uchar controlKey, long & dOffset, uintE source, T t, uintE & startEdge, long & edgesRead, uchar* start){
   uintE edgeRead;// = 0;
-  //uintE startEdge = *startEdgePtr;
   uintE edge;// = 0; 
-  //uintE edgesRead = *edgesReadPtr;
-  //uintT num_bytes = 0;
   switch(controlKey){
   case 0: 
     {
@@ -7020,7 +7014,6 @@ inline bool eatByte(uchar controlKey, long & dOffset, uintE source, T t, uintE &
       if (!t.srcTarg(source, edge, edgesRead)) return 1;
     }
   }  	
-  //asm volatile ("" : "+r" (edge)); 
   return 0;
   };
 
@@ -7036,20 +7029,17 @@ inline uintE eatEdge(uchar controlKey, long & dOffset, intT shift, long controlO
     break;
     // 2 bytes
   case 1:
-    edgeRead = start[dOffset] + (start[dOffset+1] << 8);
-    //memcpy(&edgeRead, &start[dOffset], 2);
+    edgeRead = start[dOffset] + ((uintE)start[dOffset+1] << 8);
     dOffset += 2;
     break;
     // 3 bytes
   case 2:
-    edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16);
-    //		memcpy(&edgeRead, &start[dOffset], 3);	
+    edgeRead = start[dOffset] + ((uintE)start[dOffset+1] << 8) + ((uintE)start[dOffset+2] << 16);
     dOffset += 3;
     break;
     // 4 bytes
   default:
-    edgeRead = start[dOffset] + (start[dOffset+1] << 8) + (start[dOffset+2] << 16) + (start[dOffset+3] << 24);
-    //		memcpy(&edgeRead, &start[dOffset], 4);
+    edgeRead = start[dOffset] + ((uintE)start[dOffset+1] << 8) + ((uintE)start[dOffset+2] << 16) + ((uintE)start[dOffset+3] << 24);
     dOffset += 4;
   }
   return edgeRead;
@@ -7166,11 +7156,7 @@ long compressEdge(uchar* &start, long currentOffset, uintE *savedEdges, uchar ke
     // check if used full byte in control stream; if yes, increment and reset vars
     if(shift == 8){
       shift = 0;
-      //				cout << "storeCurrentOFfset: " << storeCurrentOffset << endl;
-      //				cout << "storeKey " << (uintE) storeKey << endl;
       start[storeCurrentOffset] = storeKey;
-      //				uchar test = start[storeCurrentOffset];
-      //				cout << "start[storecurrentoffset] : " << (uintE)(test) << endl;
       storeCurrentOffset++;
       storeKey = 0;
     }		
@@ -7178,7 +7164,6 @@ long compressEdge(uchar* &start, long currentOffset, uintE *savedEdges, uchar ke
     code = encode_data(difference, storeDOffset, start);
     storeDOffset += (code + 1); 
     storeKey |= (code << shift);
-    //	cout << "code " << code << " shift: " << shift << endl;
     shift +=2;
   }
   start[storeCurrentOffset] = storeKey;
@@ -7199,12 +7184,10 @@ long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degre
     if(degree == 1){
       edgeArray[currentOffset] = key;
       return dataCurrentOffset;
-      //			return (dataCurrentOffset+1);
     }
     // scalar version: compress the rest of the edges
     dataCurrentOffset= compressEdge(edgeArray, currentOffset, savedEdges, key, dataCurrentOffset, degree);
     return dataCurrentOffset;
-    //		return (dataCurrentOffset+1);
   }
   else{
     return currentOffset;
@@ -7259,7 +7242,6 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
     charsUsedArr[i] = count;
 
 		
-    //		cout << "source, charsUsed " << i << ", " << count << endl;
   }
  
   long totalSpace = sequence::plusScan(charsUsedArr, compressionStarts, n);
@@ -7285,7 +7267,6 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 
 template <class T>
 inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degree, const bool par=true){
-  //	cout << "in decode" << endl;
   long edgesRead = 0;
   if(degree > 0) {
     // space used by control stream

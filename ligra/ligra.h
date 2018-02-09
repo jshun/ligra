@@ -244,12 +244,19 @@ vertexSubsetData<data> edgeMapData(graph<vertex>& GA, VS &vs, F f,
   vs.toSparse();
   uintT* degrees = newA(uintT, m);
   vertex* frontierVertices = newA(vertex,m);
-  {parallel_for (size_t i=0; i < m; i++) {
+ {parallel_for (size_t i=0; i < m; i++) {
     uintE v_id = vs.vtx(i);
     vertex v = G[v_id];
     degrees[i] = v.getOutDegree();
     frontierVertices[i] = v;
   }}
+/*  for (size_t i=0; i < m; i++) {
+    uintE v_id = vs.vtx(i);
+    vertex v = G[v_id];
+    degrees[i] = v.getOutDegree();
+    frontierVertices[i] = v;
+  }
+*/
 
   uintT outDegrees = sequence::plusReduce(degrees, m);
   if (outDegrees == 0) return vertexSubsetData<data>(numVertices);

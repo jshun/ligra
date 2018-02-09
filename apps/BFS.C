@@ -27,7 +27,7 @@ struct BFS_F {
   uintE* Parents;
   BFS_F(uintE* _Parents) : Parents(_Parents) {}
   inline bool update (uintE s, uintE d) { //Update
-    if(Parents[d] == UINT_E_MAX) { Parents[d] = s; return 1; }
+    if(Parents[d] == UINT_E_MAX) { Parents[d] = s; return 1;}
     else return 0;
   }
   inline bool updateAtomic (uintE s, uintE d){ //atomic version of Update
@@ -50,7 +50,7 @@ void Compute(graph<vertex>& GA, commandLine P) {
     vertexSubset output = edgeMap(GA, Frontier, BFS_F(Parents));    
     Frontier.del();
     Frontier = output; //set new frontier
-    cout << Frontier.numNonzeros() << endl;
+  cout << Frontier.numNonzeros() << endl;
   } 
   Frontier.del();
   free(Parents); 

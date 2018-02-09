@@ -13,11 +13,17 @@
 #include <cmath>
 
 /*
-	to use this compression scheme, compile with BPSIMD=1 make -j
+compiler flag: BPSIMD=1
+ 
+status: not working but close
+	- correct output when run decoder & works for most applications except BFS (must be memory access issue when using sparse representation)
+	- the encoded file sizes are the same as bp.h
+	- I've tried writing versions that only use one of the blocksizes (i.e. a version for block size 16, 32, etc) and all have the correct decoder output but segfault with BFS
+Functions in this file used for BP:
+	Encoding: parallelCompressEdges --> sequentialCompressEdgeSet --> compressFirstEdge --> bp_8, bp_16, bp_24, bp_32 (used depending on bitwidth) --> bp
+	Decoding: decode --> eatFirstEdge --> bp_decode8, bp_decode16, bp_decode24, bp_decode32
 
-	Functions in this file used for BP:
-		Encoding:
-		Decoding:
+Using vertical interleaved method for encoding/decoding (refer to Lemire's papers and blog posts)
 */
 typedef unsigned char uchar;
 #define LAST_BIT_SET(b) (b & (0x80))
@@ -25,7 +31,6 @@ typedef unsigned char uchar;
 
 // decode weights
 inline intE eatWeight(uchar controlKey, long & dOffset, intT shift, long controlOffset, uchar* start){
-//	uchar fb = start[controlOffset];
 	// check two bit code in control stream
 	uintT checkCode = (controlKey >> shift) & 0x3;
 	uintE edgeRead = 0;
@@ -65,13 +70,12 @@ inline intE eatWeight(uchar controlKey, long & dOffset, intT shift, long control
 	return (signBit) ? -edgeRead : edgeRead;
 }
 
+// decode first edge
 inline intE eatFirstEdge(uchar* &start, uintE source) {
   uchar fb = *start++;
-  //int sign = (fb & 0x40) ? -1 : 1;
   intE edgeRead = (fb & 0x3f);
   if (LAST_BIT_SET(fb)) {
     int shiftAmount = 6;
-    //shiftAmount += 6;
     while (1) {
       uchar b = *start;
       edgeRead |= ((b & 0x7f) << shiftAmount);
@@ -82,7 +86,6 @@ inline intE eatFirstEdge(uchar* &start, uintE source) {
         break;
     }
   }
-  //edgeRead *= sign;
   return (fb & 0x40) ? source - edgeRead : source + edgeRead;
 }
 
@@ -113,6 +116,8 @@ inline uintE eatEdge(uchar controlKey, long & dOffset, intT shift, long controlO
   }
   return edgeRead;
 }
+
+// encode first edge
 long compressFirstEdge(uchar *start, long offset, uintE source, uintE target) {
   uchar* saveStart = start;
   long saveOffset = offset;
@@ -207,7 +212,6 @@ long compressWeightedEdge(uchar *start, long currentOffset, intEPair *savedEdges
 				storeKey = 0;
 			}		
 			// compress the weights in same manner as first edge (ie with sign bit)
-//			code = compressFirstEdge(start, storeCurrentOffset, storeDOffset, 0, savedEdges[edgeI].second);
 			storeDOffset += (code + 1)*sizeof(uchar); 
 			storeKey |= (code << shift);
 			shift +=2;
@@ -264,7 +268,7 @@ long bp(uintE* diff, uint block_size,uchar b, long currentOffset, uchar* &saveAr
 }
 
 long bp_8(uintE* diff, uint block_size, long currentOffset, uchar* &saveArray){
-        const __m128i *in = reinterpret_cast<const __m128i *>(diff);
+        const __m128i *in = (const __m128i * )(diff);
         __m128i outReg, inReg;
         const __m128i mask = _mm_set1_epi32((1U << 8) -1);
 	for(long i=0; i < block_size; i+= 16){
@@ -279,7 +283,6 @@ long bp_8(uintE* diff, uint block_size, long currentOffset, uchar* &saveArray){
 		inReg = _mm_and_si128(_mm_loadu_si128(in+3), mask);
 		outReg = _mm_or_si128(outReg, _mm_slli_epi32(inReg, 24));
                 _mm_storeu_si128((__m128i *) &saveArray[currentOffset], outReg);
-		// experiment if I should do saveArray++ or +=16
 		in+=4;
 		currentOffset+=16;
         }
@@ -287,7 +290,7 @@ long bp_8(uintE* diff, uint block_size, long currentOffset, uchar* &saveArray){
 }
 
 long bp_16(uintE* diff, uint block_size, long currentOffset, uchar* &saveArray){
-        const __m128i *in = reinterpret_cast<const __m128i *>(diff);
+        const __m128i *in =  (const __m128i * )(diff);
 	__m128i outReg, inReg;
 	const __m128i mask = _mm_set1_epi32((1U << 16) -1);
 	for(uint i=0; i < block_size; i+= 16){
@@ -312,7 +315,7 @@ long bp_16(uintE* diff, uint block_size, long currentOffset, uchar* &saveArray){
 }
 
 long bp_24(uintE* diff, uint block_size, long currentOffset, uchar* &saveArray){
-	const __m128i *in = reinterpret_cast<const __m128i *>(diff);
+	const __m128i *in =(const __m128i *)(diff);
 	__m128i outReg, inReg;
 	const __m128i mask = _mm_set1_epi32((1U << 24)-1);
 	for(uint i=0; i < block_size; i += 16){
@@ -350,7 +353,7 @@ long bp_24(uintE* diff, uint block_size, long currentOffset, uchar* &saveArray){
 }
 
 long bp_32(uintE* diff, uint block_size, long currentOffset, uchar* &saveArray){
-	const __m128i *in = reinterpret_cast<const __m128i *>(diff);
+	const __m128i *in = (const __m128i *)(diff);
 	__m128i outReg, inReg;
 
 	for(uint i=0; i < block_size; i+=16){
@@ -392,8 +395,14 @@ long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degre
 		else if(degree > 32){
 			block_size = 32;
 		}
-		else{
+		else if(degree > 16){
 			block_size = 16;
+		}
+		else if(degree > 8){
+			block_size = 8;
+		}
+		else{
+			block_size = 4;
 		}
 
 		currentOffset = compressFirstEdge(edgeArray, currentOffset, vertexNum, savedEdges[0]);
@@ -406,7 +415,9 @@ long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degre
 		uint num_remaining = (degree-1) - block_size*num_blocks;
 				uint max_number = 0;
 				// iterate over blocks (last iteration doesn't store anything if num_remaining==0)
-				uintE difference[block_size];
+		
+		uintE difference[block_size];
+		if (block_size > 8){
 				for(k=0; k < num_blocks; k++){	
 					// indices for diff array
 					start = k*block_size;
@@ -439,7 +450,35 @@ long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degre
 						currentOffset++;
 						currentOffset = bp_32(difference, block_size, currentOffset, edgeArray);
 					}
+				}}
+		else{
+			for(k=0; k < num_blocks; k++){	
+					// indices for diff array
+					start = k*block_size;
+					end = block_size*(k+1);
+					max_number = 0;
+					uint index = 0;
+					for(j=start;j<end;j++){
+							difference[index] = savedEdges[j+1] - savedEdges[j];
+							max_number = (max_number < difference[index]) ? difference[index] : max_number;		
+							index++;
+					}
+					// decide bit width depending on the max number
+					if(max_number < (1 << 8)){
+						b = 8;					
+					}
+					else if(max_number < (1 << 16)){
+						b=16;					
+					}
+					else if(max_number < (1 << 24)){
+						b=24;					
+					}
+					else{
+						b=32;			
+					}
+				currentOffset = bp(difference, block_size, b, currentOffset, edgeArray);
 				}
+		}
 		if(num_remaining>0){
 			// indices for diff array
 			start = num_blocks*block_size;
@@ -473,7 +512,6 @@ long sequentialCompressEdgeSet(uchar *edgeArray, long currentOffset, uintT degre
 uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE* Degrees){
 	cout << "parallel compressing, (n,m) = (" << n << "," << m << ")"  << endl;
 	long *charsUsedArr = newA(long, n);
-//	long test = 0;
 	long *compressionStarts = newA(long, n+1);
 	{parallel_for(long i=0;i<n;i++){
 	// similar calculations to sequentialCompressEdgeSet -- used to calculate memory needed to allocate
@@ -490,8 +528,14 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 		else if(Degrees[i] > 32){
 			block_size = 32;
 		}
-		else{
+		else if(Degrees[i] > 16){
 			block_size = 16;
+		}
+		else if(Degrees[i] > 8){
+			block_size = 8;
+		}
+		else{
+			block_size = 4;
 		}
  	uintE* edgePtr = edges+offsets[i];
 	uintE edge = *edgePtr;
@@ -579,7 +623,6 @@ uintE *parallelCompressEdges(uintE *edges, uintT *offsets, long n, long m, uintE
 		offsets[i] = compressionStarts[i];
 	}
 	cout << "after sequentialCompress loop " << endl;
-
 	offsets[n] = totalSpace;
 	
 	cout << "total space requested is: " << totalSpace << endl;
@@ -597,8 +640,9 @@ bool bp_decode8(uintE &startEdge, long &currentOffset, const uintE &source, uint
 	__m128i outReg, inReg, temp;
 	const __m128i mask = _mm_set1_epi32((1U << 8)-1);
 	for(uint i=0; i < block_size; i+=16){
-		inReg = _mm_loadu_si128(reinterpret_cast<const __m128i *>(edgeStart + currentOffset));
+		inReg = _mm_loadu_si128(( __m128i *)&edgeStart[currentOffset]);
 		outReg = _mm_and_si128(inReg, mask);
+		// use shifts and sets to add differences to previous edge values (compute prefix sum)
 		temp = _mm_add_epi32(outReg, _mm_slli_si128(outReg, 4));
 		outReg = _mm_set1_epi32(startEdge);
 		temp = _mm_add_epi32(temp, _mm_slli_si128(temp, 8));
@@ -704,9 +748,8 @@ bool bp_decode16(uintE &startEdge, long &currentOffset, const uintE &source, uin
 	__m128i outReg, inReg, temp;
 	uintE edge[4] = {0,0,0,0};
 	const __m128i mask = _mm_set1_epi32((1U << 16)-1);
-	// check how many elements need in edge
 	for(uint i=0; i < block_size; i+=16){
-		inReg = _mm_loadu_si128(reinterpret_cast<const __m128i *>(edgeStart + currentOffset));		
+		inReg = _mm_loadu_si128(( __m128i *)&edgeStart[currentOffset]);		
 		outReg = _mm_and_si128(inReg, mask);
 		temp = _mm_add_epi32(outReg, _mm_slli_si128(outReg, 4));
 		outReg = _mm_set1_epi32(startEdge);
@@ -754,7 +797,7 @@ bool bp_decode16(uintE &startEdge, long &currentOffset, const uintE &source, uin
 		}
 
 		currentOffset+=16;
-		inReg = _mm_loadu_si128(reinterpret_cast<const __m128i *>(edgeStart + currentOffset));		
+		inReg = _mm_loadu_si128((__m128i *)&edgeStart[currentOffset]);		
 		outReg = _mm_and_si128(inReg, mask);
 		temp = _mm_add_epi32(outReg, _mm_slli_si128(outReg, 4));
 		outReg = _mm_set1_epi32(startEdge);
@@ -813,9 +856,8 @@ bool bp_decode24(uintE &startEdge, long &currentOffset, const uintE &source, uin
 	__m128i outReg, inReg, temp;
 	uintE edge[4] = {0,0,0,0};
 	const __m128i mask = _mm_set1_epi32((1U << 24)-1);
-	// check how many elements need in edge
 	for(uint i=0; i < block_size; i+=16){
-		inReg = _mm_loadu_si128(reinterpret_cast<const __m128i *>(edgeStart + currentOffset));
+		inReg = _mm_loadu_si128((__m128i *)&edgeStart[currentOffset]);
 		outReg = _mm_and_si128(inReg, mask);
 		temp = _mm_add_epi32(outReg, _mm_slli_si128(outReg, 4));
 		outReg = _mm_set1_epi32(startEdge);
@@ -840,7 +882,7 @@ bool bp_decode24(uintE &startEdge, long &currentOffset, const uintE &source, uin
 		}
 		currentOffset += 16;
 		outReg = _mm_srli_epi32(inReg, 24);
-		inReg = _mm_loadu_si128(reinterpret_cast<const __m128i *>(edgeStart + currentOffset));
+		inReg = _mm_loadu_si128((__m128i *)&edgeStart[currentOffset]);
 		outReg = _mm_or_si128(outReg, _mm_and_si128(_mm_slli_epi32(inReg, 24-16),mask));
 		temp = _mm_add_epi32(outReg, _mm_slli_si128(outReg, 4));
 		outReg = _mm_set1_epi32(startEdge);
@@ -865,7 +907,7 @@ bool bp_decode24(uintE &startEdge, long &currentOffset, const uintE &source, uin
 		}
 		outReg = _mm_srli_epi32(inReg, 16);
 		currentOffset+=16;
-		inReg = _mm_loadu_si128(reinterpret_cast<const __m128i *>(edgeStart + currentOffset));
+		inReg = _mm_loadu_si128((__m128i *)&edgeStart[currentOffset]);
 		outReg = _mm_or_si128(outReg, _mm_and_si128(_mm_slli_epi32(inReg, 24-8),mask));
 		temp = _mm_add_epi32(outReg, _mm_slli_si128(outReg, 4));
 		outReg = _mm_set1_epi32(startEdge);
@@ -913,7 +955,6 @@ bool bp_decode24(uintE &startEdge, long &currentOffset, const uintE &source, uin
 			return 1;
 		}
 	}
-	cout << "returning 0"<< endl;
 	return 0;
 }
 
@@ -921,9 +962,8 @@ template <class T>
 bool bp_decode32(uintE &startEdge, long &currentOffset, const uintE &source, uint block_size, T t, uchar* edgeStart, size_t &edgesRead){
 	__m128i outReg, temp;
 	uintE edge[4] = {0,0,0,0};
-	// check how many elements need in edge
 	for(uint i=0; i < block_size; i+=16){
-		outReg = _mm_loadu_si128(reinterpret_cast<const __m128i *>(edgeStart + currentOffset));
+		outReg = _mm_loadu_si128((__m128i *)&edgeStart[currentOffset]);
 		currentOffset+=16;
 		temp = _mm_add_epi32(outReg, _mm_slli_si128(outReg, 4));
 		outReg = _mm_set1_epi32(startEdge);
@@ -946,7 +986,7 @@ bool bp_decode32(uintE &startEdge, long &currentOffset, const uintE &source, uin
 		if(!t.srcTarg(source, edge[3], edgesRead++)){
 			return 1;
 		}
-		outReg = _mm_loadu_si128(reinterpret_cast<const __m128i *>(edgeStart + currentOffset));
+		outReg = _mm_loadu_si128((__m128i *)&edgeStart[currentOffset]);
 		currentOffset+=16;
 		temp = _mm_add_epi32(outReg, _mm_slli_si128(outReg, 4));
 		outReg = _mm_set1_epi32(startEdge);
@@ -969,7 +1009,7 @@ bool bp_decode32(uintE &startEdge, long &currentOffset, const uintE &source, uin
 		if(!t.srcTarg(source, edge[3], edgesRead++)){
 			return 1;
 		}
-		outReg = _mm_loadu_si128(reinterpret_cast<const __m128i *>(edgeStart + currentOffset));
+		outReg = _mm_loadu_si128((__m128i *)&edgeStart[currentOffset]);
 		currentOffset+=16;
 		temp = _mm_add_epi32(outReg, _mm_slli_si128(outReg, 4));
 		outReg = _mm_set1_epi32(startEdge);
@@ -992,7 +1032,7 @@ bool bp_decode32(uintE &startEdge, long &currentOffset, const uintE &source, uin
 		if(!t.srcTarg(source, edge[3], edgesRead++)){
 			return 1;
 		}
-		outReg = _mm_loadu_si128(reinterpret_cast<const __m128i *>(edgeStart + currentOffset));
+		outReg = _mm_loadu_si128((__m128i *)&edgeStart[currentOffset]);
 		currentOffset+=16;
 		temp = _mm_add_epi32(outReg, _mm_slli_si128(outReg, 4));
 		outReg = _mm_set1_epi32(startEdge);
@@ -1024,12 +1064,14 @@ inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degr
   if(degree > 0) {
 	uintE startEdge = 0;
  	size_t edgesRead = 0;	
+	// decode first edge
 	startEdge = eatFirstEdge(edgeStart, source);
 	if(!t.srcTarg(source, startEdge, edgesRead)){
 		return;
 	}	
-  	uint block_size = 0;	
+  	uint block_size = 0;
 	uint num_blocks=0;
+	// figure out block size based on degree (technically degree-1) because first edge processed -
 	if(degree > 128){
 		block_size = 128;
 		num_blocks = (degree-1) >> 7;
@@ -1042,34 +1084,42 @@ inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degr
 		block_size = 32;
 		num_blocks = (degree -1) >> 5;
 	}
-	else{
+	else if(degree > 16){
 		block_size = 16;
 		num_blocks = (degree-1) >> 4;
 	}
+	else if(degree > 8){
+		block_size = 8;
+		num_blocks = (degree-1) >> 3;
+	}
+	else{
+		block_size = 4;
+		num_blocks = (degree-1) >> 2;
+	}
 	edgesRead = 1;
-	cout  << "block size, degree " << block_size << " " << degree << endl;
 	uchar b = 0;
+
+	uintE edge = 0;
+	uint num_bytes = 0;
 	bool break_var =0;
 	long currentOffset = 0;
 	uint num_remaining = (degree-1) - block_size*num_blocks;
-			for(long i=0; i < num_blocks; i++){
+	// if block size is > 8, use SIMD to decode blocks
+	if(block_size > 8){		
+	for(long i=0; i < num_blocks; i++){
 			b = edgeStart[currentOffset];
 			currentOffset++;
 			switch(b){
 				case 8:
-					cout << "case 8 " << endl;
 					break_var = bp_decode8(startEdge, currentOffset, source, block_size, t, edgeStart, edgesRead);
 					break;
 				case 16:
-					cout << "case 16 " << endl;
 					break_var = bp_decode16(startEdge, currentOffset, source, block_size, t, edgeStart, edgesRead);
 					break;
 				case 24:
-					cout << "case 24" << endl;
 					break_var = bp_decode24(startEdge, currentOffset, source, block_size, t, edgeStart, edgesRead);
 					break;
 				default:
-					cout << "default, b " << b << endl;
 					break_var = bp_decode32(startEdge, currentOffset, source, block_size, t, edgeStart, edgesRead);
 					break;
 			}
@@ -1077,32 +1127,62 @@ inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degr
 				return;
 			}
 			}
-	uintE edge = 0;
-	//uintE edgeRead = 0;
-	uint num_bytes = 0;
-	if(num_remaining > 0){
-		cout << "in num remaining, break_var " << break_var << endl;
-		b = edgeStart[currentOffset];
-		currentOffset++;
-		num_bytes = b >> 3;
-		switch(num_bytes){
-			case 1:
-				cout << "num remianing case 1" << endl;
-				for(uint i=0; i < num_remaining; i++){
-					edge += (uintE) edgeStart[currentOffset++] + startEdge;
-				//	edge = startEdge + edgeRead;
+	}
+	// otherwise, decode w/o SIMD
+	else{
+		for(long i=0; i < num_blocks; i++){
+			b= edgeStart[currentOffset];
+			currentOffset++;
+			num_bytes = b >> 3;
+			switch(num_bytes){
+				case 1:
+				for(uint i=0; i < block_size; i+=4){
+					edge = (uintE) edgeStart[currentOffset++] + startEdge;
 					startEdge = edge;
 					if(!t.srcTarg(source, edge, edgesRead++)){
 						return;
 					}
+					edge = (uintE) edgeStart[currentOffset++] + startEdge;
+					startEdge = edge;
+					if(!t.srcTarg(source, edge, edgesRead++)){
+						return;
+					}
+					edge = (uintE) edgeStart[currentOffset++] + startEdge;
+					startEdge = edge;
+					if(!t.srcTarg(source, edge, edgesRead++)){
+						return;
+					}
+
+					edge = (uintE) edgeStart[currentOffset++] + startEdge;
+					startEdge = edge;
+					if(!t.srcTarg(source, edge, edgesRead++)){
+						return;
+					}
+
 				}
 				break;
 			case 2:
-				cout << "num remaining case 2" << endl;
-				for(uint i=0; i < num_remaining; i++){
-					edge += (uintE) edgeStart[currentOffset] +( (uintE)edgeStart[currentOffset+1] << 8) + startEdge;
+				for(uint i=0; i < block_size; i+=4){
+					edge = (uintE) edgeStart[currentOffset] +( (uintE)edgeStart[currentOffset+1] << 8) + startEdge;
 					currentOffset += 2;
-					//edge = edgeRead + startEdge;
+					startEdge = edge;
+					if(!t.srcTarg(source, edge, edgesRead++)){
+						return;
+					}
+					edge = (uintE) edgeStart[currentOffset] +( (uintE)edgeStart[currentOffset+1] << 8) + startEdge;
+					currentOffset += 2;
+					startEdge = edge;
+					if(!t.srcTarg(source, edge, edgesRead++)){
+						return;
+					}
+					edge = (uintE) edgeStart[currentOffset] +( (uintE)edgeStart[currentOffset+1] << 8) + startEdge;
+					currentOffset += 2;
+					startEdge = edge;
+					if(!t.srcTarg(source, edge, edgesRead++)){
+						return;
+					}
+					edge = (uintE) edgeStart[currentOffset] +( (uintE)edgeStart[currentOffset+1] << 8) + startEdge;
+					currentOffset += 2;
 					startEdge = edge;
 					if(!t.srcTarg(source, edge, edgesRead++)){
 						return;
@@ -1111,28 +1191,56 @@ inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degr
 				break;
 
 			case 3:
-				cout << "num remaining case 3" << endl;
-				for(uint i =0; i < num_remaining; i++){
-					edge += (uintE)edgeStart[currentOffset] + ((uintE)edgeStart[currentOffset+1] << 8) + ((uintE)edgeStart[currentOffset+2] << 16) + startEdge;
-
-					//cout << "i " << i << " currentOffset " << currentOffset << " block_size " << block_size << " startEdge " << startEdge << " edgesRead " << edgesRead << " num_remaining " << num_remaining << endl;	
-					
+				for(uint i =0; i < block_size; i+=4){
+					edge = (uintE)edgeStart[currentOffset] + ((uintE)edgeStart[currentOffset+1] << 8) + ((uintE)edgeStart[currentOffset+2] << 16) + startEdge;					
 					currentOffset += 3;
-					//edge = edgeRead + startEdge;
 					startEdge = edge;
-					cout << "source " << source << " edge " << edge << endl;
 					if(!t.srcTarg(source, edge, edgesRead++)){
-						cout << "return " << endl;
+						return;
+					}
+					edge = (uintE)edgeStart[currentOffset] + ((uintE)edgeStart[currentOffset+1] << 8) + ((uintE)edgeStart[currentOffset+2] << 16) + startEdge;					
+					currentOffset += 3;
+					startEdge = edge;
+					if(!t.srcTarg(source, edge, edgesRead++)){
+						return;
+					}
+					edge = (uintE)edgeStart[currentOffset] + ((uintE)edgeStart[currentOffset+1] << 8) + ((uintE)edgeStart[currentOffset+2] << 16) + startEdge;					
+					currentOffset += 3;
+					startEdge = edge;
+					if(!t.srcTarg(source, edge, edgesRead++)){
+						return;
+					}
+
+					edge = (uintE)edgeStart[currentOffset] + ((uintE)edgeStart[currentOffset+1] << 8) + ((uintE)edgeStart[currentOffset+2] << 16) + startEdge;					
+					currentOffset += 3;
+					startEdge = edge;
+					if(!t.srcTarg(source, edge, edgesRead++)){
 						return;
 					}
 				}
 				break;
 			default:
-				cout << "default, num_bytes " << num_bytes << endl;	
-				for(uint i =0; i < num_remaining; i++){	
-					edge += (uintE)edgeStart[currentOffset] + ((uintE)edgeStart[currentOffset+1] << 8) + ((uintE)edgeStart[currentOffset+2] << 16) + ((uintE)edgeStart[currentOffset+3] << 24) + startEdge;
+				for(uint i =0; i < block_size; i+=4){	
+					edge = (uintE)edgeStart[currentOffset] + ((uintE)edgeStart[currentOffset+1] << 8) + ((uintE)edgeStart[currentOffset+2] << 16) + ((uintE)edgeStart[currentOffset+3] << 24) + startEdge;
 					currentOffset += 4;
-					//edge = edgeRead + startEdge;
+					startEdge = edge;
+					if(!t.srcTarg(source, edge, edgesRead++)){
+						return;
+					}
+					edge = (uintE)edgeStart[currentOffset] + ((uintE)edgeStart[currentOffset+1] << 8) + ((uintE)edgeStart[currentOffset+2] << 16) + ((uintE)edgeStart[currentOffset+3] << 24) + startEdge;
+					currentOffset += 4;
+					startEdge = edge;
+					if(!t.srcTarg(source, edge, edgesRead++)){
+						return;
+					}
+					edge = (uintE)edgeStart[currentOffset] + ((uintE)edgeStart[currentOffset+1] << 8) + ((uintE)edgeStart[currentOffset+2] << 16) + ((uintE)edgeStart[currentOffset+3] << 24) + startEdge;
+					currentOffset += 4;
+					startEdge = edge;
+					if(!t.srcTarg(source, edge, edgesRead++)){
+						return;
+					}
+					edge = (uintE)edgeStart[currentOffset] + ((uintE)edgeStart[currentOffset+1] << 8) + ((uintE)edgeStart[currentOffset+2] << 16) + ((uintE)edgeStart[currentOffset+3] << 24) + startEdge;
+					currentOffset += 4;
 					startEdge = edge;
 					if(!t.srcTarg(source, edge, edgesRead++)){
 						return;
@@ -1140,7 +1248,61 @@ inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degr
 				}
 				break;
 		}
-		cout << "outside num _remaining" << endl;	
+
+
+
+			}
+
+		}
+
+	// decode remaining
+	if(num_remaining > 0){
+		b = edgeStart[currentOffset];
+		currentOffset++;
+		num_bytes = b >> 3;
+		switch(num_bytes){
+			case 1:
+				for(uint i=0; i < num_remaining; i++){
+					edge = (uintE) edgeStart[currentOffset++] + startEdge;
+					startEdge = edge;
+					if(!t.srcTarg(source, edge, edgesRead++)){
+						return;
+					}
+				}
+				break;
+			case 2:
+				for(uint i=0; i < num_remaining; i++){
+					edge = (uintE) edgeStart[currentOffset] +( (uintE)edgeStart[currentOffset+1] << 8) + startEdge;
+					currentOffset += 2;
+					startEdge = edge;
+					if(!t.srcTarg(source, edge, edgesRead++)){
+						return;
+					}
+				}
+				break;
+
+			case 3:
+				for(uint i =0; i < num_remaining; i++){
+					edge = (uintE)edgeStart[currentOffset] + ((uintE)edgeStart[currentOffset+1] << 8) + ((uintE)edgeStart[currentOffset+2] << 16) + startEdge;
+
+					currentOffset += 3;
+					startEdge = edge;
+					if(!t.srcTarg(source, edge, edgesRead++)){
+						return;
+					}
+				}
+				break;
+			default:
+				for(uint i =0; i < num_remaining; i++){	
+					edge = (uintE)edgeStart[currentOffset] + ((uintE)edgeStart[currentOffset+1] << 8) + ((uintE)edgeStart[currentOffset+2] << 16) + ((uintE)edgeStart[currentOffset+3] << 24) + startEdge;
+					currentOffset += 4;
+					startEdge = edge;
+					if(!t.srcTarg(source, edge, edgesRead++)){
+						return;
+					}
+				}
+				break;
+		}
 	}
   }
 };
@@ -1155,7 +1317,6 @@ template <class T>
 			long currentOffset = 0; 
 			long dataOffset = currentOffset + controlLength;
 			uchar key = edgeStart[currentOffset];
-//			uintE startEdge = eatFirstEdge(key, source, dataOffset, currentOffset, edgeStart);	
 			uintE startEdge = 0;
 			intE weight = eatWeight(key, dataOffset, 2, currentOffset, edgeStart);	
 			if (!t.srcTarg(source, startEdge, weight, edgesRead)){
@@ -1195,11 +1356,9 @@ long sequentialCompressWeightedEdgeSet(uchar *edgeArray, long currentOffset, uin
 		// space needed by control stream
 		uintT controlLength = (2*degree + 3)/4;
 		long dataCurrentOffset = currentOffset + controlLength;
-	//	uintT key = compressFirstEdge(edgeArray, currentOffset, dataCurrentOffset, vertexNum, savedEdges[0].first);
 		uintT key=0;
 		dataCurrentOffset += (1 + key)*sizeof(uchar); 
 		// compress weight of first edge
-//		uintT temp_key = compressFirstEdge(edgeArray, currentOffset, dataCurrentOffset, 0, savedEdges[0].second);
 		uintT temp_key = 0;
 		dataCurrentOffset += (temp_key + 1)*sizeof(uchar);
 		key |= temp_key << 2;
@@ -1223,7 +1382,6 @@ uchar *parallelCompressWeightedEdges(intEPair *edges, uintT *offsets, long n, lo
 	long *charsUsedArr = newA(long, n);
 	long *compressionStarts = newA(long, n+1);
 	{parallel_for(long i=0; i<n; i++){
-	    //		charsUsedArr[i] = (2*degrees[i]+3)/4 + 8*degrees[i];
 		charsUsedArr[i] = 10*Degrees[i];
 	}}
 	long toAlloc = sequence::plusScan(charsUsedArr, charsUsedArr, n);
