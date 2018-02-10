@@ -6,6 +6,13 @@
 
 FILE *first, *second;
 
+/*
+
+run ./compare to compare output of two files to see if they are the same or if not, which lines differ
+I used it to debug by comparing the decoder output of rle to the decoder output of a new compression scheme
+
+*/
+
 int main()
 {
     char f[MAXNAME], s[MAXNAME], str1[MAXLINE], str2[MAXLINE];
