@@ -30,7 +30,7 @@ PCFLAGS = -std=c++14 -O3 -DCILKP $(INTT) $(INTE) $(CODE) $(PD)
 
 else ifdef OPENMP
 PCC = g++
-PCFLAGS = -std=c++14 -fopenmp -O3 -DOPENMP $(INTT) $(INTE) $(CODE) $(PD)
+PCFLAGS = -std=c++14 -fopenmp -march=native -O3 -DOPENMP $(INTT) $(INTE) $(CODE) $(PD)
 
 else
 PCC = g++
