@@ -50,7 +50,15 @@ int parallel_main(int argc, char* argv[]) {
     uintT* offsets = In+2;
     uintT* edges = In+2+G.n;
     idx.write((char*)offsets,sizeof(uintT)*G.n);
-    adj.write((char*)edges,sizeof(uintT)*G.m);
+    if(sizeof(uintE) != sizeof(uintT)) {
+      uintE* E = newA(uintE,G.m);
+      parallel_for(long i=0;i<G.m;i++) E[i] = edges[i];
+      adj.write((char*)E,sizeof(uintE)*G.m);
+      free(E);
+    } else {
+      adj.write((char*)edges,sizeof(uintT)*G.m);
+    }
+    G.del();
   } else {
     wghGraph<uintT> G = readWghGraphFromFile<uintT>(iFile);
     config << G.n;
@@ -58,7 +66,15 @@ int parallel_main(int argc, char* argv[]) {
     uintT* offsets = In+2;
     uintT* edges = In+2+G.n;
     idx.write((char*)offsets,sizeof(uintT)*G.n);
-    adj.write((char*)edges,sizeof(uintT)*2*G.m); //edges and weights
+    if(sizeof(uintE) != sizeof(uintT)) {
+      uintE* E = newA(uintE,2*G.m);
+      parallel_for(long i=0;i<2*G.m;i++) E[i] = edges[i];
+      adj.write((char*)E,sizeof(uintE)*2*G.m);
+      free(E);
+    } else {
+      adj.write((char*)edges,sizeof(uintT)*2*G.m);  //edges and weights
+    }
+    G.del();
   }
   config.close();
   idx.close();
