@@ -67,9 +67,9 @@ int parallel_main(int argc, char* argv[]) {
     uintT* edges = In+2+G.n;
     idx.write((char*)offsets,sizeof(uintT)*G.n);
     if(sizeof(uintE) != sizeof(uintT)) {
-      uintE* E = newA(uintE,2*G.m);
+      intE* E = newA(intE,2*G.m);
       parallel_for(long i=0;i<2*G.m;i++) E[i] = edges[i];
-      adj.write((char*)E,sizeof(uintE)*2*G.m);
+      adj.write((char*)E,sizeof(intE)*2*G.m);
       free(E);
     } else {
       adj.write((char*)edges,sizeof(uintT)*2*G.m);  //edges and weights
