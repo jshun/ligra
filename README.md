@@ -47,7 +47,7 @@ After the appropriate environment variables are set, to compile,
 simply run
 
 ```
-$ make -j 16  #compiles with 16 threads (thread count can be changed)
+$ make -j  #compiles with all threads
 ```
 
 The following commands cleans the directory:
