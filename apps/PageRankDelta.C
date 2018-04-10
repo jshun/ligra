@@ -26,7 +26,6 @@
 
 template <class vertex>
 struct PR_F {
-public:
   vertex* V;
   double* Delta, *nghSum;
   PR_F(vertex* _V, double* _Delta, double* _nghSum) : 
