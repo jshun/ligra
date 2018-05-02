@@ -269,7 +269,7 @@ namespace decode_compressed {
       }
     };
     auto gen = [&] (const uintE& ngh, const uintE& offset, const Maybe<uintE>& val = Maybe<uintE>()) {
-      tmp1[offset] = ngh;
+      tmp1[offset] = val.t;
     };
     copyOutNgh<V, uintE>(v, i, (uintT)0, f, gen);
 
@@ -286,11 +286,13 @@ struct compressedSymmetricVertex {
   uchar* neighbors;
   uintT degree;
   uchar* getInNeighbors() { return neighbors; }
+  const uchar* getInNeighbors() const { return neighbors; }
   uchar* getOutNeighbors() { return neighbors; }
-  intT getInNeighbor(intT j) { return -1; } //should not be called
-  intT getOutNeighbor(intT j) { return -1; } //should not be called
-  uintT getInDegree() { return degree; }
-  uintT getOutDegree() { return degree; }
+  const uchar* getOutNeighbors() const { return neighbors; }
+  intT getInNeighbor(intT j) const { return -1; } //should not be called
+  intT getOutNeighbor(intT j) const { return -1; } //should not be called
+  uintT getInDegree() const { return degree; }
+  uintT getOutDegree() const { return degree; }
   void setInNeighbors(uchar* _i) { neighbors = _i; }
   void setOutNeighbors(uchar* _i) { neighbors = _i; }
   void setInDegree(uintT _d) { degree = _d; }
@@ -342,11 +344,13 @@ struct compressedAsymmetricVertex {
   uintT outDegree;
   uintT inDegree;
   uchar* getInNeighbors() { return inNeighbors; }
+  const uchar* getInNeighbors() const { return inNeighbors; }
   uchar* getOutNeighbors() { return outNeighbors; }
-  intT getInNeighbor(intT j) { return -1; } //should not be called
-  intT getOutNeighbor(intT j) { return -1; } //should not be called
-  uintT getInDegree() { return inDegree; }
-  uintT getOutDegree() { return outDegree; }
+  const uchar* getOutNeighbors() const { return outNeighbors; }
+  intT getInNeighbor(intT j) const { return -1; } //should not be called
+  intT getOutNeighbor(intT j) const { return -1; } //should not be called
+  uintT getInDegree() const { return inDegree; }
+  uintT getOutDegree() const { return outDegree; }
   void setInNeighbors(uchar* _i) { inNeighbors = _i; }
   void setOutNeighbors(uchar* _i) { outNeighbors = _i; }
   void setInDegree(uintT _d) { inDegree = _d; }

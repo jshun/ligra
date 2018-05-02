@@ -67,14 +67,14 @@ struct vertexSubsetData {
     return fn;
   }
 
-  long size() { return m; }
-  long numVertices() { return n; }
+  long size() const { return m; }
+  long numVertices() const { return n; }
 
-  long numRows() { return n; }
-  long numNonzeros() { return m; }
+  long numRows() const { return n; }
+  long numNonzeros() const { return m; }
 
-  bool isEmpty() { return m==0; }
-  bool dense() { return isDense; }
+  bool isEmpty() const { return m==0; }
+  bool dense() const { return isDense; }
 
   void toSparse() {
     if (s == NULL && m > 0) {

@@ -69,7 +69,11 @@ void DeltaStepping(graph<vertex>& G, uintE src, uintE delta, size_t num_buckets=
     // stored with each vertex is its original distance in this round
     auto res = edgeMapData<uintE>(G, active, Visit_F(dists), G.m/20, sparse_no_filter | dense_forward);
     vertexMap(res, apply_f);
-    b.update_buckets(res.get_fn_repr(), res.size());
+    if (res.dense()) {
+      b.update_buckets(res.get_fn_repr(), n);
+    } else {
+      b.update_buckets(res.get_fn_repr(), res.size());
+    }
     res.del(); active.del();
     bkt = b.next_bucket();
   }
