@@ -6,16 +6,17 @@
 //Ligra implementation is written by Yunming Zhang (and slightly
 //modified by Julian Shun).
 
-//The input to the program is a weighted bipartite graph between users
-//and items, where the weights represent the rating a user gives to an
-//item. The optional arguments to the program are as follows: "-K"
-//specifies the dimension of the latent vector (default is 20),
-//"-numiter" is the number of iterations of gradient descent to run
-//(default is 5), "-step" is the step size in the algorithm (default
-//is 0.00000035), "-lambda" is the regularization parameter (default
-//is 0.001), and "-randInit" specifies that the latent vector should
-//be initialized randomly (by default every entry is initialized to
-//0.5).
+//The input to the program is a symmetrized weighted bipartite graph
+//between users and items, where the weights represent the rating a
+//user gives to an item. Each vertex in the graph represents either a
+//user or an item. The optional arguments to the program are as
+//follows: "-K" specifies the dimension of the latent vector (default
+//is 20), "-numiter" is the number of iterations of gradient descent
+//to run (default is 5), "-step" is the step size in the algorithm
+//(default is 0.00000035), "-lambda" is the regularization parameter
+//(default is 0.001), and "-randInit" specifies that the latent vector
+//should be initialized randomly (by default every entry is
+//initialized to 0.5).
 
 #define WEIGHTED 1
 #include "ligra.h"
