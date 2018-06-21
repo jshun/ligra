@@ -141,7 +141,7 @@ its value to be the minimum over all of its neighbors labels. The algorithm
 is to just apply this step until no vertex labels change in an iteration. </p>
 <h3><a class="anchor" name="implementation"></a>Implementation <a class="hash-link" href="#implementation">#</a></h3>
 <p>Open up a new file, <code>Components.C</code>, and enter in the following stub. </p>
-<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="cp">#include &quot;ligra.h&quot;</span>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span></span><span class="cp">#include</span> <span class="cpf">&quot;ligra.h&quot;</span><span class="cp"></span>
 <span class="k">template</span> <span class="o">&lt;</span><span class="k">class</span> <span class="nc">vertex</span><span class="o">&gt;</span>
 <span class="kt">void</span> <span class="n">Compute</span><span class="p">(</span><span class="n">graph</span><span class="o">&lt;</span><span class="n">vertex</span><span class="o">&gt;&amp;</span> <span class="n">GA</span><span class="p">,</span> <span class="n">commandLine</span> <span class="n">P</span><span class="p">)</span> <span class="p">{</span>
   <span class="kt">long</span> <span class="n">n</span> <span class="o">=</span> <span class="n">GA</span><span class="p">.</span><span class="n">n</span><span class="p">;</span>
@@ -157,7 +157,7 @@ the current round be active in the next round. Initially, we don&#39;t have this
 information, so we set everyone to be active. </p>
 
 <p>Add the following code to the end of <code>Compute</code>. </p>
-<div class="highlight"><pre><code class="language-cpp" data-lang="cpp">  <span class="kt">bool</span><span class="o">*</span> <span class="n">frontier</span> <span class="o">=</span> <span class="n">newA</span><span class="p">(</span><span class="kt">bool</span><span class="p">,</span><span class="n">n</span><span class="p">);</span>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span></span>  <span class="kt">bool</span><span class="o">*</span> <span class="n">frontier</span> <span class="o">=</span> <span class="n">newA</span><span class="p">(</span><span class="kt">bool</span><span class="p">,</span><span class="n">n</span><span class="p">);</span>
   <span class="p">{</span><span class="n">parallel_for</span><span class="p">(</span><span class="kt">long</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">i</span><span class="o">&lt;</span><span class="n">n</span><span class="p">;</span><span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="n">frontier</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;}</span> 
   <span class="n">vertexSubset</span> <span class="n">Frontier</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="n">frontier</span><span class="p">);</span> <span class="c1">//initial frontier contains all vertices</span>
 
@@ -173,7 +173,7 @@ label of a neighbor. If this is possible, we should (1) lower the label and
 
 <p>To do this, we will need to use an <code>edgeMap</code>, and pass in the following 
 function. </p>
-<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="k">struct</span> <span class="n">CC_F</span> <span class="p">{</span>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span></span><span class="k">struct</span> <span class="n">CC_F</span> <span class="p">{</span>
   <span class="kt">long</span><span class="o">*</span> <span class="n">IDs</span><span class="p">;</span>
   <span class="n">CC_F</span><span class="p">(</span><span class="kt">long</span><span class="o">*</span> <span class="n">_IDs</span><span class="p">)</span> <span class="o">:</span> <span class="n">IDs</span><span class="p">(</span><span class="n">_IDs</span><span class="p">)</span> <span class="p">{}</span>
   <span class="kr">inline</span> <span class="kt">bool</span> <span class="n">updateAtomic</span> <span class="p">(</span><span class="kt">long</span> <span class="n">s</span><span class="p">,</span> <span class="kt">long</span> <span class="n">d</span><span class="p">)</span> <span class="p">{</span> <span class="c1">//atomic Update</span>
@@ -190,7 +190,7 @@ function. </p>
 <p>The final step is to fill in the remaining loop logic. All we should do is 
 apply the <code>edgeMap</code> with <code>CC_F</code> and set the new frontier to be the output 
 of the <code>edgeMap</code>. The finished application should like:</p>
-<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="cp">#include &quot;ligra.h&quot;</span>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span></span><span class="cp">#include</span> <span class="cpf">&quot;ligra.h&quot;</span><span class="cp"></span>
 
 <span class="k">struct</span> <span class="n">CC_F</span> <span class="p">{</span>
   <span class="kt">long</span><span class="o">*</span> <span class="n">IDs</span><span class="p">;</span>
@@ -228,14 +228,14 @@ of the <code>edgeMap</code>. The finished application should like:</p>
 <p>You can compile your algorithm by adding it to the Ligra <code>Makefile</code>. Open up the
 <code>Makefile</code> in the <code>apps/</code> directory in your editor, and change the definition of
 <code>ALL</code> to:</p>
-<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nv">ALL</span><span class="o">=</span> Components encoder ... <span class="o">(</span>other apps<span class="o">)</span> ...
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span></span><span class="nv">ALL</span><span class="o">=</span> Components encoder ... <span class="o">(</span>other apps<span class="o">)</span> ...
 </code></pre></div>
 <p>Now, compile the application by running <code>make</code>, which will produce a binary called 
 <code>Components</code>.</p>
 <h3><a class="anchor" name="testing"></a>Testing <a class="hash-link" href="#testing">#</a></h3>
 <p>Let&#39;s run our program on one of the test-inputs provided by ligra in the <code>inputs/</code>
 directory. Note that the <code>-s</code> flag tells Ligra that the graph is symmetric (undirected). </p>
-<div class="highlight"><pre><code class="language-text" data-lang="text">./Components -s -start 1 ../inputs/rMatGraph_J_5_100
+<div class="highlight"><pre><code class="language-text" data-lang="text"><span></span>./Components -s -start 1 ../inputs/rMatGraph_J_5_100
 Running time : 0.000956
 Running time : 0.000518
 Running time : 0.000439

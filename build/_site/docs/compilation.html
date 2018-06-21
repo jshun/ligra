@@ -128,7 +128,7 @@ compiled for either Ligra or Ligra+. There are two Makefiles provided
 in the directory (Makefile.ligra and Makefile.ligra+), one for Ligra
 and one for Ligra+. The file for the desired backend should be
 linked/copied into a file named &quot;Makefile&quot;. For example:</p>
-<div class="highlight"><pre><code class="language-text" data-lang="text">$ ln -s Makefile.ligra Makefile #if using Ligra
+<div class="highlight"><pre><code class="language-text" data-lang="text"><span></span>$ ln -s Makefile.ligra Makefile #if using Ligra
 $ ln -s Makefile.ligra+ Makefile #if using Ligra+
 </code></pre></div>
 <p>Compilers</p>
@@ -163,7 +163,7 @@ vertex&#39;s edge list is decoded sequentially).</p>
 
 <p>After the appropriate environment variables are set, to compile,
 simply run</p>
-<div class="highlight"><pre><code class="language-text" data-lang="text">$ make -j 16  #compiles with 16 threads (thread count can be changed)
+<div class="highlight"><pre><code class="language-text" data-lang="text"><span></span>$ make -j 16  #compiles with 16 threads (thread count can be changed)
 </code></pre></div>
 <p>The following commands cleans the directory:
 ```
@@ -173,8 +173,8 @@ $ make cleansrc #removes all executables and linked files from the ligra/ or lig
 <p>The applications take the input graph as input as well as an optional
 flag &quot;-s&quot; to indicate a symmetric graph.  Symmetric graphs should be
 called with the &quot;-s&quot; flag for better performance. For example:</p>
-<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nv">$ </span>./BFS -s ../inputs/rMatGraph_J_5_100
-<span class="nv">$ </span>./BellmanFord -s ../inputs/rMatGraph_WJ_5_100
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span></span>$ ./BFS -s ../inputs/rMatGraph_J_5_100
+$ ./BellmanFord -s ../inputs/rMatGraph_WJ_5_100
 </code></pre></div>
 <p>For BFS, BC and BellmanFord, one can also pass the &quot;-r&quot; flag followed
 by an integer to indicate the source vertex.  rMat graphs along with

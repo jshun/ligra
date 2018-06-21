@@ -133,12 +133,12 @@ the <em>breadth-first tree</em> rooted at $s$. </p>
 about how the graph is represented (Is the graph compressed/uncompressed? Is it
 directed/undirected?). The standard way of implementing an algorithm in Ligra is 
 to implement a method, <code>Compute</code>, which has the following signature: </p>
-<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="k">template</span> <span class="o">&lt;</span><span class="k">class</span> <span class="nc">vertex</span><span class="o">&gt;</span>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span></span><span class="k">template</span> <span class="o">&lt;</span><span class="k">class</span> <span class="nc">vertex</span><span class="o">&gt;</span>
 <span class="kt">void</span> <span class="n">Compute</span><span class="p">(</span><span class="n">graph</span><span class="o">&lt;</span><span class="n">vertex</span><span class="o">&gt;&amp;</span> <span class="n">G</span><span class="p">,</span> <span class="n">commandLine</span> <span class="n">P</span><span class="p">);</span>
 </code></pre></div>
 <p>To get started, cd into the <code>tutorial/</code> directory and open up the file <code>BFS.C</code>. 
 We will examine the code piece by piece.</p>
-<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="cp">#include &quot;ligra.h&quot;</span>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span></span><span class="cp">#include</span> <span class="cpf">&quot;ligra.h&quot;</span><span class="cp"></span>
 
 <span class="k">template</span> <span class="o">&lt;</span><span class="k">class</span> <span class="nc">vertex</span><span class="o">&gt;</span>
 <span class="kt">void</span> <span class="n">Compute</span><span class="p">(</span><span class="n">graph</span><span class="o">&lt;</span><span class="n">vertex</span><span class="o">&gt;&amp;</span> <span class="n">G</span><span class="p">,</span> <span class="n">commandLine</span> <span class="n">P</span><span class="p">)</span> <span class="p">{</span>
@@ -162,7 +162,7 @@ datatype in Ligra, which lets us represent a subset of the vertices. Each level
 of the  traversal will be represented by a <code>vertexSubset</code>. The initial 
 <code>vertexSubset</code>, is just a set containing our source node can be constructed 
 the following constructor</p>
-<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="n">vertexSubset</span> <span class="nf">Frontier</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">source</span><span class="p">);</span> <span class="c1">// creates initial frontier</span>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span></span><span class="n">vertexSubset</span> <span class="nf">Frontier</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">source</span><span class="p">);</span> <span class="c1">// creates initial frontier</span>
 </code></pre></div><h3><a class="anchor" name="traversing-a-frontier"></a>Traversing a frontier <a class="hash-link" href="#traversing-a-frontier">#</a></h3>
 <p>Now, we need to describe the logic to produce the next frontier given the current 
 frontier. Enter <strong><code>edgeMap</code></strong>. <code>edgeMap</code> allows us to process the out edges of a 
@@ -172,7 +172,7 @@ frontier. Enter <strong><code>edgeMap</code></strong>. <code>edgeMap</code> allo
 <p>The behavior of <code>edgeMap</code> is intended to be customized by providing a 
 user-defined structure. <code>edgeMap</code> expects a parameter of some template class 
 <code>F</code> that has the following fields: </p>
-<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="k">struct</span> <span class="n">F</span> <span class="p">{</span>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span></span><span class="k">struct</span> <span class="n">F</span> <span class="p">{</span>
   <span class="n">F</span><span class="p">(...)</span> <span class="p">{</span> <span class="p">...</span> <span class="p">}</span>
   <span class="kr">inline</span> <span class="kt">bool</span> <span class="n">update</span> <span class="p">(</span><span class="kt">long</span> <span class="n">s</span><span class="p">,</span> <span class="kt">long</span> <span class="n">d</span><span class="p">)</span> <span class="p">{</span>
     <span class="c1">// logic for how to process the edge (s,d)</span>
@@ -202,7 +202,7 @@ compare and swap operation. A simple, implementation independent version
 is provided by the framework as <code>CAS</code> in <code>ligra/utils.h</code>.<br></li>
 <li><code>cond</code>: avoid revisiting previously visited vertices.</li>
 </ul>
-<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="k">struct</span> <span class="n">BFS_F</span> <span class="p">{</span>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span></span><span class="k">struct</span> <span class="n">BFS_F</span> <span class="p">{</span>
   <span class="kt">long</span><span class="o">*</span> <span class="n">Parents</span><span class="p">;</span>
   <span class="n">BFS_F</span><span class="p">(</span><span class="kt">long</span><span class="o">*</span> <span class="n">_Parents</span><span class="p">)</span> <span class="o">:</span> <span class="n">Parents</span><span class="p">(</span><span class="n">_Parents</span><span class="p">)</span> <span class="p">{</span> <span class="p">}</span>
   <span class="kr">inline</span> <span class="kt">bool</span> <span class="n">updateAtomic</span> <span class="p">(</span><span class="kt">long</span> <span class="n">s</span><span class="p">,</span> <span class="kt">long</span> <span class="n">d</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// atomically update</span>
@@ -224,7 +224,7 @@ by the BFS is still non-deterministic! We will discuss how to fix this in a late
 add a termination condition that signifies when the traversal is finished. Given
 a current frontier, our condition should just apply the edgeMap while the current
 frontier is non-empty. In code:</p>
-<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="k">while</span><span class="p">(</span><span class="o">!</span><span class="n">Frontier</span><span class="p">.</span><span class="n">isEmpty</span><span class="p">()){</span> <span class="c1">//loop until frontier is empty</span>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span></span><span class="k">while</span><span class="p">(</span><span class="o">!</span><span class="n">Frontier</span><span class="p">.</span><span class="n">isEmpty</span><span class="p">()){</span> <span class="c1">//loop until frontier is empty</span>
   <span class="n">vertexSubset</span> <span class="n">output</span> <span class="o">=</span> <span class="n">edgeMap</span><span class="p">(</span><span class="n">GA</span><span class="p">,</span> <span class="n">Frontier</span><span class="p">,</span> <span class="n">BFS_F</span><span class="p">(</span><span class="n">Parents</span><span class="p">));</span>
   <span class="n">Frontier</span><span class="p">.</span><span class="n">del</span><span class="p">();</span>
   <span class="n">Frontier</span> <span class="o">=</span> <span class="n">output</span><span class="p">;</span> <span class="c1">//set new frontier</span>
@@ -232,7 +232,7 @@ frontier is non-empty. In code:</p>
 </code></pre></div><h3><a class="anchor" name="the-final-algorithm"></a>The final algorithm <a class="hash-link" href="#the-final-algorithm">#</a></h3>
 <p>The last step is to just free any memory allocated in the body of <code>Compute</code>. Our
 finished BFS algorithm should look as follows:</p>
-<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="cp">#include &quot;ligra.h&quot;</span>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span></span><span class="cp">#include</span> <span class="cpf">&quot;ligra.h&quot;</span><span class="cp"></span>
 
 <span class="k">struct</span> <span class="n">BFS_F</span> <span class="p">{</span>
   <span class="kt">long</span><span class="o">*</span> <span class="n">Parents</span><span class="p">;</span>
@@ -270,7 +270,7 @@ finished BFS algorithm should look as follows:</p>
 <h3><a class="anchor" name="testing"></a>Testing <a class="hash-link" href="#testing">#</a></h3>
 <p>Let&#39;s try running our program on one of the test-inputs provided by ligra in the <code>inputs/</code>
 directory. Note that the <code>-s</code> flag tells Ligra that the graph is symmetric (undirected). </p>
-<div class="highlight"><pre><code class="language-text" data-lang="text">./BFS -s -start 1 ../inputs/rMatGraph_J_5_100
+<div class="highlight"><pre><code class="language-text" data-lang="text"><span></span>./BFS -s -start 1 ../inputs/rMatGraph_J_5_100
 Running time : 0.000234
 Running time : 0.000359
 Running time : 0.000243

@@ -160,7 +160,7 @@ of size <code>m</code> containing the the first <code>m</code> elements pointed 
 <li><strong><code>vertexSubset(long n, bool* bits)</code></strong>: constructs a subset of size $n$
 whose elements are the entries of <code>bits</code> that are set to <code>1</code>. </li>
 </ul>
-<h3><a class="anchor" name="functions"></a>Functions <a class="hash-link" href="#functions">#</a></h3><h4><a class="anchor" name="edgemap"></a><strong>edgeMap</strong>: <a class="hash-link" href="#edgemap">#</a></h4><div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="k">template</span> <span class="o">&lt;</span><span class="k">class</span> <span class="nc">vertex</span><span class="p">,</span> <span class="k">class</span> <span class="nc">F</span><span class="o">&gt;</span>
+<h3><a class="anchor" name="functions"></a>Functions <a class="hash-link" href="#functions">#</a></h3><h4><a class="anchor" name="edgemap"></a><strong>edgeMap</strong>: <a class="hash-link" href="#edgemap">#</a></h4><div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span></span><span class="k">template</span> <span class="o">&lt;</span><span class="k">class</span> <span class="nc">vertex</span><span class="p">,</span> <span class="k">class</span> <span class="nc">F</span><span class="o">&gt;</span>
 <span class="n">vertexSubset</span> <span class="n">edgeMap</span><span class="p">(</span><span class="n">graph</span><span class="o">&lt;</span><span class="n">vertex</span><span class="o">&gt;</span> <span class="n">GA</span><span class="p">,</span> <span class="n">vertexSubset</span> <span class="o">&amp;</span><span class="n">V</span><span class="p">,</span> <span class="n">F</span> <span class="n">f</span><span class="p">,</span> 
                      <span class="n">intT</span> <span class="n">threshold</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="kt">char</span> <span class="n">option</span><span class="o">=</span><span class="n">DENSE</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">remDups</span><span class="o">=</span><span class="nb">false</span><span class="p">);</span>
 </code></pre></div>
@@ -184,7 +184,7 @@ and <code>cond</code>.  <code>update</code> and <code>updateAtomic</code> should
 <code>updateAtomic</code> should be atomic with respect to the destination
 vertex. <code>cond</code> takes one argument corresponding to a vertex.  For the
 <code>cond</code> function which always returns true, <code>cond_true</code> can be called. </p>
-<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="k">struct</span> <span class="n">F</span> <span class="p">{</span>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span></span><span class="k">struct</span> <span class="n">F</span> <span class="p">{</span>
   <span class="kr">inline</span> <span class="kt">bool</span> <span class="n">update</span> <span class="p">(</span><span class="n">intT</span> <span class="n">s</span><span class="p">,</span> <span class="n">intT</span> <span class="n">d</span><span class="p">)</span> <span class="p">{</span>
   <span class="c1">//fill in</span>
   <span class="p">}</span>
@@ -208,7 +208,7 @@ optimization is described in Section 4 of the paper.</p>
 
 <p>Note that duplicate removal can only be avoided if <code>updateAtomic</code>
 returns true at most once for each vertex in a call to edgeMap.</p>
-<h4><a class="anchor" name="vertexmap"></a><strong>vertexMap</strong>: <a class="hash-link" href="#vertexmap">#</a></h4><div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="k">template</span> <span class="o">&lt;</span><span class="k">class</span> <span class="nc">F</span><span class="o">&gt;</span>
+<h4><a class="anchor" name="vertexmap"></a><strong>vertexMap</strong>: <a class="hash-link" href="#vertexmap">#</a></h4><div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span></span><span class="k">template</span> <span class="o">&lt;</span><span class="k">class</span> <span class="nc">F</span><span class="o">&gt;</span>
 <span class="kt">void</span> <span class="n">vertexMap</span><span class="p">(</span><span class="n">vertexSubset</span> <span class="n">V</span><span class="p">,</span> <span class="n">F</span> <span class="n">add</span><span class="p">);</span>
 </code></pre></div>
 <p>Takes as input: </p>
@@ -218,7 +218,7 @@ returns true at most once for each vertex in a call to edgeMap.</p>
 <li>function $F$ which is applied to all vertices in $V$. It does not have
 a return value.</li>
 </ul>
-<h4><a class="anchor" name="vertexfilter"></a><strong>vertexFilter</strong>: <a class="hash-link" href="#vertexfilter">#</a></h4><div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="k">template</span> <span class="o">&lt;</span><span class="k">class</span> <span class="nc">F</span><span class="o">&gt;</span>
+<h4><a class="anchor" name="vertexfilter"></a><strong>vertexFilter</strong>: <a class="hash-link" href="#vertexfilter">#</a></h4><div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span></span><span class="k">template</span> <span class="o">&lt;</span><span class="k">class</span> <span class="nc">F</span><span class="o">&gt;</span>
 <span class="kt">void</span> <span class="n">vertexFilter</span><span class="p">(</span><span class="n">vertexSubset</span> <span class="n">V</span><span class="p">,</span> <span class="n">F</span> <span class="n">filter</span><span class="p">);</span>
 </code></pre></div>
 <p>Takes as input </p>
@@ -229,7 +229,7 @@ a return value.</li>
 returns a vertexSubset containing all vertices $v \in V$ such 
 that $F(v)$ returns true.</li>
 </ul>
-<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="k">struct</span> <span class="n">F</span> <span class="p">{</span>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span></span><span class="k">struct</span> <span class="n">F</span> <span class="p">{</span>
   <span class="kr">inline</span> <span class="kt">bool</span> <span class="k">operator</span> <span class="p">()</span> <span class="p">(</span><span class="n">intT</span> <span class="n">i</span><span class="p">)</span> <span class="p">{</span>
   <span class="c1">//fill in</span>
   <span class="p">}</span>
@@ -249,7 +249,7 @@ user. The first argument is the graph, and second argument is a
 structure containing the command line arguments, which can be
 extracted using routines in parseCommandLine.h, or manually from
 P.argv and P.argc.</p>
-<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">vertex</span><span class="o">&gt;</span>
+<div class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span></span><span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">vertex</span><span class="o">&gt;</span>
 <span class="kt">void</span> <span class="n">Compute</span><span class="p">(</span><span class="n">graph</span><span class="o">&lt;</span><span class="n">vertex</span><span class="o">&gt;&amp;</span> <span class="n">GA</span><span class="p">,</span> <span class="n">commandLine</span> <span class="n">P</span><span class="p">){</span> 
 
 <span class="p">}</span>

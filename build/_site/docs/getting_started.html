@@ -136,14 +136,14 @@
 have not already. The main directories are the <code>apps</code> directory, where we will
 program and compile applications, and the <code>ligra</code> directory, where the framework 
 code lives. </p>
-<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nv">$ </span><span class="nb">cd </span>ligra
-<span class="nv">$ </span>ls -1
-apps        <span class="c"># code for Ligra applications</span>
-inputs      <span class="c"># example graph inputs</span>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span></span>$ <span class="nb">cd</span> ligra
+$ ls -1
+apps        <span class="c1"># code for Ligra applications</span>
+inputs      <span class="c1"># example graph inputs</span>
 LICENSE
-ligra       <span class="c"># code for the Ligra framework</span>
+ligra       <span class="c1"># code for the Ligra framework</span>
 README.md
-utils       <span class="c"># utilities for parsing different graph formats</span>
+utils       <span class="c1"># utilities for parsing different graph formats</span>
 </code></pre></div><h3><a class="anchor" name="compilation"></a>Compilation <a class="hash-link" href="#compilation">#</a></h3>
 <p>Compilation is done from within the <code>apps/</code> directory. Depending on the compiler
 you wish to use, you will need to set a different environment variable. </p>
@@ -166,14 +166,14 @@ will not work correctly when using the experimental version of <code>gcc 4.8.0</
 <p>On OSX, the g++ binary installed through commandline-tools should error out if you try
 to use OpenMP. If you encounter this error, you will need to install <code>g++-4.8</code> or 
 <code>g++-4.9</code>. You can easily do this by using <code>homebrew</code> as follows: </p>
-<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nv">$ </span>brew tap homebrew/versions
-<span class="nv">$ </span>brew install gcc49
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span></span>$ brew tap homebrew/versions
+$ brew install gcc49
 </code></pre></div>
 <p>Finally, open up the Makefile and replace <code>g++</code> with <code>g++-4.9</code> (or <code>g++-4.8</code>). Your
 code should cleanly compile. </p>
-<h3><a class="anchor" name="example"></a>Example <a class="hash-link" href="#example">#</a></h3><div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nv">$ </span><span class="nb">cd </span>apps/
-<span class="nv">$ </span><span class="nb">export </span><span class="nv">CILK</span><span class="o">=</span>1
-<span class="nv">$ </span>make
+<h3><a class="anchor" name="example"></a>Example <a class="hash-link" href="#example">#</a></h3><div class="highlight"><pre><code class="language-bash" data-lang="bash"><span></span>$ <span class="nb">cd</span> apps/
+$ <span class="nb">export</span> <span class="nv">CILK</span><span class="o">=</span><span class="m">1</span>
+$ make
 ln -s ../ligra/encoder.C .
 ln -s ../ligra/ligra.h .
 ...

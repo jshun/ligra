@@ -126,8 +126,8 @@
     <p>The applications take the input graph as input as well as an optional
 flag &quot;-s&quot; to indicate a symmetric graph.  Symmetric graphs should be
 called with the &quot;-s&quot; flag for better performance. For example:</p>
-<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nv">$ </span>./BFS -s ../inputs/rMatGraph_J_5_100
-<span class="nv">$ </span>./BellmanFord -s ../inputs/rMatGraph_WJ_5_100
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span></span>$ ./BFS -s ../inputs/rMatGraph_J_5_100
+$ ./BellmanFord -s ../inputs/rMatGraph_WJ_5_100
 </code></pre></div>
 <p>For BFS, BC and BellmanFord, one can also pass the &quot;-r&quot; flag followed
 by an integer to indicate the source vertex.  rMat graphs along with
@@ -139,7 +139,7 @@ timed runs.</p>
 
 <p>On NUMA machines, adding the command &quot;numactl -i all &quot; when running
 the program may improve performance for large graphs. For example:</p>
-<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nv">$ </span>numactl -i all ./BFS -s &lt;input file&gt;
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span></span>$ numactl -i all ./BFS -s &lt;input file&gt;
 </code></pre></div><h2><a class="anchor" name="running-code-on-compressed-graphs-ligra-"></a>Running code on compressed graphs (Ligra+)  <a class="hash-link" href="#running-code-on-compressed-graphs-ligra-">#</a></h2>
 <p>In order to run applications with compression enabled, the input graph
 must first be compressed using the encoder program provided. The encoder 
@@ -147,14 +147,14 @@ program takes as input a file in the format described in the next section,
 as well as an output file name. For symmetric graphs, the flag &quot;-s&quot; should 
 be passed before the filenames, and for weighted graphs, the flag &quot;-w&quot; 
 should be passed before the filenames. For example:</p>
-<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nv">$ </span>./encoder -s ../inputs/rMatGraph_J_5_100 inputs/rMatGraph_J_5_100.compressed
-<span class="nv">$ </span>./encoder -s -w ../inputs/rMatGraph_WJ_5_100 inputs/rMatGraph_WJ_5_100.compressed
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span></span>$ ./encoder -s ../inputs/rMatGraph_J_5_100 inputs/rMatGraph_J_5_100.compressed
+$ ./encoder -s -w ../inputs/rMatGraph_WJ_5_100 inputs/rMatGraph_WJ_5_100.compressed
 </code></pre></div>
 <p>After compressing the graphs, the applications can be run in the same
 manner as on uncompressed graphs, but with an additional &quot;-c&quot;
 flag. For example:</p>
-<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nv">$ </span>./BFS -s -c ../inputs/rMatGraph_J_5_100.compressed
-<span class="nv">$ </span>./BellmanFord -s -c ../inputs/rMatGraph_WJ_5_100.compressed
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span></span>$ ./BFS -s -c ../inputs/rMatGraph_J_5_100.compressed
+$ ./BellmanFord -s -c ../inputs/rMatGraph_WJ_5_100.compressed
 </code></pre></div>
 <p>Make sure that the compression method used for compilation of the
 applications is consistent with the method used to compress the graph
