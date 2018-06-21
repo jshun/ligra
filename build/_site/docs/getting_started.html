@@ -158,10 +158,6 @@ you wish to use, you will need to set a different environment variable. </p>
 <p>Using <code>Cilk Plus</code> seems to give the best parallel performance in our experience. To compile 
 with <code>g++</code> with no parallel support, make sure <code>CILK</code>, <code>MKLROOT</code> and <code>OPENMP</code> are not 
 defined.</p>
-
-<p>Note: <code>OpenMP</code> support in Ligra has not been thoroughly tested. If you experience 
-any errors, please send an email to Julian Shun. A known issue is that <code>OpenMP</code>
-will not work correctly when using the experimental version of <code>gcc 4.8.0</code>. </p>
 <h3><a class="anchor" name="openmp-on-osx"></a>OpenMP on OSX <a class="hash-link" href="#openmp-on-osx">#</a></h3>
 <p>On OSX, the g++ binary installed through commandline-tools should error out if you try
 to use OpenMP. If you encounter this error, you will need to install <code>g++-4.8</code> or 

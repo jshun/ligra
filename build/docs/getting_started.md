@@ -48,10 +48,6 @@ Using `Cilk Plus` seems to give the best parallel performance in our experience.
 with `g++` with no parallel support, make sure `CILK`, `MKLROOT` and `OPENMP` are not 
 defined.
 
-Note: `OpenMP` support in Ligra has not been thoroughly tested. If you experience 
-any errors, please send an email to Julian Shun. A known issue is that `OpenMP`
-will not work correctly when using the experimental version of `gcc 4.8.0`. 
-
 ### OpenMP on OSX
 
 On OSX, the g++ binary installed through commandline-tools should error out if you try
