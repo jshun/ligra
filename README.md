@@ -1,5 +1,14 @@
 Ligra (and Ligra+): A Lightweight Graph Processing Framework for Shared Memory
 ======================
+About this Fork
+--------
+
+This fork attempts to refactor and simplify Jshun's original ligra, to be more of a library external to the project, rather than a foundation to build inside. 
+
+e.g. currently you can't simply `#include ligra.h` into your project's file and use ligra's primitives, without extensive modification to the code. For one, ligra.h defines its own `int main()`, (or `int parallel_main ()` to be more precise) that inhibits the ligra's use as a library. 
+
+Another example is the plethora of easily avoidable mistakes, like reordering of initialiser lists. 
+
 
 Organization
 --------
