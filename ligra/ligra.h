@@ -21,8 +21,8 @@
 // LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#ifndef LIGRA_H
-#define LIGRA_H
+#pragma once
+
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
@@ -41,6 +41,8 @@
 #include "gettime.h"
 #include "index_map.h"
 #include "edgeMap_utils.h"
+
+#define UNUSED(x) [&x]{}()
 using namespace std;
 
 //*****START FRAMEWORK*****
@@ -216,7 +218,7 @@ vertexSubsetData<data> edgeMapSparse_no_filter(graph<vertex>& GA,
   if (fl & remove_duplicates) {
     if (GA.flags == NULL) {
       GA.flags = newA(uintE, n);
-      parallel_for(size_t i=0;i<n;i++) { GA.flags[i]=UINT_E_MAX; }
+      parallel_for(long i=0;i<n;i++) { GA.flags[i]=UINT_E_MAX; }
     }
     auto get_key = [&] (size_t i) -> uintE& { return std::get<0>(out[i]); };
     remDuplicates(get_key, GA.flags, outSize, n);
@@ -244,7 +246,7 @@ vertexSubsetData<data> edgeMapData(graph<vertex>& GA, VS &vs, F f,
   vs.toSparse();
   uintT* degrees = newA(uintT, m);
   vertex* frontierVertices = newA(vertex,m);
-  {parallel_for (size_t i=0; i < m; i++) {
+  {parallel_for (long i=0; i < m; i++) {
     uintE v_id = vs.vtx(i);
     vertex v = G[v_id];
     degrees[i] = v.getOutDegree();
@@ -288,7 +290,7 @@ vertexSubsetData<uintE> packEdges(graph<vertex>& GA, vertexSubset& vs, P& p, con
     return vertexSubsetData<uintE>(n);
   }
   auto degrees = array_imap<uintT>(m);
-  granular_for(i, 0, m, (m > 2000), {
+  granular_for(i, 0,(unsigned long) m, (m > 2000), { // AN explicit cast makes it more obvious and easy to find if there are bugs.
     uintE v = vs.vtx(i);
     degrees[i] = G[v].getOutDegree();
   });
@@ -302,7 +304,7 @@ vertexSubsetData<uintE> packEdges(graph<vertex>& GA, vertexSubset& vs, P& p, con
   uintE* tmp1 = newA(uintE, outEdgeCount);
   uintE* tmp2 = newA(uintE, outEdgeCount);
   if (should_output(fl)) {
-    parallel_for (size_t i=0; i<m; i++) {
+    parallel_for (long i=0; i<m; i++) {
       uintE v = vs.vtx(i);
       size_t offset = degrees[i];
       auto bitsOff = &(bits[offset]); auto tmp1Off = &(tmp1[offset]);
@@ -311,12 +313,13 @@ vertexSubsetData<uintE> packEdges(graph<vertex>& GA, vertexSubset& vs, P& p, con
       outV[i] = make_tuple(v, ct);
     }
   } else {
-    parallel_for (size_t i=0; i<m; i++) {
+    parallel_for (long i=0; i<m; i++) {
       uintE v = vs.vtx(i);
       size_t offset = degrees[i];
       auto bitsOff = &(bits[offset]); auto tmp1Off = &(tmp1[offset]);
       auto tmp2Off = &(tmp2[offset]);
       size_t ct = G[v].packOutNgh(v, p, bitsOff, tmp1Off, tmp2Off);
+      UNUSED(ct);		// Silence unused variable warnings. 
     }
   }
   free(bits); free(tmp1); free(tmp2);
@@ -343,15 +346,17 @@ vertexSubsetData<uintE> edgeMapFilter(graph<vertex>& GA, vertexSubset& vs, P& p,
     outV = newA(S, vs.size());
   }
   if (should_output(fl)) {
-    parallel_for (size_t i=0; i<m; i++) {
+    parallel_for (long i=0; i<m; ++i) {
       uintE v = vs.vtx(i);
       size_t ct = G[v].countOutNgh(v, p);
       outV[i] = make_tuple(v, ct);
     }
   } else {
-    parallel_for (size_t i=0; i<m; i++) {
+    parallel_for (long i=0; i<m; ++i) { // This for Should strictly not be executed.
       uintE v = vs.vtx(i);
       size_t ct = G[v].countOutNgh(v, p);
+      UNUSED(ct);		// Silence unused parameter warnings.
+      // Useful for determining if the slution is I/O bound. 
     }
   }
   if (should_output(fl)) {
@@ -370,13 +375,13 @@ template <class F, class VS, typename std::enable_if<
 void vertexMap(VS& V, F f) {
   size_t n = V.numRows(), m = V.numNonzeros();
   if(V.dense()) {
-    parallel_for(long i=0;i<n;i++) {
+    parallel_for(size_t i=0;i<n;i++) {
       if(V.isIn(i)) {
         f(i, V.ithData(i));
       }
     }
   } else {
-    parallel_for(long i=0;i<m;i++) {
+    parallel_for(size_t i=0;i<m;i++) {
       f(V.vtx(i), V.vtxData(i));
     }
   }
@@ -387,13 +392,13 @@ template <class VS, class F, typename std::enable_if<
 void vertexMap(VS& V, F f) {
   size_t n = V.numRows(), m = V.numNonzeros();
   if(V.dense()) {
-    parallel_for(long i=0;i<n;i++) {
+    parallel_for(size_t i=0;i<n;i++) {
       if(V.isIn(i)) {
         f(i);
       }
     }
   } else {
-    parallel_for(long i=0;i<m;i++) {
+    parallel_for(size_t i=0;i<m;i++) {
       f(V.vtx(i));
     }
   }
@@ -403,7 +408,8 @@ void vertexMap(VS& V, F f) {
 //input vertexSubset is returned
 template <class F>
 vertexSubset vertexFilter(vertexSubset V, F filter) {
-  long n = V.numRows(), m = V.numNonzeros();
+  long n = V.numRows();
+  // long m = V.numNonzeros();
   V.toDense();
   bool* d_out = newA(bool,n);
   {parallel_for(long i=0;i<n;i++) d_out[i] = 0;}
@@ -414,7 +420,7 @@ vertexSubset vertexFilter(vertexSubset V, F filter) {
 
 template <class F>
 vertexSubset vertexFilter2(vertexSubset V, F filter) {
-  long n = V.numRows(), m = V.numNonzeros();
+  size_t n = V.numRows(), m = V.numNonzeros();
   if (m == 0) {
     return vertexSubset(n);
   }
@@ -434,7 +440,7 @@ vertexSubset vertexFilter2(vertexSubset V, F filter) {
 
 template <class data, class F>
 vertexSubset vertexFilter2(vertexSubsetData<data> V, F filter) {
-  long n = V.numRows(), m = V.numNonzeros();
+  size_t n = V.numRows(), m = V.numNonzeros();
   if (m == 0) {
     return vertexSubset(n);
   }
@@ -455,11 +461,15 @@ vertexSubset vertexFilter2(vertexSubsetData<data> V, F filter) {
 
 
 //cond function that always returns true
-inline bool cond_true (intT d) { return 1; }
+// A red flag of bad design. Why not implement
+// the iota combinator while you're at it. 
+inline bool cond_true (intT ) { return 1; }
 
 template<class vertex>
 void Compute(graph<vertex>&, commandLine);
 
+
+#ifdef USE_LIGRA_MAIN
 int parallel_main(int argc, char* argv[]) {
   commandLine P(argc,argv," [-s] <inFile>");
   char* iFile = P.getArgument(0);
@@ -519,4 +529,5 @@ int parallel_main(int argc, char* argv[]) {
     }
   }
 }
+
 #endif

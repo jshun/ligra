@@ -152,8 +152,8 @@ template <class T>
   Compresses the first edge, writing target-source and a sign bit.
 */
 long compressFirstEdge(uchar *start, long offset, uintE source, uintE target) {
-  uchar* saveStart = start;
-  long saveOffset = offset;
+  // uchar* saveStart = start;
+  // long saveOffset = offset;
 
   intE preCompress = (intE) target - source;
   int bytesUsed = 0;
@@ -196,7 +196,7 @@ long compressEdges(uchar *start, long curOffset, uintE* savedEdges, uintE edgeI,
   header |= ((runlength-1) << 2);
   start[curOffset++] = header;
 
-  for(int i=0;i<runlength;i++) {
+  for(unsigned int i=0;i<runlength;i++) {
     uintE e = savedEdges[edgeI+i] - savedEdges[edgeI+i-1];
     int bytesUsed = 0;
     for(int j=0; j<numBytes; j++) {
@@ -366,7 +366,7 @@ int numBytesSigned (intE x) {
 }
 
 template <class T>
-  inline void decodeWgh(T t, uchar* edgeStart, const uintE &source, const uintT &degree, const bool par=true) {
+inline void decodeWgh(T t, uchar* edgeStart, const uintE &source, const uintT &degree, const bool /*par*/=true) {
   uintE edgesRead = 0;
   if (degree > 0) {
     // Eat first edge, which is compressed specially
@@ -496,7 +496,7 @@ long compressWeightedEdges(uchar *start, long curOffset, intEPair* savedEdges, u
   start[curOffset++] = header;
   int bytesUsed = 0;
 
-  for(int i=0;i<runlength;i++) {
+  for(unsigned int i=0;i<runlength;i++) {
     uintE e = savedEdges[edgeI+i].first - savedEdges[edgeI+i-1].first;
     for(int j=0; j<numBytes; j++) {
       uchar curByte = e & 0xff;

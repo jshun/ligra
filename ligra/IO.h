@@ -68,7 +68,7 @@ struct words {
   char** Strings; // pointers to strings (all should be null terminated)
   words() {}
 words(char* C, long nn, char** S, long mm)
-: Chars(C), n(nn), Strings(S), m(mm) {}
+  :  n(nn), Chars(C), m(mm), Strings(S) {}
   void del() {free(Chars); free(Strings);}
 };
 

@@ -92,8 +92,8 @@ static void setWorkers(int n) { omp_set_num_threads(n); }
 #define parallel_for_1 for
 #define parallel_for_256 for
 #define cilk_for for
-static int getWorkers() { return 1; }
-static void setWorkers(int n) { }
+static inline int getWorkers() { return 1; }
+static inline void setWorkers(int ) { }
 
 #endif
 

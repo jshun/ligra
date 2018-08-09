@@ -10,7 +10,7 @@ struct Maybe {
   // avoid Maybe<T>*---this is basically free otherwise
   bool exists;
   T t;
-  Maybe(const T& _t) : t(_t), exists(true) {}
+  Maybe(const T& _t) : exists(true), t(_t){}
   Maybe() : exists(false) {}
 };
 

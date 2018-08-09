@@ -33,30 +33,36 @@ PCC = icpc
 PCFLAGS = -std=c++14 -O3 -DCILKP $(INTT) $(INTE) $(CODE) $(PD) $(MEM)
 
 else ifdef OPENMP
-PCC = g++
-PCFLAGS = -std=c++14 -fopenmp -march=native -O3 -DOPENMP $(INTT) $(INTE) $(CODE) $(PD) $(MEM)
+PCC = clang++
+PCFLAGS =-Wall -std=c++14 -fopenmp -march=native -O3 -DOPENMP $(INTT) $(INTE) $(CODE) $(PD) $(MEM)
 
 else
 PCC = g++
-PCFLAGS = -std=c++14 -O2 $(INTT) $(INTE) $(CODE) $(PD) $(MEM)
+PCFLAGS =-Wall -std=c++14 -O2 $(INTT) $(INTE) $(CODE) $(PD) $(MEM)
 endif
 
 COMMON= ligra.h graph.h compressedVertex.h vertex.h utils.h IO.h parallel.h gettime.h index_map.h maybe.h sequence.h edgeMap_utils.h binary_search.h quickSort.h blockRadixSort.h transpose.h parseCommandLine.h byte.h byteRLE.h nibble.h byte-pd.h byteRLE-pd.h nibble-pd.h vertexSubset.h encoder.C decoder.C
 
-ALL= encoder decoder BFS BC BellmanFord Components Radii PageRank PageRankDelta BFSCC BFS-Bitvector KCore MIS Triangle CF
+ALL= encoder decoder BFS BC BellmanFord Components Radii PageRank PageRankDelta BFSCC BFS-Bitvector KCore MIS Triangle CF 
+
+EXTERNAL=ADynamicSP
+
 
 all: $(ALL)
 
 % : %.C $(COMMON)
+	$(PCC) -DUSE_LIGRA_MAIN $(PCFLAGS) -o $@ $<
+
+ADynamicSP: ADynamicSP.C $(COMMON)
 	$(PCC) $(PCFLAGS) -o $@ $<
 
 $(COMMON):
 	ln -s ../ligra/$@ .
 
-.PHONY : clean
+.PHONY : clean cleansrc
 
 clean :
-	rm -f *.o $(ALL)
+	rm -f *.o $(ALL) $(EXTERNAL)
 
 cleansrc :
 	rm -f *.o $(ALL)

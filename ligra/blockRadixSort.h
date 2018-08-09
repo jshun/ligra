@@ -133,8 +133,7 @@ namespace intSort {
   template <class E, class F>
     struct eBits {
       F _f;  long _mask;  long _offset;
-      eBits(long bits, long offset, F f): _mask((1<<bits)-1), 
-					  _offset(offset), _f(f) {}
+      eBits(long bits, long offset, F f): _f(f),_mask((1<<bits)-1), _offset(offset) {}
       long operator() (E p) {return _mask&(_f(p)>>_offset);}
     };
 
@@ -277,12 +276,12 @@ namespace intSort {
   }
 };
 
-static void integerSort(uintT *A, long n) {
+static inline void integerSort(uintT *A, long n) {
   long maxV = sequence::reduce(A, n, maxF<uintT>());
   intSort::iSort(A, n, maxV+1,  identityF<uintT>());
 }
 
-static void integerSort(uintT *A, long n, char* s) {
+static inline void integerSort(uintT *A, long n, char* s) {
   long maxV = sequence::reduce(A,n,maxF<uintT>());
   intSort::iSort(A, n, maxV+1, s, identityF<uintT>());
 }

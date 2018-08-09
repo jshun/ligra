@@ -1,5 +1,4 @@
-#ifndef GRAPH_H
-#define GRAPH_H
+#pragma once
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
@@ -64,10 +63,10 @@ struct graph {
   Deletable *D;
 
 graph(vertex* _V, long _n, long _m, Deletable* _D) : V(_V), n(_n), m(_m),
-  D(_D), flags(NULL), transposed(0) {}
+						     transposed(0), flags(NULL), D(_D) {}
 
 graph(vertex* _V, long _n, long _m, Deletable* _D, uintE* _flags) : V(_V),
-  n(_n), m(_m), D(_D), flags(_flags), transposed(0) {}
+								    n(_n), m(_m), transposed(0), flags(_flags), D(_D){}
 
   void del() {
     if (flags != NULL) free(flags);
@@ -85,4 +84,4 @@ graph(vertex* _V, long _n, long _m, Deletable* _D, uintE* _flags) : V(_V),
     }
   }
 };
-#endif
+
