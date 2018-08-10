@@ -21,8 +21,7 @@
 // LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#ifndef UTIL_H
-#define UTIL_H
+#pragma once
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
@@ -409,7 +408,7 @@ namespace pbbs {
   }
 
   // a 32-bit hash function
-  uint32_t hash32(uint32_t a) {
+  inline uint32_t  hash32(uint32_t a) {
     a = (a+0x7ed55d16) + (a<<12);
     a = (a^0xc761c23c) ^ (a>>19);
     a = (a+0x165667b1) + (a<<5);
@@ -420,7 +419,7 @@ namespace pbbs {
   }
 
   // from numerical recipes
-  uint64_t hash64(uint64_t u )
+  inline uint64_t hash64(uint64_t u )
   {
     uint64_t v = u * 3935559000370003845 + 2691343689449507681;
     v ^= v >> 21;
@@ -519,4 +518,3 @@ namespace pbbs {
   }
 }
 
-#endif

@@ -21,8 +21,7 @@
 // LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#ifndef _PARALLEL_H
-#define _PARALLEL_H
+#pragma once
 
 #if defined(CILK)
 #include <cilk/cilk.h>
@@ -80,8 +79,8 @@ static void setWorkers(int n) {
 #define parallel_for _Pragma("omp parallel for") for
 #define parallel_for_1 _Pragma("omp parallel for schedule (static,1)") for
 #define parallel_for_256 _Pragma("omp parallel for schedule (static,256)") for
-static int getWorkers() { return omp_get_max_threads(); }
-static void setWorkers(int n) { omp_set_num_threads(n); }
+static inline int getWorkers() { return omp_get_max_threads(); }
+static inline void setWorkers(int n) { omp_set_num_threads(n); }
 
 // c++
 #else
@@ -124,4 +123,3 @@ typedef unsigned int uintE;
 #define UINT_E_MAX UINT_MAX
 #endif
 
-#endif // _PARALLEL_H

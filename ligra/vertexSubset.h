@@ -214,8 +214,8 @@ struct vertexSubsetData<pbbs::empty> {
   void toDense() {
     if (d == NULL) {
       d = newA(bool,n);
-      {parallel_for(long i=0;i<n;i++) d[i] = 0;}
-      {parallel_for(long i=0;i<m;i++) d[s[i]] = 1;}
+      {parallel_for(size_t i=0;i<n;i++) d[i] = 0;}
+      {parallel_for(size_t i=0;i<m;i++) d[s[i]] = 1;}
     }
     isDense = true;
   }

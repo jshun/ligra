@@ -20,8 +20,7 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#ifndef A_RADIX_INCLUDED
-#define A_RADIX_INCLUDED
+#pragma once
 
 #include <iostream>
 #include <math.h>
@@ -117,6 +116,7 @@ namespace intSort {
     transpose<bint,bint>(cnts, oA).trans(blocks, m);
 
     long ss;
+    (void)ss;			// Silence unused but set
     if (top)
       ss = sequence::scan(oA, oA, blocks*m, addF<bint>(),(bint)0);
     else
@@ -300,5 +300,4 @@ void integerSort(pair<uintT,T> *A, long n, char* s) {
   intSort::iSort(A, n, maxV+1, s, firstF<uintT,T>());
 }
 
-#endif
 

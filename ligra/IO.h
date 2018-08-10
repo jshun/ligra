@@ -21,6 +21,7 @@
 // LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#pragma once
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
@@ -83,7 +84,7 @@ inline bool isSpace(char c) {
   }
 }
 
-_seq<char> mmapStringFromFile(const char *filename) {
+inline _seq<char> mmapStringFromFile(const char *filename) {
   struct stat sb;
   int fd = open(filename, O_RDONLY);
   if (fd == -1) {
@@ -122,7 +123,7 @@ _seq<char> mmapStringFromFile(const char *filename) {
   return _seq<char>(p, n);
 }
 
-_seq<char> readStringFromFile(char *fileName) {
+inline _seq<char> readStringFromFile(char *fileName) {
   ifstream file (fileName, ios::in | ios::binary | ios::ate);
   if (!file.is_open()) {
     std::cout << "Unable to open file: " << fileName << std::endl;
@@ -138,9 +139,11 @@ _seq<char> readStringFromFile(char *fileName) {
 }
 
 // parallel code for converting a string to words
-words stringToWords(char *Str, long n) {
-  {parallel_for (long i=0; i < n; i++)
-      if (isSpace(Str[i])) Str[i] = 0; }
+inline words stringToWords(char *Str, long n) {
+  {
+    parallel_for (long i=0; i < n; i++)
+      if (isSpace(Str[i])) Str[i] = 0;
+  }
 
   // mark start of words
   bool *FL = newA(bool,n);
@@ -161,7 +164,7 @@ words stringToWords(char *Str, long n) {
 }
 
 template <class vertex>
-graph<vertex> readGraphFromFile(char* fname, bool isSymmetric, bool mmap) {
+inline graph<vertex> readGraphFromFile(char* fname, bool isSymmetric, bool mmap) {
   words W;
   if (mmap) {
     _seq<char> S = mmapStringFromFile(fname);
@@ -316,7 +319,7 @@ graph<vertex> readGraphFromFile(char* fname, bool isSymmetric, bool mmap) {
 }
 
 template <class vertex>
-graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
+inline graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
   char* config = (char*) ".config";
   char* adj = (char*) ".adj";
   char* idx = (char*) ".idx";
@@ -467,13 +470,13 @@ graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
 }
 
 template <class vertex>
-graph<vertex> readGraph(char* iFile, bool compressed, bool symmetric, bool binary, bool mmap) {
+inline graph<vertex> readGraph(char* iFile, bool compressed, bool symmetric, bool binary, bool mmap) {
   if(binary) return readGraphFromBinary<vertex>(iFile,symmetric);
   else return readGraphFromFile<vertex>(iFile,symmetric,mmap);
 }
 
 template <class vertex>
-graph<vertex> readCompressedGraph(char* fname, bool isSymmetric, bool mmap) {
+inline graph<vertex> readCompressedGraph(char* fname, bool isSymmetric, bool mmap) {
   char* s;
   if (mmap) {
     _seq<char> S = mmapStringFromFile(fname);

@@ -20,8 +20,7 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#ifndef A_QSORT_INCLUDED
-#define A_QSORT_INCLUDED
+#pragma once
 #include <algorithm>
 #include "parallel.h"
 
@@ -72,4 +71,4 @@ void quickSort(E* A, intT n, BinPred f) {
   }
 }
 
-#endif // _A_QSORT_INCLUDED
+

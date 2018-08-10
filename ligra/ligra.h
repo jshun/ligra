@@ -530,4 +530,4 @@ int parallel_main(int argc, char* argv[]) {
   }
 }
 
-#endif
+#endif // Conditional inclusion of `int main()`

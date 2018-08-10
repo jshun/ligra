@@ -1,5 +1,4 @@
-#ifndef VERTEX_H
-#define VERTEX_H
+#pragma once
 #include "vertexSubset.h"
 using namespace std;
 
@@ -360,4 +359,3 @@ asymmetricVertex(intE* iN, intE* oN, uintT id, uintT od)
 
 };
 
-#endif
