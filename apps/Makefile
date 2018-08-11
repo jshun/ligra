@@ -45,7 +45,7 @@ COMMON= ligra.h graph.h compressedVertex.h vertex.h utils.h IO.h parallel.h gett
 
 ALL= encoder decoder BFS BC BellmanFord Components Radii PageRank PageRankDelta BFSCC BFS-Bitvector KCore MIS Triangle CF 
 
-EXTERNAL=ADynamicSP
+# EXTERNAL=ADynamicSP
 
 
 all: $(ALL)
@@ -53,8 +53,8 @@ all: $(ALL)
 % : %.C $(COMMON)
 	$(PCC) -DUSE_LIGRA_MAIN $(PCFLAGS) -o $@ $<
 
-ADynamicSP: ADynamicSP.C $(COMMON)
-	$(PCC) $(PCFLAGS) -o $@ $<
+# ADynamicSP: ADynamicSP.C $(COMMON)
+# 	$(PCC) $(PCFLAGS) -o $@ $<
 
 $(COMMON):
 	ln -s ../ligra/$@ .

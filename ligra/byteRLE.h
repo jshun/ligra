@@ -87,7 +87,7 @@ inline intE eatFirstEdge(uchar* &start, uintE source) {
   coded.
 */
 template <class T>
-  inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degree, const bool par=true) {
+  inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degree, const bool =true) {
   uintE edgesRead = 0;
   if (degree > 0) {
     // Eat first edge, which is compressed specially

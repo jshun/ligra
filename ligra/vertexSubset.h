@@ -28,7 +28,8 @@ struct vertexSubsetData {
   // A vertexSubset from boolean array giving number of true values. Calculate
   // number of nonzeros and store in m.
   vertexSubsetData(long _n, D* _d)
-  : n(_n), s(NULL), d(_d), isDense(1) {
+  : n(_n), s(NULL), d(_d), isDense(1)
+  {
     auto d_map = make_in_imap<size_t>(n, [&] (size_t i) { return (size_t)get<0>(_d[i]); });
     m = pbbs::reduce_add(d_map);
   }
@@ -160,12 +161,12 @@ struct vertexSubsetData<pbbs::empty> {
 
   // Sparse
   inline uintE& vtx(const uintE& i) const { return s[i]; }
-  inline pbbs::empty vtxData(const uintE& i) const { return pbbs::empty(); }
+  inline pbbs::empty vtxData(const uintE& ) const { return pbbs::empty(); }
   inline tuple<uintE, pbbs::empty> vtxAndData(const uintE& i) const { return make_tuple(s[i], pbbs::empty()); }
 
   // Dense
   inline bool isIn(const uintE& v) const { return d[v]; }
-  inline pbbs::empty ithData(const uintE& v) const { return pbbs::empty(); }
+  inline pbbs::empty ithData(const uintE& ) const { return pbbs::empty(); }
 
   // Returns (uintE) -> Maybe<tuple<vertex, vertex-data>>.
   auto get_fn_repr() const {

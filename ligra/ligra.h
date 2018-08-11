@@ -255,7 +255,7 @@ vertexSubsetData<data> edgeMapData(graph<vertex>& GA, VS &vs, F f,
 
   uintT outDegrees = sequence::plusReduce(degrees, m);
   if (outDegrees == 0) return vertexSubsetData<data>(numVertices);
-  if (m + outDegrees > threshold) {
+  if (long(m + outDegrees) > threshold) {
     vs.toDense();
     free(degrees); free(frontierVertices);
     return (fl & dense_forward) ?
@@ -285,7 +285,9 @@ template <class vertex, class P>
 vertexSubsetData<uintE> packEdges(graph<vertex>& GA, vertexSubset& vs, P& p, const flags& fl=0) {
   using S = tuple<uintE, uintE>;
   vs.toSparse();
-  vertex* G = GA.V; long m = vs.numNonzeros(); long n = vs.numRows();
+  vertex* G = GA.V;
+  long m = vs.numNonzeros();
+  long n = vs.numRows();
   if (vs.size() == 0) {
     return vertexSubsetData<uintE>(n);
   }
@@ -461,15 +463,18 @@ vertexSubset vertexFilter2(vertexSubsetData<data> V, F filter) {
 
 
 //cond function that always returns true
+
 // A red flag of bad design. Why not implement
 // the iota combinator while you're at it. 
 inline bool cond_true (intT ) { return 1; }
 
+
+#ifdef USE_LIGRA_MAIN
 template<class vertex>
 void Compute(graph<vertex>&, commandLine);
 
 
-#ifdef USE_LIGRA_MAIN
+
 int parallel_main(int argc, char* argv[]) {
   commandLine P(argc,argv," [-s] <inFile>");
   char* iFile = P.getArgument(0);

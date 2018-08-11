@@ -22,6 +22,7 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #pragma once
+
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
@@ -170,7 +171,7 @@ inline graph<vertex> readGraphFromFile(char* fname, bool isSymmetric, bool mmap)
     _seq<char> S = mmapStringFromFile(fname);
     char *bytes = newA(char, S.n);
     // Cannot mutate the graph unless we copy.
-    parallel_for(size_t i=0; i<S.n; i++) {
+    parallel_for(long i=0; i<S.n; i++) {
       bytes[i] = S.A[i];
     }
     if (munmap(S.A, S.n) == -1) {
@@ -224,7 +225,7 @@ inline graph<vertex> readGraphFromFile(char* fname, bool isSymmetric, bool mmap)
 
   vertex* v = newA(vertex,n);
 
-  {parallel_for (uintT i=0; i < n; i++) {
+  {parallel_for (long int i=0; i < n; i++) {
     uintT o = offsets[i];
     uintT l = ((i == n-1) ? m : offsets[i+1])-offsets[i];
     v[i].setOutDegree(l);
@@ -335,13 +336,13 @@ inline graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
   strcat(idxFile,idx);
 
   ifstream in(configFile, ifstream::in);
-  long n;
+  size_t n;
   in >> n;
   in.close();
 
   ifstream in2(adjFile,ifstream::in | ios::binary); //stored as uints
   in2.seekg(0, ios::end);
-  long size = in2.tellg();
+  size_t size = in2.tellg();
   in2.seekg(0);
 #ifdef WEIGHTED
   long m = size/(2*sizeof(uint));
@@ -373,7 +374,7 @@ inline graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
     }}
   //free(edges);
 #endif
-  {parallel_for(long i=0;i<n;i++) {
+  {parallel_for(unsigned long i=0;i<n;i++) {
     uintT o = offsets[i];
     uintT l = ((i==n-1) ? m : offsets[i+1])-offsets[i];
       v[i].setOutDegree(l);
@@ -386,13 +387,13 @@ inline graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
 
   if(!isSymmetric) {
     uintT* tOffsets = newA(uintT,n);
-    {parallel_for(long i=0;i<n;i++) tOffsets[i] = INT_T_MAX;}
+    {parallel_for(size_t i=0;i<n;i++) tOffsets[i] = INT_T_MAX;}
 #ifndef WEIGHTED
     intPair* temp = newA(intPair,m);
 #else
     intTriple* temp = newA(intTriple,m);
 #endif
-    {parallel_for(intT i=0;i<n;i++){
+    {parallel_for(size_t i=0;i<n;i++){
       uintT o = offsets[i];
       for(uintT j=0;j<v[i].getOutDegree();j++){
 #ifndef WEIGHTED
@@ -440,7 +441,7 @@ inline graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
     //fill in offsets of degree 0 vertices by taking closest non-zero
     //offset to the right
     sequence::scanIBack(tOffsets,tOffsets,n,minF<uintT>(),(uintT)m);
-    {parallel_for(long i=0;i<n;i++){
+    {parallel_for(size_t i=0;i<n;i++){
       uintT o = tOffsets[i];
       uintT l = ((i == n-1) ? m : tOffsets[i+1])-tOffsets[i];
       v[i].setInDegree(l);
@@ -470,7 +471,7 @@ inline graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
 }
 
 template <class vertex>
-inline graph<vertex> readGraph(char* iFile, bool compressed, bool symmetric, bool binary, bool mmap) {
+inline graph<vertex> readGraph(char* iFile, bool , bool symmetric, bool binary, bool mmap) {
   if(binary) return readGraphFromBinary<vertex>(iFile,symmetric);
   else return readGraphFromFile<vertex>(iFile,symmetric,mmap);
 }
@@ -482,7 +483,7 @@ inline graph<vertex> readCompressedGraph(char* fname, bool isSymmetric, bool mma
     _seq<char> S = mmapStringFromFile(fname);
     // Cannot mutate graph unless we copy.
     char *bytes = newA(char, S.n);
-    parallel_for(size_t i=0; i<S.n; i++) {
+    parallel_for(long i=0; i<S.n; i++) {
       bytes[i] = S.A[i];
     }
     if (munmap(S.A, S.n) == -1) {

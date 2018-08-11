@@ -70,7 +70,7 @@ struct EdgeMap_F {
     return f(s,d);
   }
 
-  inline bool cond(const uintE& d) const { return true; }
+  inline bool cond(const uintE& ) const { return true; }
 };
 
 #define _SCAN_LOG_BSIZE 10
@@ -355,7 +355,7 @@ inline ulong hashInt(ulong a) {
 // Sets all duplicate values in the array to UINT_E_MAX and resets flags to
 // UINT_E_MAX.
 template <class G>
-void remDuplicates(G& get_key, uintE* flags, long m, long n) {
+void remDuplicates(G& get_key, uintE* flags, size_t m, long ) {
   parallel_for(size_t i=0; i<m; i++) {
     uintE key = get_key(i);
     if(key != UINT_E_MAX && flags[key] == UINT_E_MAX) {
@@ -396,6 +396,10 @@ namespace pbbs {
   const flags fl_sequential = 1;
   const flags fl_debug = 2;
   const flags fl_time = 4;
+
+  
+  
+  
 
   template<typename T>
   inline void assign_uninitialized(T& a, const T& b) {

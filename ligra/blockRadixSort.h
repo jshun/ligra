@@ -287,14 +287,14 @@ static inline void integerSort(uintT *A, long n, char* s) {
 }
 
 template <class T>
-void integerSort(pair<uintT,T> *A, long n) {
+inline void integerSort(pair<uintT,T> *A, long n) {
   long maxV = sequence::mapReduce<uintT>(A,n,maxF<uintT>(),
 					firstF<uintT,T>());
   intSort::iSort(A, n, maxV+1, firstF<uintT,T>());
 }
 
 template <class T>
-void integerSort(pair<uintT,T> *A, long n, char* s) {
+inline void integerSort(pair<uintT,T> *A, long n, char* s) {
   long maxV = sequence::mapReduce<uintT>(A,n,maxF<uintT>(),
 					firstF<uintT,T>());
   intSort::iSort(A, n, maxV+1, s, firstF<uintT,T>());
