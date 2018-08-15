@@ -471,7 +471,7 @@ inline graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
 }
 
 template <class vertex>
-inline graph<vertex> readGraph(char* iFile, bool , bool symmetric, bool binary, bool mmap) {
+inline graph<vertex> readGraph(char* iFile, bool symmetric, bool binary, bool mmap) {
   if(binary) return readGraphFromBinary<vertex>(iFile,symmetric);
   else return readGraphFromFile<vertex>(iFile,symmetric,mmap);
 }

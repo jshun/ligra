@@ -7,7 +7,11 @@ This fork attempts to refactor and simplify Jshun's original ligra, to be more o
 
 e.g. currently you can't simply `#include ligra.h` into your project's file and use ligra's primitives, without extensive modification to the code. For one, ligra.h defines its own `int main()`, (or `int parallel_main ()` to be more precise) that inhibits the ligra's use as a library. 
 
-Another example is the plethora of easily avoidable mistakes, like reordering of initialiser lists, or having all the functions defined in the header file without the `inline` qualifier. 
+Another example is the plethora of easily avoidable mistakes, like reordering of initialiser lists, or having all the functions defined in the header file without the `inline` qualifier.
+
+Another example of modification is fixing the implicit casts from various flavours of unsinged/signed long/int. These should have been detected in the original debugging, but since even a signed `short` typically has a wider dynamic range, than the maximum amount of data thrown at ligra, these were not caught.
+
+A planned feature is moving some of the larger function implementations into a `.cpp` file in order to make compilation a tad easier. ideally the library should be dynamically (for robustness) or statically (for performance) linked and not baked into the implementation file that uses it. As it stands now, ligra can neither be used a header only solution, nor as a statically linked library. 
 
 
 Organization

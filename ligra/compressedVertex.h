@@ -35,7 +35,7 @@ namespace decode_compressed {
       return f.cond(src);
     }
 #else
-    inline bool srcTarg(const uintE &src, const uintE &target, const intE &weight, const uintT &edgeNumber) {
+    inline bool srcTarg(const uintE &src, const uintE &target, const intE &weight, const uintT &) {
       if (vs.isIn(target)) {
         auto m = f.update(target, src, weight);
         g(src, m);
@@ -51,7 +51,8 @@ namespace decode_compressed {
     G g;
   denseForwardT(F &_f, G &_g) : f(_f), g(_g) {}
 #ifndef WEIGHTED
-    inline bool srcTarg(const uintE &src, const uintE &target, const uintT &) {
+    inline bool srcTarg(const uintE &src, const uintE &target, const uintT &)
+    {
       if (f.cond(target)) {
         auto m = f.updateAtomic(src, target);
         g(target, m);
@@ -59,7 +60,11 @@ namespace decode_compressed {
       return true;
     }
 #else
-    inline bool srcTarg(const uintE &src, const uintE &target, const intE &weight, const uintT &edgeNumber) {
+    inline bool srcTarg(const uintE &src,
+			const uintE &target,
+			const intE &weight,
+			const uintT &)
+    {
       if (f.cond(target)) {
         auto m = f.updateAtomic(src, target, weight);
         g(target, m);
@@ -85,7 +90,11 @@ namespace decode_compressed {
       }
       return true; }
 #else
-    inline bool srcTarg(const uintE &src, const uintE &target, const intE &weight, const uintT &edgeNumber) {
+    inline bool srcTarg(const uintE &,
+			const uintE &target,
+			const intE &weight,
+			const uintT &edgeNumber)
+    {
       if (f.cond(target)) {
         auto m = f.updateAtomic(v, target, weight);
         g(target, o + edgeNumber, m);
@@ -113,7 +122,10 @@ namespace decode_compressed {
       }
       return true; }
 #else
-    inline bool srcTarg(const uintE &src, const uintE &target, const intE &weight, const uintT &edgeNumber) {
+    inline bool srcTarg(const uintE &,
+			const uintE &target,
+			const intE &weight,
+			const uintT &) {
       if (f.cond(target)) {
         auto m = f.updateAtomic(v, target, weight);
         if (g(target, o + k, m)) {
@@ -131,13 +143,20 @@ namespace decode_compressed {
     F f;
   sparseTCount(F &_f, uintT vP, size_t& _ct) : f(_f), v(vP), ct(_ct) {}
 #ifndef WEIGHTED
-    inline bool srcTarg(const uintE &, const uintE &target, const uintT &) {
-      if (f(v, target)) { ct++; }
-      return true; }
+    inline bool srcTarg(const uintE &, const uintE &target, const uintT &)
+    {
+      if (f(v, target))  ct++; 
+      return true;
+    }
 #else
-    inline bool srcTarg(const uintE &src, const uintE &target, const intE &weight, const uintT &edgeNumber) {
-      if (f(v, target)) { ct++; }
-      return true; }
+    inline bool srcTarg(const uintE &,
+			const uintE &target,
+			const intE &,
+			const uintT &)
+    {
+      if (f(v, target))  ct++; 
+      return true;
+    }
 #endif
   };
 
@@ -153,7 +172,11 @@ namespace decode_compressed {
       g(target, o + edgeNumber, val);
       return true; }
 #else
-    inline bool srcTarg(const uintE &src, const uintE &target, const intE &weight, const uintT &edgeNumber) {
+    inline bool srcTarg(const uintE &src,
+			const uintE &target,
+			const intE &,
+			const uintT &edgeNumber)
+    {
       auto val = f(src, target);
       g(target, o + edgeNumber, val);
       return true; }
@@ -232,7 +255,8 @@ namespace decode_compressed {
   // this version, which decodes, filters, and then recompresses is compared to
   // the version in byte.h which decodes and recompresses in one pass.
   template <class V, class P>
-  inline size_t packOutNgh(V* v, long i, P &pred, bool* , uintE* tmp1, uintE* tmp2) {
+  inline size_t packOutNgh(V* v, long i, P &pred, bool* , uintE* tmp1, uintE* tmp2)
+  {
     uchar *nghArr = v->getOutNeighbors();
     size_t original_deg = v->getOutDegree();
     // 1. Decode into tmp.
@@ -255,7 +279,8 @@ namespace decode_compressed {
     }
     return new_deg;
   }
-}
+}// end namespace decode_compressed
+
 
 struct compressedSymmetricVertex {
   uchar* neighbors;

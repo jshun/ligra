@@ -7,12 +7,6 @@
 #include "parallel.h"
 using namespace std;
 
-// **************************************************************
-//    ADJACENCY ARRAY REPRESENTATION
-// **************************************************************
-
-// Class that handles implementation specific freeing of memory
-// owned by the graph
 struct Deletable {
 public:
   virtual void del() = 0;
@@ -64,7 +58,7 @@ struct graph {
 
 graph(vertex* _V, long _n, long _m, Deletable* _D) : V(_V), n(_n), m(_m),
 						     transposed(0), flags(NULL), D(_D) {}
-
+  // TODO use a vector<bool> instead of uintE for flags. 
 graph(vertex* _V, long _n, long _m, Deletable* _D, uintE* _flags) : V(_V),
 								    n(_n), m(_m), transposed(0), flags(_flags), D(_D){}
 
