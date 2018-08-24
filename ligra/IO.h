@@ -22,7 +22,6 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #pragma once
-
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
@@ -69,8 +68,8 @@ struct words {
   long m; // number of substrings
   char** Strings; // pointers to strings (all should be null terminated)
   words() {}
-words(char* C, long nn, char** S, long mm)
-  :  n(nn), Chars(C), m(mm), Strings(S) {}
+  words(char* C, long nn, char** S, long mm)
+    : Chars(C), n(nn), Strings(S), m(mm) {}
   void del() {free(Chars); free(Strings);}
 };
 
@@ -110,17 +109,17 @@ inline _seq<char> mmapStringFromFile(const char *filename) {
     exit(-1);
   }
   size_t n = sb.st_size;
-//  char *bytes = newA(char, n);
-//  parallel_for(size_t i=0; i<n; i++) {
-//    bytes[i] = p[i];
-//  }
-//  if (munmap(p, sb.st_size) == -1) {
-//    perror("munmap");
-//    exit(-1);
-//  }
-//  cout << "mmapped" << endl;
-//  free(bytes);
-//  exit(0);
+  //  char *bytes = newA(char, n);
+  //  parallel_for(size_t i=0; i<n; i++) {
+  //    bytes[i] = p[i];
+  //  }
+  //  if (munmap(p, sb.st_size) == -1) {
+  //    perror("munmap");
+  //    exit(-1);
+  //  }
+  //  cout << "mmapped" << endl;
+  //  free(bytes);
+  //  exit(0);
   return _seq<char>(p, n);
 }
 
@@ -141,10 +140,8 @@ inline _seq<char> readStringFromFile(char *fileName) {
 
 // parallel code for converting a string to words
 inline words stringToWords(char *Str, long n) {
-  {
-    parallel_for (long i=0; i < n; i++)
-      if (isSpace(Str[i])) Str[i] = 0;
-  }
+  {parallel_for (long i=0; i < n; i++)
+      if (isSpace(Str[i])) Str[i] = 0; }
 
   // mark start of words
   bool *FL = newA(bool,n);
@@ -171,7 +168,7 @@ inline graph<vertex> readGraphFromFile(char* fname, bool isSymmetric, bool mmap)
     _seq<char> S = mmapStringFromFile(fname);
     char *bytes = newA(char, S.n);
     // Cannot mutate the graph unless we copy.
-    parallel_for(long i=0; i<S.n; i++) {
+    parallel_for(size_t i=0; i<S.n; i++) {
       bytes[i] = S.A[i];
     }
     if (munmap(S.A, S.n) == -1) {
@@ -187,375 +184,376 @@ inline graph<vertex> readGraphFromFile(char* fname, bool isSymmetric, bool mmap)
 #ifndef WEIGHTED
   if (W.Strings[0] != (string) "AdjacencyGraph") {
 #else
-  if (W.Strings[0] != (string) "WeightedAdjacencyGraph") {
+    if (W.Strings[0] != (string) "WeightedAdjacencyGraph") {
 #endif
-    cout << "Bad input file" << endl;
-    abort();
-  }
+      cout << "Bad input file" << endl;
+      abort();
+    }
 
-  long len = W.m -1;
-  long n = atol(W.Strings[1]);
-  long m = atol(W.Strings[2]);
+    long len = W.m -1;
+    long n = atol(W.Strings[1]);
+    long m = atol(W.Strings[2]);
 #ifndef WEIGHTED
-  if (len != n + m + 2) {
+    if (len != n + m + 2) {
 #else
-  if (len != n + 2*m + 2) {
+      if (len != n + 2*m + 2) {
 #endif
-    cout << "Bad input file" << endl;
-    abort();
-  }
-
-  uintT* offsets = newA(uintT,n);
-#ifndef WEIGHTED
-  uintE* edges = newA(uintE,m);
-#else
-  intE* edges = newA(intE,2*m);
-#endif
-
-  {parallel_for(long i=0; i < n; i++) offsets[i] = atol(W.Strings[i + 3]);}
-  {parallel_for(long i=0; i<m; i++) {
-#ifndef WEIGHTED
-      edges[i] = atol(W.Strings[i+n+3]);
-#else
-      edges[2*i] = atol(W.Strings[i+n+3]);
-      edges[2*i+1] = atol(W.Strings[i+n+m+3]);
-#endif
-    }}
-  //W.del(); // to deal with performance bug in malloc
-
-  vertex* v = newA(vertex,n);
-
-  {parallel_for (long int i=0; i < n; i++) {
-    uintT o = offsets[i];
-    uintT l = ((i == n-1) ? m : offsets[i+1])-offsets[i];
-    v[i].setOutDegree(l);
-#ifndef WEIGHTED
-    v[i].setOutNeighbors(edges+o);
-#else
-    v[i].setOutNeighbors(edges+2*o);
-#endif
-    }}
-
-  if(!isSymmetric) {
-    uintT* tOffsets = newA(uintT,n);
-    {parallel_for(long i=0;i<n;i++) tOffsets[i] = INT_T_MAX;}
-#ifndef WEIGHTED
-    intPair* temp = newA(intPair,m);
-#else
-    intTriple* temp = newA(intTriple,m);
-#endif
-    {parallel_for(long i=0;i<n;i++){
-      uintT o = offsets[i];
-      for(uintT j=0;j<v[i].getOutDegree();j++){
-#ifndef WEIGHTED
-	temp[o+j] = make_pair(v[i].getOutNeighbor(j),i);
-#else
-	temp[o+j] = make_pair(v[i].getOutNeighbor(j),make_pair(i,v[i].getOutWeight(j)));
-#endif
+	cout << "Bad input file" << endl;
+	abort();
       }
-      }}
-    free(offsets);
+
+      uintT* offsets = newA(uintT,n);
+#ifndef WEIGHTED
+      uintE* edges = newA(uintE,m);
+#else
+      intE* edges = newA(intE,2*m);
+#endif
+
+      {parallel_for(long i=0; i < n; i++) offsets[i] = atol(W.Strings[i + 3]);}
+      {parallel_for(long i=0; i<m; i++) {
+#ifndef WEIGHTED
+	  edges[i] = atol(W.Strings[i+n+3]);
+#else
+	  edges[2*i] = atol(W.Strings[i+n+3]);
+	  edges[2*i+1] = atol(W.Strings[i+n+m+3]);
+#endif
+	}}
+      //W.del(); // to deal with performance bug in malloc
+
+      vertex* v = newA(vertex,n);
+
+      {parallel_for (uintT i=0; i < n; i++) {
+	  uintT o = offsets[i];
+	  uintT l = ((i == n-1) ? m : offsets[i+1])-offsets[i];
+	  v[i].setOutDegree(l);
+#ifndef WEIGHTED
+	  v[i].setOutNeighbors(edges+o);
+#else
+	  v[i].setOutNeighbors(edges+2*o);
+#endif
+	}}
+
+      if(!isSymmetric) {
+	uintT* tOffsets = newA(uintT,n);
+	{parallel_for(long i=0;i<n;i++) tOffsets[i] = INT_T_MAX;}
+#ifndef WEIGHTED
+	intPair* temp = newA(intPair,m);
+#else
+	intTriple* temp = newA(intTriple,m);
+#endif
+	{parallel_for(long i=0;i<n;i++){
+	    uintT o = offsets[i];
+	    for(uintT j=0;j<v[i].getOutDegree();j++){
+#ifndef WEIGHTED
+	      temp[o+j] = make_pair(v[i].getOutNeighbor(j),i);
+#else
+	      temp[o+j] = make_pair(v[i].getOutNeighbor(j),make_pair(i,v[i].getOutWeight(j)));
+#endif
+	    }
+	  }}
+	free(offsets);
 
 #ifndef WEIGHTED
 #ifndef LOWMEM
-    intSort::iSort(temp,m,n+1,getFirst<uintE>());
+	intSort::iSort(temp,m,n+1,getFirst<uintE>());
 #else
-    quickSort(temp,m,pairFirstCmp<uintE>());
+	quickSort(temp,m,pairFirstCmp<uintE>());
 #endif
 #else
 #ifndef LOWMEM
-    intSort::iSort(temp,m,n+1,getFirst<intPair>());
+	intSort::iSort(temp,m,n+1,getFirst<intPair>());
 #else
-    quickSort(temp,m,pairFirstCmp<intPair>());
+	quickSort(temp,m,pairFirstCmp<intPair>());
 #endif
 #endif
 
-    tOffsets[temp[0].first] = 0;
+	tOffsets[temp[0].first] = 0;
 #ifndef WEIGHTED
-    uintE* inEdges = newA(uintE,m);
-    inEdges[0] = temp[0].second;
+	uintE* inEdges = newA(uintE,m);
+	inEdges[0] = temp[0].second;
 #else
-    intE* inEdges = newA(intE,2*m);
-    inEdges[0] = temp[0].second.first;
-    inEdges[1] = temp[0].second.second;
+	intE* inEdges = newA(intE,2*m);
+	inEdges[0] = temp[0].second.first;
+	inEdges[1] = temp[0].second.second;
 #endif
-    {parallel_for(long i=1;i<m;i++) {
+	{parallel_for(long i=1;i<m;i++) {
 #ifndef WEIGHTED
-      inEdges[i] = temp[i].second;
+	    inEdges[i] = temp[i].second;
 #else
-      inEdges[2*i] = temp[i].second.first;
-      inEdges[2*i+1] = temp[i].second.second;
+	    inEdges[2*i] = temp[i].second.first;
+	    inEdges[2*i+1] = temp[i].second.second;
 #endif
-      if(temp[i].first != temp[i-1].first) {
-	tOffsets[temp[i].first] = i;
+	    if(temp[i].first != temp[i-1].first) {
+	      tOffsets[temp[i].first] = i;
+	    }
+	  }}
+
+	free(temp);
+
+	//fill in offsets of degree 0 vertices by taking closest non-zero
+	//offset to the right
+	sequence::scanIBack(tOffsets,tOffsets,n,minF<uintT>(),(uintT)m);
+
+	{parallel_for(long i=0;i<n;i++){
+	    uintT o = tOffsets[i];
+	    uintT l = ((i == n-1) ? m : tOffsets[i+1])-tOffsets[i];
+	    v[i].setInDegree(l);
+#ifndef WEIGHTED
+	    v[i].setInNeighbors(inEdges+o);
+#else
+	    v[i].setInNeighbors(inEdges+2*o);
+#endif
+	  }}
+
+	free(tOffsets);
+	Uncompressed_Mem<vertex>* mem = new Uncompressed_Mem<vertex>(v,n,m,edges,inEdges);
+	return graph<vertex>(v,n,m,mem);
       }
-      }}
+      else {
+	free(offsets);
+	Uncompressed_Mem<vertex>* mem = new Uncompressed_Mem<vertex>(v,n,m,edges);
+	return graph<vertex>(v,n,m,mem);
+      }
+    }
 
-    free(temp);
+    template <class vertex>
+      inline graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
+      char* config = (char*) ".config";
+      char* adj = (char*) ".adj";
+      char* idx = (char*) ".idx";
+      char configFile[strlen(iFile)+strlen(config)+1];
+      char adjFile[strlen(iFile)+strlen(adj)+1];
+      char idxFile[strlen(iFile)+strlen(idx)+1];
+      *configFile = *adjFile = *idxFile = '\0';
+      strcat(configFile,iFile);
+      strcat(adjFile,iFile);
+      strcat(idxFile,iFile);
+      strcat(configFile,config);
+      strcat(adjFile,adj);
+      strcat(idxFile,idx);
 
-    //fill in offsets of degree 0 vertices by taking closest non-zero
-    //offset to the right
-    sequence::scanIBack(tOffsets,tOffsets,n,minF<uintT>(),(uintT)m);
+      ifstream in(configFile, ifstream::in);
+      long n;
+      in >> n;
+      in.close();
 
-    {parallel_for(long i=0;i<n;i++){
-      uintT o = tOffsets[i];
-      uintT l = ((i == n-1) ? m : tOffsets[i+1])-tOffsets[i];
-      v[i].setInDegree(l);
-#ifndef WEIGHTED
-      v[i].setInNeighbors(inEdges+o);
-#else
-      v[i].setInNeighbors(inEdges+2*o);
-#endif
-      }}
-
-    free(tOffsets);
-    Uncompressed_Mem<vertex>* mem = new Uncompressed_Mem<vertex>(v,n,m,edges,inEdges);
-    return graph<vertex>(v,n,m,mem);
-  }
-  else {
-    free(offsets);
-    Uncompressed_Mem<vertex>* mem = new Uncompressed_Mem<vertex>(v,n,m,edges);
-    return graph<vertex>(v,n,m,mem);
-  }
-}
-
-template <class vertex>
-inline graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
-  char* config = (char*) ".config";
-  char* adj = (char*) ".adj";
-  char* idx = (char*) ".idx";
-  char configFile[strlen(iFile)+strlen(config)+1];
-  char adjFile[strlen(iFile)+strlen(adj)+1];
-  char idxFile[strlen(iFile)+strlen(idx)+1];
-  *configFile = *adjFile = *idxFile = '\0';
-  strcat(configFile,iFile);
-  strcat(adjFile,iFile);
-  strcat(idxFile,iFile);
-  strcat(configFile,config);
-  strcat(adjFile,adj);
-  strcat(idxFile,idx);
-
-  ifstream in(configFile, ifstream::in);
-  size_t n;
-  in >> n;
-  in.close();
-
-  ifstream in2(adjFile,ifstream::in | ios::binary); //stored as uints
-  in2.seekg(0, ios::end);
-  size_t size = in2.tellg();
-  in2.seekg(0);
+      ifstream in2(adjFile,ifstream::in | ios::binary); //stored as uints
+      in2.seekg(0, ios::end);
+      long size = in2.tellg();
+      in2.seekg(0);
 #ifdef WEIGHTED
-  long m = size/(2*sizeof(uint));
+      long m = size/(2*sizeof(uint));
 #else
-  long m = size/sizeof(uint);
+      long m = size/sizeof(uint);
 #endif
-  char* s = (char *) malloc(size);
-  in2.read(s,size);
-  in2.close();
-  uintE* edges = (uintE*) s;
+      char* s = (char *) malloc(size);
+      in2.read(s,size);
+      in2.close();
+      uintE* edges = (uintE*) s;
 
-  ifstream in3(idxFile,ifstream::in | ios::binary); //stored as longs
-  in3.seekg(0, ios::end);
-  size = in3.tellg();
-  in3.seekg(0);
-  if(n != size/sizeof(intT)) { cout << "File size wrong\n"; abort(); }
+      ifstream in3(idxFile,ifstream::in | ios::binary); //stored as longs
+      in3.seekg(0, ios::end);
+      size = in3.tellg();
+      in3.seekg(0);
+      if(n != size/sizeof(intT)) { cout << "File size wrong\n"; abort(); }
 
-  char* t = (char *) malloc(size);
-  in3.read(t,size);
-  in3.close();
-  uintT* offsets = (uintT*) t;
+      char* t = (char *) malloc(size);
+      in3.read(t,size);
+      in3.close();
+      uintT* offsets = (uintT*) t;
 
-  vertex* v = newA(vertex,n);
+      vertex* v = newA(vertex,n);
 #ifdef WEIGHTED
-  intE* edgesAndWeights = newA(intE,2*m);
-  {parallel_for(long i=0;i<m;i++) {
-    edgesAndWeights[2*i] = edges[i];
-    edgesAndWeights[2*i+1] = edges[i+m];
-    }}
-  //free(edges);
+      intE* edgesAndWeights = newA(intE,2*m);
+      {parallel_for(long i=0;i<m;i++) {
+	  edgesAndWeights[2*i] = edges[i];
+	  edgesAndWeights[2*i+1] = edges[i+m];
+	}}
+      //free(edges);
 #endif
-  {parallel_for(unsigned long i=0;i<n;i++) {
-    uintT o = offsets[i];
-    uintT l = ((i==n-1) ? m : offsets[i+1])-offsets[i];
-      v[i].setOutDegree(l);
+      {parallel_for(long i=0;i<n;i++) {
+	  uintT o = offsets[i];
+	  uintT l = ((i==n-1) ? m : offsets[i+1])-offsets[i];
+	  v[i].setOutDegree(l);
 #ifndef WEIGHTED
-      v[i].setOutNeighbors((uintE*)edges+o);
+	  v[i].setOutNeighbors((uintE*)edges+o);
 #else
-      v[i].setOutNeighbors(edgesAndWeights+2*o);
+	  v[i].setOutNeighbors(edgesAndWeights+2*o);
 #endif
-    }}
+	}}
 
-  if(!isSymmetric) {
-    uintT* tOffsets = newA(uintT,n);
-    {parallel_for(size_t i=0;i<n;i++) tOffsets[i] = INT_T_MAX;}
+      if(!isSymmetric) {
+	uintT* tOffsets = newA(uintT,n);
+	{parallel_for(long i=0;i<n;i++) tOffsets[i] = INT_T_MAX;}
 #ifndef WEIGHTED
-    intPair* temp = newA(intPair,m);
+	intPair* temp = newA(intPair,m);
 #else
-    intTriple* temp = newA(intTriple,m);
+	intTriple* temp = newA(intTriple,m);
 #endif
-    {parallel_for(size_t i=0;i<n;i++){
-      uintT o = offsets[i];
-      for(uintT j=0;j<v[i].getOutDegree();j++){
+	{parallel_for(intT i=0;i<n;i++){
+	    uintT o = offsets[i];
+	    for(uintT j=0;j<v[i].getOutDegree();j++){
 #ifndef WEIGHTED
-	temp[o+j] = make_pair(v[i].getOutNeighbor(j),i);
+	      temp[o+j] = make_pair(v[i].getOutNeighbor(j),i);
 #else
-	temp[o+j] = make_pair(v[i].getOutNeighbor(j),make_pair(i,v[i].getOutWeight(j)));
+	      temp[o+j] = make_pair(v[i].getOutNeighbor(j),make_pair(i,v[i].getOutWeight(j)));
 #endif
-      }
-      }}
-    free(offsets);
+	    }
+	  }}
+	free(offsets);
 #ifndef WEIGHTED
 #ifndef LOWMEM
-    intSort::iSort(temp,m,n+1,getFirst<uintE>());
+	intSort::iSort(temp,m,n+1,getFirst<uintE>());
 #else
-    quickSort(temp,m,pairFirstCmp<uintE>());
+	quickSort(temp,m,pairFirstCmp<uintE>());
 #endif
 #else
 #ifndef LOWMEM
-    intSort::iSort(temp,m,n+1,getFirst<intPair>());
+	intSort::iSort(temp,m,n+1,getFirst<intPair>());
 #else
-    quickSort(temp,m,pairFirstCmp<intPair>());
+	quickSort(temp,m,pairFirstCmp<intPair>());
 #endif
 #endif
-    tOffsets[temp[0].first] = 0;
+	tOffsets[temp[0].first] = 0;
 #ifndef WEIGHTED
-    uintE* inEdges = newA(uintE,m);
-    inEdges[0] = temp[0].second;
+	uintE* inEdges = newA(uintE,m);
+	inEdges[0] = temp[0].second;
 #else
-    intE* inEdges = newA(intE,2*m);
-    inEdges[0] = temp[0].second.first;
-    inEdges[1] = temp[0].second.second;
+	intE* inEdges = newA(intE,2*m);
+	inEdges[0] = temp[0].second.first;
+	inEdges[1] = temp[0].second.second;
 #endif
-    {parallel_for(long i=1;i<m;i++) {
+	{parallel_for(long i=1;i<m;i++) {
 #ifndef WEIGHTED
-      inEdges[i] = temp[i].second;
+	    inEdges[i] = temp[i].second;
 #else
-      inEdges[2*i] = temp[i].second.first;
-      inEdges[2*i+1] = temp[i].second.second;
+	    inEdges[2*i] = temp[i].second.first;
+	    inEdges[2*i+1] = temp[i].second.second;
 #endif
-      if(temp[i].first != temp[i-1].first) {
-	tOffsets[temp[i].first] = i;
+	    if(temp[i].first != temp[i-1].first) {
+	      tOffsets[temp[i].first] = i;
+	    }
+	  }}
+	free(temp);
+	//fill in offsets of degree 0 vertices by taking closest non-zero
+	//offset to the right
+	sequence::scanIBack(tOffsets,tOffsets,n,minF<uintT>(),(uintT)m);
+	{parallel_for(long i=0;i<n;i++){
+	    uintT o = tOffsets[i];
+	    uintT l = ((i == n-1) ? m : tOffsets[i+1])-tOffsets[i];
+	    v[i].setInDegree(l);
+#ifndef WEIGHTED
+	    v[i].setInNeighbors((uintE*)inEdges+o);
+#else
+	    v[i].setInNeighbors((intE*)(inEdges+2*o));
+#endif
+	  }}
+	free(tOffsets);
+#ifndef WEIGHTED
+	Uncompressed_Mem<vertex>* mem = new Uncompressed_Mem<vertex>(v,n,m,edges,inEdges);
+	return graph<vertex>(v,n,m,mem);
+#else
+	Uncompressed_Mem<vertex>* mem = new Uncompressed_Mem<vertex>(v,n,m,edgesAndWeights,inEdges);
+	return graph<vertex>(v,n,m,mem);
+#endif
       }
-      }}
-    free(temp);
-    //fill in offsets of degree 0 vertices by taking closest non-zero
-    //offset to the right
-    sequence::scanIBack(tOffsets,tOffsets,n,minF<uintT>(),(uintT)m);
-    {parallel_for(size_t i=0;i<n;i++){
-      uintT o = tOffsets[i];
-      uintT l = ((i == n-1) ? m : tOffsets[i+1])-tOffsets[i];
-      v[i].setInDegree(l);
+      free(offsets);
 #ifndef WEIGHTED
-      v[i].setInNeighbors((uintE*)inEdges+o);
+      Uncompressed_Mem<vertex>* mem = new Uncompressed_Mem<vertex>(v,n,m,edges);
+      return graph<vertex>(v,n,m,mem);
 #else
-      v[i].setInNeighbors((intE*)(inEdges+2*o));
+      Uncompressed_Mem<vertex>* mem = new Uncompressed_Mem<vertex>(v,n,m,edgesAndWeights);
+      return graph<vertex>(v,n,m,mem);
 #endif
-      }}
-    free(tOffsets);
-#ifndef WEIGHTED
-    Uncompressed_Mem<vertex>* mem = new Uncompressed_Mem<vertex>(v,n,m,edges,inEdges);
-    return graph<vertex>(v,n,m,mem);
-#else
-    Uncompressed_Mem<vertex>* mem = new Uncompressed_Mem<vertex>(v,n,m,edgesAndWeights,inEdges);
-    return graph<vertex>(v,n,m,mem);
-#endif
-  }
-  free(offsets);
-#ifndef WEIGHTED
-  Uncompressed_Mem<vertex>* mem = new Uncompressed_Mem<vertex>(v,n,m,edges);
-  return graph<vertex>(v,n,m,mem);
-#else
-  Uncompressed_Mem<vertex>* mem = new Uncompressed_Mem<vertex>(v,n,m,edgesAndWeights);
-  return graph<vertex>(v,n,m,mem);
-#endif
-}
-
-template <class vertex>
-inline graph<vertex> readGraph(char* iFile, bool symmetric, bool binary, bool mmap) {
-  if(binary) return readGraphFromBinary<vertex>(iFile,symmetric);
-  else return readGraphFromFile<vertex>(iFile,symmetric,mmap);
-}
-
-template <class vertex>
-inline graph<vertex> readCompressedGraph(char* fname, bool isSymmetric, bool mmap) {
-  char* s;
-  if (mmap) {
-    _seq<char> S = mmapStringFromFile(fname);
-    // Cannot mutate graph unless we copy.
-    char *bytes = newA(char, S.n);
-    parallel_for(long i=0; i<S.n; i++) {
-      bytes[i] = S.A[i];
     }
-    if (munmap(S.A, S.n) == -1) {
-      perror("munmap");
-      exit(-1);
+
+    template <class vertex>
+      inline graph<vertex> readGraph(char* iFile, bool compressed, bool symmetric, bool binary, bool mmap)
+    {
+      if(binary) return readGraphFromBinary<vertex>(iFile,symmetric);
+      else return readGraphFromFile<vertex>(iFile,symmetric,mmap);
     }
-    s = bytes;
-  } else {
-    ifstream in(fname,ifstream::in |ios::binary);
-    in.seekg(0,ios::end);
-    long size = in.tellg();
-    in.seekg(0);
-    cout << "size = " << size << endl;
-    s = (char*) malloc(size);
-    in.read(s,size);
-    in.close();
-  }
 
-  long* sizes = (long*) s;
-  long n = sizes[0], m = sizes[1], totalSpace = sizes[2];
+    template <class vertex>
+      inline graph<vertex> readCompressedGraph(char* fname, bool isSymmetric, bool mmap) {
+      char* s;
+      if (mmap) {
+	_seq<char> S = mmapStringFromFile(fname);
+	// Cannot mutate graph unless we copy.
+	char *bytes = newA(char, S.n);
+	parallel_for(size_t i=0; i<S.n; i++) {
+	  bytes[i] = S.A[i];
+	}
+	if (munmap(S.A, S.n) == -1) {
+	  perror("munmap");
+	  exit(-1);
+	}
+	s = bytes;
+      } else {
+	ifstream in(fname,ifstream::in |ios::binary);
+	in.seekg(0,ios::end);
+	long size = in.tellg();
+	in.seekg(0);
+	cout << "size = " << size << endl;
+	s = (char*) malloc(size);
+	in.read(s,size);
+	in.close();
+      }
 
-  cout << "n = "<<n<<" m = "<<m<<" totalSpace = "<<totalSpace<<endl;
-  cout << "reading file..."<<endl;
+      long* sizes = (long*) s;
+      long n = sizes[0], m = sizes[1], totalSpace = sizes[2];
 
-  uintT* offsets = (uintT*) (s+3*sizeof(long));
-  long skip = 3*sizeof(long) + (n+1)*sizeof(intT);
-  uintE* Degrees = (uintE*) (s+skip);
-  skip+= n*sizeof(intE);
-  uchar* edges = (uchar*)(s+skip);
+      cout << "n = "<<n<<" m = "<<m<<" totalSpace = "<<totalSpace<<endl;
+      cout << "reading file..."<<endl;
 
-  uintT* inOffsets;
-  uchar* inEdges;
-  uintE* inDegrees;
-  if(!isSymmetric){
-    skip += totalSpace;
-    uchar* inData = (uchar*)(s + skip);
-    sizes = (long*) inData;
-    long inTotalSpace = sizes[0];
-    cout << "inTotalSpace = "<<inTotalSpace<<endl;
-    skip += sizeof(long);
-    inOffsets = (uintT*) (s + skip);
-    skip += (n+1)*sizeof(uintT);
-    inDegrees = (uintE*)(s+skip);
-    skip += n*sizeof(uintE);
-    inEdges = (uchar*)(s + skip);
-  } else {
-    inOffsets = offsets;
-    inEdges = edges;
-    inDegrees = Degrees;
-  }
+      uintT* offsets = (uintT*) (s+3*sizeof(long));
+      long skip = 3*sizeof(long) + (n+1)*sizeof(intT);
+      uintE* Degrees = (uintE*) (s+skip);
+      skip+= n*sizeof(intE);
+      uchar* edges = (uchar*)(s+skip);
+
+      uintT* inOffsets;
+      uchar* inEdges;
+      uintE* inDegrees;
+      if(!isSymmetric){
+	skip += totalSpace;
+	uchar* inData = (uchar*)(s + skip);
+	sizes = (long*) inData;
+	long inTotalSpace = sizes[0];
+	cout << "inTotalSpace = "<<inTotalSpace<<endl;
+	skip += sizeof(long);
+	inOffsets = (uintT*) (s + skip);
+	skip += (n+1)*sizeof(uintT);
+	inDegrees = (uintE*)(s+skip);
+	skip += n*sizeof(uintE);
+	inEdges = (uchar*)(s + skip);
+      } else {
+	inOffsets = offsets;
+	inEdges = edges;
+	inDegrees = Degrees;
+      }
 
 
-  vertex *V = newA(vertex,n);
-  parallel_for(long i=0;i<n;i++) {
-    long o = offsets[i];
-    uintT d = Degrees[i];
-    V[i].setOutDegree(d);
-    V[i].setOutNeighbors(edges+o);
-  }
+      vertex *V = newA(vertex,n);
+      parallel_for(long i=0;i<n;i++) {
+	long o = offsets[i];
+	uintT d = Degrees[i];
+	V[i].setOutDegree(d);
+	V[i].setOutNeighbors(edges+o);
+      }
 
-  if(sizeof(vertex) == sizeof(compressedAsymmetricVertex)){
-    parallel_for(long i=0;i<n;i++) {
-      long o = inOffsets[i];
-      uintT d = inDegrees[i];
-      V[i].setInDegree(d);
-      V[i].setInNeighbors(inEdges+o);
+      if(sizeof(vertex) == sizeof(compressedAsymmetricVertex)){
+	parallel_for(long i=0;i<n;i++) {
+	  long o = inOffsets[i];
+	  uintT d = inDegrees[i];
+	  V[i].setInDegree(d);
+	  V[i].setInNeighbors(inEdges+o);
+	}
+      }
+
+      cout << "creating graph..."<<endl;
+      Compressed_Mem<vertex>* mem = new Compressed_Mem<vertex>(V, s);
+
+      graph<vertex> G(V,n,m,mem);
+      return G;
     }
-  }
-
-  cout << "creating graph..."<<endl;
-  Compressed_Mem<vertex>* mem = new Compressed_Mem<vertex>(V, s);
-
-  graph<vertex> G(V,n,m,mem);
-  return G;
-}

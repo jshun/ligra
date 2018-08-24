@@ -21,7 +21,8 @@
 // LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#pragma once
+#ifndef BYTECODE_H
+#define BYTECODE_H
 
 #include <iostream>
 #include <fstream>
@@ -188,9 +189,7 @@ template <class T>
 */
 inline long compressFirstEdge(uchar *start, long offset, uintE source, uintE target) {
   uchar* saveStart = start;
-  (void) start;
   long saveOffset = offset;
-  (void) offset;
 
   intE preCompress = (intE) target - source;
   int bytesUsed = 0;
@@ -417,3 +416,4 @@ inline uchar *parallelCompressWeightedEdges(intEPair *edges, uintT *offsets, lon
   return finalArr;
 }
 
+#endif

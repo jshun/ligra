@@ -20,7 +20,8 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#pragma once
+#ifndef _PARSE_COMMAND_LINE
+#define _PARSE_COMMAND_LINE
 
 #include <iostream>
 #include <fstream>
@@ -112,3 +113,4 @@ struct commandLine {
 
 };
  
+#endif // _PARSE_COMMAND_LINE

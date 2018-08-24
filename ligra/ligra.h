@@ -22,7 +22,6 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #pragma once
-
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
@@ -41,8 +40,6 @@
 #include "gettime.h"
 #include "index_map.h"
 #include "edgeMap_utils.h"
-
-#define UNUSED(x) [&x]{}()
 using namespace std;
 
 //*****START FRAMEWORK*****
@@ -57,11 +54,7 @@ const flags remove_duplicates = 32;
 inline bool should_output(const flags& fl) { return !(fl & no_output); }
 
 template <class data, class vertex, class VS, class F>
-vertexSubsetData<data> edgeMapDense(graph<vertex> GA,
-				    VS& vertexSubset,
-				    F &f,
-				    const flags fl)
-{
+vertexSubsetData<data> edgeMapDense(graph<vertex> GA, VS& vertexSubset, F &f, const flags fl) {
   using D = tuple<bool, data>;
   long n = GA.n;
   vertex *G = GA.V;
@@ -87,11 +80,7 @@ vertexSubsetData<data> edgeMapDense(graph<vertex> GA,
 }
 
 template <class data, class vertex, class VS, class F>
-vertexSubsetData<data> edgeMapDenseForward(graph<vertex> GA,
-					   VS& vertexSubset,
-					   F &f,
-					   const flags fl)
-{
+vertexSubsetData<data> edgeMapDenseForward(graph<vertex> GA, VS& vertexSubset, F &f, const flags fl) {
   using D = tuple<bool, data>;
   long n = GA.n;
   vertex *G = GA.V;
@@ -117,14 +106,8 @@ vertexSubsetData<data> edgeMapDenseForward(graph<vertex> GA,
 }
 
 template <class data, class vertex, class VS, class F>
-vertexSubsetData<data> edgeMapSparse(graph<vertex>& GA,
-				     vertex* frontierVertices,
-				     VS& indices,
-				     uintT* degrees,
-				     uintT m,
-				     F &f,
-				     const flags fl)
-{
+vertexSubsetData<data> edgeMapSparse(graph<vertex>& GA, vertex* frontierVertices, VS& indices,
+        uintT* degrees, uintT m, F &f, const flags fl) {
   using S = tuple<uintE, data>;
   long n = indices.n;
   S* outEdges;
@@ -170,13 +153,8 @@ vertexSubsetData<data> edgeMapSparse(graph<vertex>& GA,
 
 template <class data, class vertex, class VS, class F>
 vertexSubsetData<data> edgeMapSparse_no_filter(graph<vertex>& GA,
-					       vertex* frontierVertices,
-					       VS& indices,
-					       uintT* offsets,
-					       uintT m,
-					       F& f,
-					       const flags fl)
-{
+    vertex* frontierVertices, VS& indices, uintT* offsets, uintT m, F& f,
+    const flags fl) {
   using S = tuple<uintE, data>;
   long n = indices.n;
   long outEdgeCount = sequence::plusScan(offsets, offsets, m);
@@ -237,7 +215,7 @@ vertexSubsetData<data> edgeMapSparse_no_filter(graph<vertex>& GA,
   if (fl & remove_duplicates) {
     if (GA.flags == NULL) {
       GA.flags = newA(uintE, n);
-      parallel_for(long i=0;i<n;i++) { GA.flags[i]=UINT_E_MAX; }
+      parallel_for(size_t i=0;i<n;i++) { GA.flags[i]=UINT_E_MAX; }
     }
     auto get_key = [&] (size_t i) -> uintE& { return std::get<0>(out[i]); };
     remDuplicates(get_key, GA.flags, outSize, n);
@@ -252,12 +230,8 @@ vertexSubsetData<data> edgeMapSparse_no_filter(graph<vertex>& GA,
 
 // Decides on sparse or dense base on number of nonzeros in the active vertices.
 template <class data, class vertex, class VS, class F>
-vertexSubsetData<data> edgeMapData(graph<vertex>& GA,
-				   VS &vs,
-				   F f,
-				   intT threshold = -1,
-				   const flags& fl=0)
-{
+vertexSubsetData<data> edgeMapData(graph<vertex>& GA, VS &vs, F f,
+    intT threshold = -1, const flags& fl=0) {
   long numVertices = GA.n, numEdges = GA.m, m = vs.numNonzeros();
   if(threshold == -1) threshold = numEdges/20; //default threshold
   vertex *G = GA.V;
@@ -269,7 +243,7 @@ vertexSubsetData<data> edgeMapData(graph<vertex>& GA,
   vs.toSparse();
   uintT* degrees = newA(uintT, m);
   vertex* frontierVertices = newA(vertex,m);
-  {parallel_for (long i=0; i < m; i++) {
+  {parallel_for (size_t i=0; i < m; i++) {
     uintE v_id = vs.vtx(i);
     vertex v = G[v_id];
     degrees[i] = v.getOutDegree();
@@ -278,7 +252,7 @@ vertexSubsetData<data> edgeMapData(graph<vertex>& GA,
 
   uintT outDegrees = sequence::plusReduce(degrees, m);
   if (outDegrees == 0) return vertexSubsetData<data>(numVertices);
-  if (long(m + outDegrees) > threshold) {
+  if (m + outDegrees > threshold) {
     vs.toDense();
     free(degrees); free(frontierVertices);
     return (fl & dense_forward) ?
@@ -296,12 +270,8 @@ vertexSubsetData<data> edgeMapData(graph<vertex>& GA,
 
 // Regular edgeMap, where no extra data is stored per vertex.
 template <class vertex, class VS, class F>
-vertexSubset edgeMap(graph<vertex> GA,
-		     VS& vs,
-		     F f,
-		     intT threshold = -1,
-		     const flags& fl=0)
-{
+vertexSubset edgeMap(graph<vertex> GA, VS& vs, F f,
+    intT threshold = -1, const flags& fl=0) {
   return edgeMapData<pbbs::empty>(GA, vs, f, threshold, fl);
 }
 
@@ -309,21 +279,15 @@ vertexSubset edgeMap(graph<vertex> GA,
 // in the new adjacency list if p(ngh) is true.
 // Weighted graphs are not yet supported, but this should be easy to do.
 template <class vertex, class P>
-vertexSubsetData<uintE> packEdges(graph<vertex>& GA,
-				  vertexSubset& vs,
-				  P& p,
-				  const flags& fl=0)
-{
+vertexSubsetData<uintE> packEdges(graph<vertex>& GA, vertexSubset& vs, P& p, const flags& fl=0) {
   using S = tuple<uintE, uintE>;
   vs.toSparse();
-  vertex* G = GA.V;
-  long m = vs.numNonzeros();
-  long n = vs.numRows();
+  vertex* G = GA.V; long m = vs.numNonzeros(); long n = vs.numRows();
   if (vs.size() == 0) {
     return vertexSubsetData<uintE>(n);
   }
   auto degrees = array_imap<uintT>(m);
-  granular_for(i, 0,(unsigned long) m, (m > 2000), { // AN explicit cast makes it more obvious and easy to find if there are bugs.
+  granular_for(i, 0, m, (m > 2000), {
     uintE v = vs.vtx(i);
     degrees[i] = G[v].getOutDegree();
   });
@@ -337,7 +301,7 @@ vertexSubsetData<uintE> packEdges(graph<vertex>& GA,
   uintE* tmp1 = newA(uintE, outEdgeCount);
   uintE* tmp2 = newA(uintE, outEdgeCount);
   if (should_output(fl)) {
-    parallel_for (long i=0; i<m; i++) {
+    parallel_for (size_t i=0; i<m; i++) {
       uintE v = vs.vtx(i);
       size_t offset = degrees[i];
       auto bitsOff = &(bits[offset]); auto tmp1Off = &(tmp1[offset]);
@@ -346,13 +310,12 @@ vertexSubsetData<uintE> packEdges(graph<vertex>& GA,
       outV[i] = make_tuple(v, ct);
     }
   } else {
-    parallel_for (long i=0; i<m; i++) {
+    parallel_for (size_t i=0; i<m; i++) {
       uintE v = vs.vtx(i);
       size_t offset = degrees[i];
       auto bitsOff = &(bits[offset]); auto tmp1Off = &(tmp1[offset]);
       auto tmp2Off = &(tmp2[offset]);
       size_t ct = G[v].packOutNgh(v, p, bitsOff, tmp1Off, tmp2Off);
-      UNUSED(ct);		// Silence unused variable warnings. 
     }
   }
   free(bits); free(tmp1); free(tmp2);
@@ -364,11 +327,7 @@ vertexSubsetData<uintE> packEdges(graph<vertex>& GA,
 }
 
 template <class vertex, class P>
-vertexSubsetData<uintE> edgeMapFilter(graph<vertex>& GA,
-				      vertexSubset& vs,
-				      P& p,
-				      const flags& fl=0)
-{
+vertexSubsetData<uintE> edgeMapFilter(graph<vertex>& GA, vertexSubset& vs, P& p, const flags& fl=0) {
   vs.toSparse();
   if (fl & pack_edges) {
     return packEdges<vertex, P>(GA, vs, p, fl);
@@ -383,17 +342,15 @@ vertexSubsetData<uintE> edgeMapFilter(graph<vertex>& GA,
     outV = newA(S, vs.size());
   }
   if (should_output(fl)) {
-    parallel_for (long i=0; i<m; ++i) {
+    parallel_for (size_t i=0; i<m; i++) {
       uintE v = vs.vtx(i);
       size_t ct = G[v].countOutNgh(v, p);
       outV[i] = make_tuple(v, ct);
     }
   } else {
-    parallel_for (long i=0; i<m; ++i) { // This for Should strictly not be executed.
+    parallel_for (size_t i=0; i<m; i++) {
       uintE v = vs.vtx(i);
       size_t ct = G[v].countOutNgh(v, p);
-      UNUSED(ct);		// Silence unused parameter warnings.
-      // Useful for determining if the slution is I/O bound. 
     }
   }
   if (should_output(fl)) {
@@ -412,13 +369,13 @@ template <class F, class VS, typename std::enable_if<
 void vertexMap(VS& V, F f) {
   size_t n = V.numRows(), m = V.numNonzeros();
   if(V.dense()) {
-    parallel_for(size_t i=0;i<n;i++) {
+    parallel_for(long i=0;i<n;i++) {
       if(V.isIn(i)) {
         f(i, V.ithData(i));
       }
     }
   } else {
-    parallel_for(size_t i=0;i<m;i++) {
+    parallel_for(long i=0;i<m;i++) {
       f(V.vtx(i), V.vtxData(i));
     }
   }
@@ -426,17 +383,16 @@ void vertexMap(VS& V, F f) {
 
 template <class VS, class F, typename std::enable_if<
   std::is_same<VS, vertexSubset>::value, int>::type=0 >
-void vertexMap(VS& V, F f)
-{
+void vertexMap(VS& V, F f) {
   size_t n = V.numRows(), m = V.numNonzeros();
   if(V.dense()) {
-    parallel_for(size_t i=0;i<n;i++) {
+    parallel_for(long i=0;i<n;i++) {
       if(V.isIn(i)) {
         f(i);
       }
     }
   } else {
-    parallel_for(size_t i=0;i<m;i++) {
+    parallel_for(long i=0;i<m;i++) {
       f(V.vtx(i));
     }
   }
@@ -445,10 +401,8 @@ void vertexMap(VS& V, F f)
 //Note: this is the version of vertexMap in which only a subset of the
 //input vertexSubset is returned
 template <class F>
-vertexSubset vertexFilter(vertexSubset V, F filter)
-{
-  long n = V.numRows();
-  // long m = V.numNonzeros();
+vertexSubset vertexFilter(vertexSubset V, F filter) {
+  long n = V.numRows(), m = V.numNonzeros();
   V.toDense();
   bool* d_out = newA(bool,n);
   {parallel_for(long i=0;i<n;i++) d_out[i] = 0;}
@@ -458,9 +412,8 @@ vertexSubset vertexFilter(vertexSubset V, F filter)
 }
 
 template <class F>
-vertexSubset vertexFilter2(vertexSubset V, F filter)
-{
-  size_t n = V.numRows(), m = V.numNonzeros();
+vertexSubset vertexFilter2(vertexSubset V, F filter) {
+  long n = V.numRows(), m = V.numNonzeros();
   if (m == 0) {
     return vertexSubset(n);
   }
@@ -479,9 +432,8 @@ vertexSubset vertexFilter2(vertexSubset V, F filter)
 }
 
 template <class data, class F>
-vertexSubset vertexFilter2(vertexSubsetData<data> V, F filter)
-{
-  size_t n = V.numRows(), m = V.numNonzeros();
+vertexSubset vertexFilter2(vertexSubsetData<data> V, F filter) {
+  long n = V.numRows(), m = V.numNonzeros();
   if (m == 0) {
     return vertexSubset(n);
   }
@@ -502,20 +454,13 @@ vertexSubset vertexFilter2(vertexSubsetData<data> V, F filter)
 
 
 //cond function that always returns true
-
-// A red flag of bad design. Why not implement
-// the iota combinator while you're at it. 
-inline bool cond_true (intT ) { return 1; }
-
+inline bool cond_true (intT d) { return 1; }
 
 #ifdef USE_LIGRA_MAIN
 template<class vertex>
 void Compute(graph<vertex>&, commandLine);
 
-
-
-int parallel_main(int argc, char* argv[])
-{
+int parallel_main(int argc, char* argv[]) {
   commandLine P(argc,argv," [-s] <inFile>");
   char* iFile = P.getArgument(0);
   bool symmetric = P.getOptionValue("-s");
@@ -574,5 +519,5 @@ int parallel_main(int argc, char* argv[])
     }
   }
 }
+#endif
 
-#endif // Conditional inclusion of `int main()`

@@ -21,7 +21,8 @@
 // LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#pragma once
+#ifndef BYTECODE_H
+#define BYTECODE_H
 
 typedef unsigned char uchar;
 
@@ -87,7 +88,7 @@ inline intE eatFirstEdge(uchar* &start, uintE source) {
   coded.
 */
 template <class T>
-  inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degree, const bool =true) {
+  inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degree, const bool par=true) {
   uintE edgesRead = 0;
   if (degree > 0) {
     // Eat first edge, which is compressed specially
@@ -151,8 +152,8 @@ template <class T>
   Compresses the first edge, writing target-source and a sign bit.
 */
 inline long compressFirstEdge(uchar *start, long offset, uintE source, uintE target) {
-  // uchar* saveStart = start;
-  // long saveOffset = offset;
+  uchar* saveStart = start;
+  long saveOffset = offset;
 
   intE preCompress = (intE) target - source;
   int bytesUsed = 0;
@@ -195,7 +196,7 @@ inline long compressEdges(uchar *start, long curOffset, uintE* savedEdges, uintE
   header |= ((runlength-1) << 2);
   start[curOffset++] = header;
 
-  for(unsigned int i=0;i<runlength;i++) {
+  for(int i=0;i<runlength;i++) {
     uintE e = savedEdges[edgeI+i] - savedEdges[edgeI+i-1];
     int bytesUsed = 0;
     for(int j=0; j<numBytes; j++) {
@@ -365,7 +366,7 @@ inline int numBytesSigned (intE x) {
 }
 
 template <class T>
-inline void decodeWgh(T t, uchar* edgeStart, const uintE &source, const uintT &degree, const bool /*par*/=true) {
+  inline void decodeWgh(T t, uchar* edgeStart, const uintE &source, const uintT &degree, const bool par=true) {
   uintE edgesRead = 0;
   if (degree > 0) {
     // Eat first edge, which is compressed specially
@@ -495,7 +496,7 @@ inline long compressWeightedEdges(uchar *start, long curOffset, intEPair* savedE
   start[curOffset++] = header;
   int bytesUsed = 0;
 
-  for(unsigned int i=0;i<runlength;i++) {
+  for(int i=0;i<runlength;i++) {
     uintE e = savedEdges[edgeI+i].first - savedEdges[edgeI+i-1].first;
     for(int j=0; j<numBytes; j++) {
       uchar curByte = e & 0xff;
@@ -521,7 +522,12 @@ inline long compressWeightedEdges(uchar *start, long curOffset, intEPair* savedE
   return curOffset;
 }
 
-inline long sequentialCompressWeightedEdgeSet(uchar *edgeArray, long currentOffset, uintT degree, uintE vertexNum, intEPair *savedEdges) {
+inline long sequentialCompressWeightedEdgeSet(uchar *edgeArray,
+					      long currentOffset,
+					      uintT degree,
+					      uintE vertexNum,
+					      intEPair *savedEdges)
+{
   if (degree > 0) {
     currentOffset = compressFirstEdge(edgeArray, currentOffset,
                                        vertexNum, savedEdges[0].first);
@@ -675,4 +681,4 @@ inline uchar *parallelCompressWeightedEdges(intEPair *edges, uintT *offsets, lon
   return finalArr;
 }
 
-
+#endif

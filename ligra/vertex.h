@@ -1,4 +1,5 @@
-#pragma once
+#ifndef VERTEX_H
+#define VERTEX_H
 #include "vertexSubset.h"
 using namespace std;
 
@@ -118,7 +119,7 @@ namespace decode_uncompressed {
     } else {
       size_t b_size = 2000;
       size_t blocks = 1 + ((d-1)/b_size);
-      auto cts = array_imap<uintE>(blocks, [&] (size_t ) { return 0; });
+      auto cts = array_imap<uintE>(blocks, [&] (size_t i) { return 0; });
       parallel_for_1(size_t i=0; i<blocks; i++) {
         size_t s = b_size*i;
         size_t e = std::min(s + b_size, (size_t)d);
@@ -134,8 +135,7 @@ namespace decode_uncompressed {
         }
         cts[i] = ct;
       }
-      // size_t count = 0;
-      // DOes this variable do anything? 
+      size_t count = 0;
       return pbbs::reduce_add(cts);
     }
   }
@@ -267,7 +267,7 @@ symmetricVertex(intE* n, uintT d)
   }
 
   template <class F>
-  inline size_t packOutNgh(long i, F &f, bool* bits, uintE* tmp1, uintE*) {
+  inline size_t packOutNgh(long i, F &f, bool* bits, uintE* tmp1, uintE* tmp2) {
     return decode_uncompressed::packOutNgh<symmetricVertex, F>(this, i, f, bits, tmp1);
   }
 
@@ -287,7 +287,7 @@ asymmetricVertex(uintE* iN, uintE* oN, uintT id, uintT od)
 #else
 asymmetricVertex(intE* iN, intE* oN, uintT id, uintT od)
 #endif
-  : inNeighbors(iN), outNeighbors(oN), outDegree(od), inDegree(id) {}
+: inNeighbors(iN), outNeighbors(oN), inDegree(id), outDegree(od) {}
 #ifndef WEIGHTED
   uintE* getInNeighbors () { return inNeighbors; }
   const uintE* getInNeighbors () const { return inNeighbors; }
@@ -353,9 +353,10 @@ asymmetricVertex(intE* iN, intE* oN, uintT id, uintT od)
   }
 
   template <class F>
-  inline size_t packOutNgh(long i, F &f, bool* bits, uintE* tmp1, uintE*) {
+  inline size_t packOutNgh(long i, F &f, bool* bits, uintE* tmp1, uintE* tmp2) {
     return decode_uncompressed::packOutNgh<asymmetricVertex, F>(this, i, f, bits, tmp1);
   }
 
 };
 
+#endif

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef COMPRESSED_VERTEX_H
+#define COMPRESSED_VERTEX_H
 
 #ifndef PD
 #ifdef BYTE
@@ -25,9 +26,9 @@ namespace decode_compressed {
     VS vs;
     F f;
     G g;
-    denseT(F &_f, G &_g, VS& _vs) : vs(_vs), f(_f), g(_g) {}
+  denseT(F &_f, G &_g, VS& _vs) : f(_f), g(_g), vs(_vs) {}
 #ifndef WEIGHTED
-    inline bool srcTarg(const uintE &src, const uintE &target, const uintT &) {
+    inline bool srcTarg(const uintE &src, const uintE &target, const uintT &edgeNumber) {
       if (vs.isIn(target)) {
         auto m = f.update(target, src);
         g(src, m);
@@ -35,7 +36,7 @@ namespace decode_compressed {
       return f.cond(src);
     }
 #else
-    inline bool srcTarg(const uintE &src, const uintE &target, const intE &weight, const uintT &) {
+    inline bool srcTarg(const uintE &src, const uintE &target, const intE &weight, const uintT &edgeNumber) {
       if (vs.isIn(target)) {
         auto m = f.update(target, src, weight);
         g(src, m);
@@ -51,8 +52,7 @@ namespace decode_compressed {
     G g;
   denseForwardT(F &_f, G &_g) : f(_f), g(_g) {}
 #ifndef WEIGHTED
-    inline bool srcTarg(const uintE &src, const uintE &target, const uintT &)
-    {
+    inline bool srcTarg(const uintE &src, const uintE &target, const uintT &edgeNumber) {
       if (f.cond(target)) {
         auto m = f.updateAtomic(src, target);
         g(target, m);
@@ -60,11 +60,7 @@ namespace decode_compressed {
       return true;
     }
 #else
-    inline bool srcTarg(const uintE &src,
-			const uintE &target,
-			const intE &weight,
-			const uintT &)
-    {
+    inline bool srcTarg(const uintE &src, const uintE &target, const intE &weight, const uintT &edgeNumber) {
       if (f.cond(target)) {
         auto m = f.updateAtomic(src, target, weight);
         g(target, m);
@@ -79,9 +75,9 @@ namespace decode_compressed {
     uintT v, o;
     F f;
     G g;
-    sparseT(F &_f, G &_g, uintT vP, uintT oP) : v(vP),o(oP), f(_f), g(_g) { }
+  sparseT(F &_f, G &_g, uintT vP, uintT oP) : f(_f), g(_g), v(vP), o(oP) { }
 #ifndef WEIGHTED
-    inline bool srcTarg(const uintE &, const uintE &target, const uintT &edgeNumber) {
+    inline bool srcTarg(const uintE &src, const uintE &target, const uintT &edgeNumber) {
       if (f.cond(target)) {
         auto m = f.updateAtomic(v, target);
         g(target, o + edgeNumber, m);
@@ -90,11 +86,7 @@ namespace decode_compressed {
       }
       return true; }
 #else
-    inline bool srcTarg(const uintE &,
-			const uintE &target,
-			const intE &weight,
-			const uintT &edgeNumber)
-    {
+    inline bool srcTarg(const uintE &src, const uintE &target, const intE &weight, const uintT &edgeNumber) {
       if (f.cond(target)) {
         auto m = f.updateAtomic(v, target, weight);
         g(target, o + edgeNumber, m);
@@ -111,9 +103,9 @@ namespace decode_compressed {
     F f;
     G g;
     size_t& k;
-    sparseTSeq(F &_f, G &_g, uintT vP, uintT oP, size_t& _k) : v(vP), o(oP), f(_f), g(_g),  k(_k) { }
+  sparseTSeq(F &_f, G &_g, uintT vP, uintT oP, size_t& _k) : f(_f), g(_g), v(vP), o(oP), k(_k) { }
 #ifndef WEIGHTED
-    inline bool srcTarg(const uintE &, const uintE &target, const uintT &) {
+    inline bool srcTarg(const uintE &src, const uintE &target, const uintT &edgeNumber) {
       if (f.cond(target)) {
         auto m = f.updateAtomic(v, target);
         if (g(target, o + k, m)) {
@@ -122,10 +114,7 @@ namespace decode_compressed {
       }
       return true; }
 #else
-    inline bool srcTarg(const uintE &,
-			const uintE &target,
-			const intE &weight,
-			const uintT &) {
+    inline bool srcTarg(const uintE &src, const uintE &target, const intE &weight, const uintT &edgeNumber) {
       if (f.cond(target)) {
         auto m = f.updateAtomic(v, target, weight);
         if (g(target, o + k, m)) {
@@ -143,20 +132,13 @@ namespace decode_compressed {
     F f;
   sparseTCount(F &_f, uintT vP, size_t& _ct) : f(_f), v(vP), ct(_ct) {}
 #ifndef WEIGHTED
-    inline bool srcTarg(const uintE &, const uintE &target, const uintT &)
-    {
-      if (f(v, target))  ct++; 
-      return true;
-    }
+    inline bool srcTarg(const uintE &src, const uintE &target, const uintT &edgeNumber) {
+      if (f(v, target)) { ct++; }
+      return true; }
 #else
-    inline bool srcTarg(const uintE &,
-			const uintE &target,
-			const intE &,
-			const uintT &)
-    {
-      if (f(v, target))  ct++; 
-      return true;
-    }
+    inline bool srcTarg(const uintE &src, const uintE &target, const intE &weight, const uintT &edgeNumber) {
+      if (f(v, target)) { ct++; }
+      return true; }
 #endif
   };
 
@@ -172,11 +154,7 @@ namespace decode_compressed {
       g(target, o + edgeNumber, val);
       return true; }
 #else
-    inline bool srcTarg(const uintE &src,
-			const uintE &target,
-			const intE &,
-			const uintT &edgeNumber)
-    {
+    inline bool srcTarg(const uintE &src, const uintE &target, const intE &weight, const uintT &edgeNumber) {
       auto val = f(src, target);
       g(target, o + edgeNumber, val);
       return true; }
@@ -184,24 +162,24 @@ namespace decode_compressed {
   };
 
   template<class V, class F, class G, class VS>
-  inline void decodeInNghBreakEarly(V* v, long i, VS& vertexSubset, F &f, G &g, bool  = 0) {
+  inline void decodeInNghBreakEarly(V* v, long i, VS& vertexSubset, F &f, G &g, bool parallel = 0) {
     uintE d = v->getInDegree();
     uchar *nghArr = v->getInNeighbors();
 #ifdef WEIGHTED
-        decodeWgh(denseT<F, G, VS>(f, g, vertexSubset), nghArr, i, d);
+        decodeWgh(denseT<F, G, VS>(f, g, vertexSubset), nghArr, i, v->getInDegree());
 #else
-        decode(denseT<F, G, VS>(f, g, vertexSubset), nghArr, i, d);
+        decode(denseT<F, G, VS>(f, g, vertexSubset), nghArr, i, v->getInDegree());
 #endif
   }
 
   template<class V, class F, class G>
   inline void decodeOutNgh(V* v, long i, F &f, G &g) {
-    uintE d = v->getOutDegree();
+    uintE d = v->getInDegree();
     uchar *nghArr = v->getOutNeighbors();
 #ifdef WEIGHTED
-        decodeWgh(denseForwardT<F, G>(f, g), nghArr, i, d);
+        decodeWgh(denseForwardT<F, G>(f, g), nghArr, i, v->getOutDegree());
 #else
-        decode(denseForwardT<F, G>(f, g), nghArr, i, d);
+        decode(denseForwardT<F, G>(f, g), nghArr, i, v->getOutDegree());
 #endif
   }
 
@@ -255,8 +233,7 @@ namespace decode_compressed {
   // this version, which decodes, filters, and then recompresses is compared to
   // the version in byte.h which decodes and recompresses in one pass.
   template <class V, class P>
-  inline size_t packOutNgh(V* v, long i, P &pred, bool* , uintE* tmp1, uintE* tmp2)
-  {
+  inline size_t packOutNgh(V* v, long i, P &pred, bool* bits, uintE* tmp1, uintE* tmp2) {
     uchar *nghArr = v->getOutNeighbors();
     size_t original_deg = v->getOutDegree();
     // 1. Decode into tmp.
@@ -267,7 +244,7 @@ namespace decode_compressed {
         return UINT_E_MAX;
       }
     };
-    auto gen = [&] (const uintE& , const uintE& offset, const Maybe<uintE>& val = Maybe<uintE>()) {
+    auto gen = [&] (const uintE& ngh, const uintE& offset, const Maybe<uintE>& val = Maybe<uintE>()) {
       tmp1[offset] = val.t;
     };
     copyOutNgh<V, uintE>(v, i, (uintT)0, f, gen);
@@ -279,8 +256,7 @@ namespace decode_compressed {
     }
     return new_deg;
   }
-}// end namespace decode_compressed
-
+}
 
 struct compressedSymmetricVertex {
   uchar* neighbors;
@@ -289,11 +265,8 @@ struct compressedSymmetricVertex {
   const uchar* getInNeighbors() const { return neighbors; }
   uchar* getOutNeighbors() { return neighbors; }
   const uchar* getOutNeighbors() const { return neighbors; }
-  
-  // Moronic design at its best. 
-  intT getInNeighbor(intT ) const { return -1; } //should not be called
-  intT getOutNeighbor(intT ) const { return -1; } //should not be called
-  
+  intT getInNeighbor(intT j) const { return -1; } //should not be called
+  intT getOutNeighbor(intT j) const { return -1; } //should not be called
   uintT getInDegree() const { return degree; }
   uintT getOutDegree() const { return degree; }
   void setInNeighbors(uchar* _i) { neighbors = _i; }
@@ -350,8 +323,8 @@ struct compressedAsymmetricVertex {
   const uchar* getInNeighbors() const { return inNeighbors; }
   uchar* getOutNeighbors() { return outNeighbors; }
   const uchar* getOutNeighbors() const { return outNeighbors; }
-  intT getInNeighbor(intT ) const { return -1; } //should not be called
-  intT getOutNeighbor(intT ) const { return -1; } //should not be called
+  intT getInNeighbor(intT j) const { return -1; } //should not be called
+  intT getOutNeighbor(intT j) const { return -1; } //should not be called
   uintT getInDegree() const { return inDegree; }
   uintT getOutDegree() const { return outDegree; }
   void setInNeighbors(uchar* _i) { inNeighbors = _i; }
@@ -398,3 +371,5 @@ struct compressedAsymmetricVertex {
   }
 
 };
+
+#endif
