@@ -75,7 +75,7 @@ struct timer {
   }
 
   void reportT(double time) {
-    std::cout << std::setprecision(3) << time <<  std::endl;;
+    std::cout << std::setprecision(5) << time <<  '\t';
   }
 
   void reportTime(double time) {
