@@ -14,27 +14,21 @@ struct vertexSubsetData {
   using S = tuple<uintE, data>;
   using D = tuple<bool, data>;
 
-  S* s;
-  D* d;
-  size_t n, m;
-  bool isDense;
-
   // An empty vertex set.
   vertexSubsetData(size_t _n) : n(_n), m(0), d(NULL), s(NULL), isDense(0) { }
 
   // A vertexSubset from array of vertex indices.
-  vertexSubsetData(size_t _n, size_t  _m, S* indices)
+  vertexSubsetData(long _n, long _m, S* indices)
   : n(_n), m(_m), s(indices), d(NULL), isDense(0) { }
 
   // A vertexSubset from boolean array giving number of true values.
-  vertexSubsetData(size_t _n, size_t  _m, D* _d)
+  vertexSubsetData(long _n, long _m, D* _d)
   : n(_n), m(_m), s(NULL), d(_d), isDense(1) { }
 
   // A vertexSubset from boolean array giving number of true values. Calculate
   // number of nonzeros and store in m.
-  vertexSubsetData(size_t  _n, D* _d)
-  : n(_n), s(NULL), d(_d), isDense(1)
-  {
+  vertexSubsetData(long _n, D* _d)
+  : n(_n), s(NULL), d(_d), isDense(1) {
     auto d_map = make_in_imap<size_t>(n, [&] (size_t i) { return (size_t)get<0>(_d[i]); });
     m = pbbs::reduce_add(d_map);
   }
@@ -106,6 +100,12 @@ struct vertexSubsetData {
     }
     isDense = true;
   }
+
+
+  S* s;
+  D* d;
+  size_t n, m;
+  bool isDense;
 };
 
 // Specialized version where data = pbbs::empty.
@@ -114,31 +114,31 @@ struct vertexSubsetData<pbbs::empty> {
   using S = uintE;
 
   // An empty vertex set.
-  vertexSubsetData<pbbs::empty>(size_t _n) : s(NULL), d(NULL), n(_n), m(0),  isDense(0) {}
+  vertexSubsetData<pbbs::empty>(size_t _n) : n(_n), m(0), d(NULL), s(NULL), isDense(0) {}
 
   // A vertexSubset with a single vertex.
-  vertexSubsetData<pbbs::empty>(size_t _n, uintE v)
-  : d(NULL), n(_n), m(1),  isDense(0) {
+  vertexSubsetData<pbbs::empty>(long _n, uintE v)
+  : n(_n), m(1), d(NULL), isDense(0) {
     s = newA(uintE, 1);
     s[0] = v;
   }
 
   // A vertexSubset from array of vertex indices.
-  vertexSubsetData<pbbs::empty>(size_t _n, size_t _m, S* indices)
-  : s(indices), d(NULL), n(_n), m(_m),  isDense(0) {}
+  vertexSubsetData<pbbs::empty>(long _n, long _m, S* indices)
+  : n(_n), m(_m), s(indices), d(NULL), isDense(0) {}
 
   // A vertexSubset from array of vertex indices.
-  vertexSubsetData<pbbs::empty>(size_t _n, size_t _m, tuple<uintE, pbbs::empty>* indices)
-  : s((uintE*)indices), d(NULL), n(_n), m(_m),  isDense(0) {}
+  vertexSubsetData<pbbs::empty>(long _n, long _m, tuple<uintE, pbbs::empty>* indices)
+  : n(_n), m(_m), s((uintE*)indices), d(NULL), isDense(0) {}
 
   // A vertexSubset from boolean array giving number of true values.
-  vertexSubsetData<pbbs::empty>(size_t _n, size_t _m, bool* _d)
-  : s(NULL), d(_d), n(_n), m(_m),  isDense(1)  {}
+  vertexSubsetData<pbbs::empty>(long _n, long _m, bool* _d)
+  : n(_n), m(_m), s(NULL), d(_d), isDense(1)  {}
 
   // A vertexSubset from boolean array giving number of true values. Calculate
   // number of nonzeros and store in m.
-  vertexSubsetData<pbbs::empty>(size_t _n, bool* _d)
-  : s(NULL), d(_d), n(_n),  isDense(1) {
+  vertexSubsetData<pbbs::empty>(long _n, bool* _d)
+  : n(_n), s(NULL), d(_d), isDense(1) {
     auto d_map = make_in_imap<size_t>(n, [&] (size_t i) { return _d[i]; });
     auto f = [&] (size_t i, size_t j) { return i + j; };
     m = pbbs::reduce(d_map, f);
@@ -146,8 +146,8 @@ struct vertexSubsetData<pbbs::empty> {
 
   // A vertexSubset from boolean array giving number of true values. Calculate
   // number of nonzeros and store in m.
- vertexSubsetData<pbbs::empty>(size_t _n, tuple<bool, pbbs::empty>* _d)
-  : s(NULL), d((bool*)_d), n(_n),  isDense(1)  {
+ vertexSubsetData<pbbs::empty>(long _n, tuple<bool, pbbs::empty>* _d)
+  : n(_n), s(NULL), d((bool*)_d), isDense(1)  {
     auto d_map = make_in_imap<size_t>(n, [&] (size_t i) { return get<0>(_d[i]); });
     auto f = [&] (size_t i, size_t j) { return i + j; };
     m = pbbs::reduce(d_map, f);
@@ -160,12 +160,12 @@ struct vertexSubsetData<pbbs::empty> {
 
   // Sparse
   inline uintE& vtx(const uintE& i) const { return s[i]; }
-  inline pbbs::empty vtxData(const uintE& ) const { return pbbs::empty(); }
+  inline pbbs::empty vtxData(const uintE& i) const { return pbbs::empty(); }
   inline tuple<uintE, pbbs::empty> vtxAndData(const uintE& i) const { return make_tuple(s[i], pbbs::empty()); }
 
   // Dense
   inline bool isIn(const uintE& v) const { return d[v]; }
-  inline pbbs::empty ithData(const uintE& ) const { return pbbs::empty(); }
+  inline pbbs::empty ithData(const uintE& v) const { return pbbs::empty(); }
 
   // Returns (uintE) -> Maybe<tuple<vertex, vertex-data>>.
   auto get_fn_repr() const {
@@ -184,11 +184,11 @@ struct vertexSubsetData<pbbs::empty> {
     return fn;
   }
 
-  size_t size() { return m; }
-  size_t numVertices() { return n; }
+  long size() { return m; }
+  long numVertices() { return n; }
 
-  size_t numRows() { return n; }
-  size_t numNonzeros() { return m; }
+  long numRows() { return n; }
+  long numNonzeros() { return m; }
 
   bool isEmpty() { return m==0; }
   bool dense() { return isDense; }
@@ -214,8 +214,8 @@ struct vertexSubsetData<pbbs::empty> {
   void toDense() {
     if (d == NULL) {
       d = newA(bool,n);
-      {parallel_for(size_t i=0;i<n;i++) d[i] = 0;}
-      {parallel_for(size_t i=0;i<m;i++) d[s[i]] = 1;}
+      {parallel_for(long i=0;i<n;i++) d[i] = 0;}
+      {parallel_for(long i=0;i<m;i++) d[s[i]] = 1;}
     }
     isDense = true;
   }

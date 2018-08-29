@@ -4,12 +4,12 @@
 // Copyright (c) 2015 Julian Shun, Laxman Dhulipala and Guy Blelloch
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
+// copy of this software and associated documentation files (the1
 // "Software"), to deal in the Software without restriction, including
 // without limitation the rights (to use, copy, modify, merge, publish,
 // distribute, sublicense, and/or sell copies of the Software, and to
 // permit persons to whom the Software is furnished to do so, subject to
-// the following conditions:
+// the following conditions:11
 //
 // The above copyright notice and this permission notice shall be included
 // in all copies or substantial portions of the Software.
@@ -21,7 +21,8 @@
 // LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#pragma once
+#ifndef BYTECODE_H
+#define BYTECODE_H
 
 #include <iostream>
 #include <fstream>
@@ -101,7 +102,7 @@ inline uintE eatEdge(uchar* &start) {
   coded.
 */
 template <class T>
-  inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degree, const bool par=true) {
+inline void decode(T t, uchar* edgeStart, const uintE &source, const uintT &degree, const bool par=true) {
   size_t edgesRead = 0;
   if (degree > 0) {
     // Eat first edge, which is compressed specially
@@ -123,7 +124,7 @@ template <class T>
 
 //decode edges for weighted graph
 template <class T>
-  inline void decodeWgh(T t, uchar* edgeStart, const uintE &source, const uintT &degree, const bool par=true) {
+inline void decodeWgh(T t, uchar* edgeStart, const uintE &source, const uintT &degree, const bool par=true) {
   uintT edgesRead = 0;
   if (degree > 0) {
     // Eat first edge, which is compressed specially
@@ -331,9 +332,12 @@ typedef pair<uintE,intE> intEPair;
   Returns:
     The new offset into the edge array
 */
-inline long sequentialCompressWeightedEdgeSet
-(uchar *edgeArray, long currentOffset, uintT degree,
- uintE vertexNum, intEPair *savedEdges) {
+inline long sequentialCompressWeightedEdgeSet (uchar *edgeArray,
+					       long currentOffset,
+					       uintT degree,
+					       uintE vertexNum,
+					       intEPair *savedEdges)
+{
   if (degree > 0) {
     // Compress the first edge whole, which is signed difference coded
     //target ID
@@ -403,3 +407,5 @@ inline uchar *parallelCompressWeightedEdges(intEPair *edges, uintT *offsets, lon
   cout << "would have been, " << (m * 8) << endl;
   return finalArr;
 }
+
+#endif

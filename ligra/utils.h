@@ -70,7 +70,7 @@ struct EdgeMap_F {
     return f(s,d);
   }
 
-  inline bool cond(const uintE& ) const { return true; }
+  inline bool cond(const uintE& d) const { return true; }
 };
 
 #define _SCAN_LOG_BSIZE 10
@@ -123,14 +123,14 @@ namespace sequence {
   }
 
   template <class OT, class intT, class F, class G>
-  OT reduceSerial(intT s, intT e, F f, G g) {
+  inline OT reduceSerial(intT s, intT e, F f, G g) {
     OT r = g(s);
     for (intT j=s+1; j < e; j++) r = f(r,g(j));
     return r;
   }
 
   template <class OT, class intT, class F, class G>
-  OT reduce(intT s, intT e, F f, G g) {
+  inline OT reduce(intT s, intT e, F f, G g) {
     intT l = nblocks(e-s, _SCAN_BSIZE);
     if (l <= 1) return reduceSerial<OT>(s, e, f , g);
     OT *Sums = newA(OT,l);
@@ -142,12 +142,12 @@ namespace sequence {
   }
 
   template <class OT, class intT, class F>
-  OT reduce(OT* A, intT n, F f) {
+  inline OT reduce(OT* A, intT n, F f) {
     return reduce<OT>((intT)0,n,f,getA<OT,intT>(A));
   }
 
   template <class OT, class intT>
-  OT plusReduce(OT* A, intT n) {
+  inline OT plusReduce(OT* A, intT n) {
     return reduce<OT>((intT)0,n,addF<OT>(),getA<OT,intT>(A));
   }
 
@@ -155,17 +155,17 @@ namespace sequence {
   // f is the reduce function
   // need to specify OT since it is not an argument
   template <class OT, class IT, class intT, class F, class G>
-  OT mapReduce(IT* A, intT n, F f, G g) {
+  inline OT mapReduce(IT* A, intT n, F f, G g) {
     return reduce<OT>((intT) 0,n,f,getAF<IT,OT,intT,G>(A,g));
   }
 
   template <class intT>
-  intT sum(bool *In, intT n) {
+  inline intT sum(bool *In, intT n) {
     return reduce<intT>((intT) 0, n, addF<intT>(), boolGetA<intT>(In));
   }
 
   template <class ET, class intT, class F, class G>
-  ET scanSerial(ET* Out, intT s, intT e, F f, G g, ET zero, bool inclusive, bool back) {
+  inline ET scanSerial(ET* Out, intT s, intT e, F f, G g, ET zero, bool inclusive, bool back) {
     ET r = zero;
     if (inclusive) {
       if (back) for (intT i = e-1; i >= s; i--) Out[i] = r = f(r,g(i));
@@ -188,13 +188,13 @@ namespace sequence {
   }
 
   template <class ET, class intT, class F>
-  ET scanSerial(ET *In, ET* Out, intT n, F f, ET zero) {
+  inline ET scanSerial(ET *In, ET* Out, intT n, F f, ET zero) {
     return scanSerial(Out, (intT) 0, n, f, getA<ET,intT>(In), zero, false, false);
   }
 
   // back indicates it runs in reverse direction
   template <class ET, class intT, class F, class G>
-  ET scan(ET* Out, intT s, intT e, F f, G g,  ET zero, bool inclusive, bool back) {
+  inline ET scan(ET* Out, intT s, intT e, F f, G g,  ET zero, bool inclusive, bool back) {
     intT n = e-s;
     intT l = nblocks(n,_SCAN_BSIZE);
     if (l <= 2) return scanSerial(Out, s, e, f, g, zero, inclusive, back);
@@ -209,23 +209,23 @@ namespace sequence {
   }
 
   template <class ET, class intT, class F>
-  ET scan(ET *In, ET* Out, intT n, F f, ET zero) {
+  inline ET scan(ET *In, ET* Out, intT n, F f, ET zero) {
     return scan(Out, (intT) 0, n, f, getA<ET,intT>(In), zero, false, false);}
 
   template <class ET, class intT, class F>
-  ET scanI(ET *In, ET* Out, intT n, F f, ET zero) {
+  inline ET scanI(ET *In, ET* Out, intT n, F f, ET zero) {
     return scan(Out, (intT) 0, n, f, getA<ET,intT>(In), zero, true, false);}
 
   template <class ET, class intT, class F>
-  ET scanBack(ET *In, ET* Out, intT n, F f, ET zero) {
+  inline ET scanBack(ET *In, ET* Out, intT n, F f, ET zero) {
     return scan(Out, (intT) 0, n, f, getA<ET,intT>(In), zero, false, true);}
 
   template <class ET, class intT, class F>
-  ET scanIBack(ET *In, ET* Out, intT n, F f, ET zero) {
+  inline ET scanIBack(ET *In, ET* Out, intT n, F f, ET zero) {
     return scan(Out, (intT) 0, n, f, getA<ET,intT>(In), zero, true, true);}
 
   template <class ET, class intT>
-  ET plusScan(ET *In, ET* Out, intT n) {
+  inline ET plusScan(ET *In, ET* Out, intT n) {
     return scan(Out, (intT) 0, n, addF<ET>(), getA<ET,intT>(In),
 		(ET) 0, false, false);}
 
@@ -236,7 +236,7 @@ namespace sequence {
   // them as an integer
   // Only optimized when n is a multiple of 512 and Fl is 4byte aligned
   template <class intT>
-  intT sumFlagsSerial(bool *Fl, intT n) {
+  inline intT sumFlagsSerial(bool *Fl, intT n) {
     intT r = 0;
     if (n >= 128 && (n & 511) == 0 && ((long) Fl & 3) == 0) {
       int* IFl = (int*) Fl;
@@ -251,7 +251,7 @@ namespace sequence {
   }
 
   template <class ET, class intT, class F>
-  _seq<ET> packSerial(ET* Out, bool* Fl, intT s, intT e, F f) {
+  inline _seq<ET> packSerial(ET* Out, bool* Fl, intT s, intT e, F f) {
     if (Out == NULL) {
       intT m = sumFlagsSerial(Fl+s, e-s);
       Out = newA(ET,m);
@@ -262,7 +262,7 @@ namespace sequence {
   }
 
   template <class ET, class intT, class F>
-  _seq<ET> pack(ET* Out, bool* Fl, intT s, intT e, F f) {
+  inline _seq<ET> pack(ET* Out, bool* Fl, intT s, intT e, F f) {
     intT l = nblocks(e-s, _F_BSIZE);
     if (l <= 1) return packSerial(Out, Fl, s, e, f);
     intT *Sums = newA(intT,l);
@@ -275,23 +275,23 @@ namespace sequence {
   }
 
   template <class ET, class intT>
-  intT pack(ET* In, ET* Out, bool* Fl, intT n) {
+  inline intT pack(ET* In, ET* Out, bool* Fl, intT n) {
     return pack(Out, Fl, (intT) 0, n, getA<ET,intT>(In)).n;}
 
   template <class intT>
-  _seq<intT> packIndex(bool* Fl, intT n) {
+  inline _seq<intT> packIndex(bool* Fl, intT n) {
     return pack((intT *) NULL, Fl, (intT) 0, n, identityF<intT>());
   }
 
   template <class ET, class intT, class PRED>
-  intT filter(ET* In, ET* Out, bool* Fl, intT n, PRED p) {
+  inline intT filter(ET* In, ET* Out, bool* Fl, intT n, PRED p) {
     parallel_for (intT i=0; i < n; i++) Fl[i] = (bool) p(In[i]);
     intT  m = pack(In, Out, Fl, n);
     return m;
   }
 
   template <class ET, class intT, class PRED>
-  intT filter(ET* In, ET* Out, intT n, PRED p) {
+  inline intT filter(ET* In, ET* Out, intT n, PRED p) {
     bool *Fl = newA(bool,n);
     intT m = filter(In, Out, Fl, n, p);
     free(Fl);
@@ -355,7 +355,7 @@ inline ulong hashInt(ulong a) {
 // Sets all duplicate values in the array to UINT_E_MAX and resets flags to
 // UINT_E_MAX.
 template <class G>
-void remDuplicates(G& get_key, uintE* flags, size_t m, long ) {
+inline void remDuplicates(G& get_key, uintE* flags, long m, long n) {
   parallel_for(size_t i=0; i<m; i++) {
     uintE key = get_key(i);
     if(key != UINT_E_MAX && flags[key] == UINT_E_MAX) {
@@ -397,10 +397,6 @@ namespace pbbs {
   const flags fl_debug = 2;
   const flags fl_time = 4;
 
-  
-  
-  
-
   template<typename T>
   inline void assign_uninitialized(T& a, const T& b) {
     new (static_cast<void*>(std::addressof(a))) T(b);
@@ -412,7 +408,7 @@ namespace pbbs {
   }
 
   // a 32-bit hash function
-  inline uint32_t  hash32(uint32_t a) {
+  inline uint32_t hash32(uint32_t a) {
     a = (a+0x7ed55d16) + (a<<12);
     a = (a^0xc761c23c) ^ (a>>19);
     a = (a+0x165667b1) + (a<<5);
@@ -438,7 +434,7 @@ namespace pbbs {
 
   // Does not initialize the array
   template<typename E>
-  E* new_array_no_init(size_t n, bool touch_pages=false) {
+  inline E* new_array_no_init(size_t n, bool touch_pages=false) {
     // pads in case user wants to allign with cache lines
     size_t line_size = 64;
     size_t bytes = ((n * sizeof(E))/line_size + 1)*line_size;
@@ -460,7 +456,7 @@ namespace pbbs {
 
   // Initializes in parallel
   template<typename E>
-  E* new_array(size_t n) {
+  inline E* new_array(size_t n) {
     E* r = new_array_no_init<E>(n);
     if (!std::is_trivially_default_constructible<E>::value) {
       if (n > 2048)
@@ -473,7 +469,7 @@ namespace pbbs {
 
   // Destructs in parallel
   template<typename E>
-  void delete_array(E* A, size_t n) {
+  inline void delete_array(E* A, size_t n) {
     // C++14 -- suppored by gnu C++11
     if (!std::is_trivially_destructible<E>::value) {
       if (n > 2048)

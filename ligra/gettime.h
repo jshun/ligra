@@ -19,7 +19,8 @@
 // LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#pragma once
+#ifndef _BENCH_GETTIME_INCLUDED
+#define _BENCH_GETTIME_INCLUDED
 
 #include <stdlib.h>
 #include <sys/time.h>
@@ -111,5 +112,5 @@ static timer _tm;
 #define nextTime(_string) _tm.reportNext(_string);
 #define nextTimeN() _tm.reportT(_tm.next());
 
-
+#endif // _BENCH_GETTIME_INCLUDED
 
