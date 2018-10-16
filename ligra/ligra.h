@@ -52,6 +52,7 @@ const flags sparse_no_filter = 4;
 const flags dense_forward = 8;
 const flags dense_parallel = 16;
 const flags remove_duplicates = 32;
+const flags no_dense = 64;
 inline bool should_output(const flags& fl) { return !(fl & no_output); }
 
 template <class data, class vertex, class VS, class F>
@@ -253,7 +254,7 @@ vertexSubsetData<data> edgeMapData(graph<vertex>& GA, VS &vs, F f,
 
   uintT outDegrees = sequence::plusReduce(degrees, m);
   if (outDegrees == 0) return vertexSubsetData<data>(numVertices);
-  if (m + outDegrees > threshold) {
+  if (!(fl & no_dense) && (m + outDegrees > threshold)) {
     vs.toDense();
     free(degrees); free(frontierVertices);
     return (fl & dense_forward) ?

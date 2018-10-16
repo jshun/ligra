@@ -83,7 +83,7 @@ array_imap<intT> KCore(graph<vertex>& G, bool printCores=false) {
   for (size_t i = 0; i < n; i++) {
     intT v = vert[i];  // Smallest degree vertex in the remaining graph.
     vs.s[0] = v;
-    edgeMap(G, vs, df, -1, no_output | dense_forward);
+    edgeMap(G, vs, df, -1, no_output | no_dense);
   }
   vs.del();
 
