@@ -72,7 +72,7 @@ graph(vertex* _V, long _n, long _m, Deletable* _D, uintE* _flags) : V(_V),
   void del() {
     if (flags != NULL) free(flags);
     D->del();
-    free(D);
+    delete D;
   }
 
   void transpose() {

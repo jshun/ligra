@@ -260,6 +260,7 @@ vertexSubsetData<data> edgeMapData(graph<vertex>& GA, VS &vs, F f,
   }
   if (!(fl & no_dense) && (m + outDegrees > threshold)) {
     vs.toDense();
+    free(degrees); free(frontierVertices);
     return (fl & dense_forward) ?
       edgeMapDenseForward<data, vertex, VS, F>(GA, vs, f, fl) :
       edgeMapDense<data, vertex, VS, F>(GA, vs, f, fl);
