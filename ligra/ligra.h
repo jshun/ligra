@@ -242,8 +242,8 @@ vertexSubsetData<data> edgeMapData(graph<vertex>& GA, VS &vs, F f,
     abort();
   }
   if (vs.size() == 0) return vertexSubsetData<data>(numVertices);
-  uintT* degrees;
-  vertex* frontierVertices;
+  uintT* degrees = NULL;
+  vertex* frontierVertices = NULL;
   uintT outDegrees = 0;
   if(threshold > 0) { 
     vs.toSparse();
@@ -259,6 +259,8 @@ vertexSubsetData<data> edgeMapData(graph<vertex>& GA, VS &vs, F f,
     if (outDegrees == 0) return vertexSubsetData<data>(numVertices);
   }
   if (!(fl & no_dense) && (m + outDegrees > threshold)) {
+    if(degrees) free(degrees);
+    if(frontierVertices) free(frontierVertices);
     vs.toDense();
     return (fl & dense_forward) ?
       edgeMapDenseForward<data, vertex, VS, F>(GA, vs, f, fl) :
