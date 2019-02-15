@@ -25,7 +25,7 @@ endif
 #compilers
 ifdef CILK
 PCC = g++
-PCFLAGS = -std=c++14 -fcilkplus -lcilkrts -O2 -DCILK $(INTT) $(INTE) $(CODE) $(PD) $(MEM)
+PCFLAGS = -std=c++14 -fcilkplus -lcilkrts -O3 -DCILK $(INTT) $(INTE) $(CODE) $(PD) $(MEM)
 PLFLAGS = -fcilkplus -lcilkrts
 
 else ifdef MKLROOT
