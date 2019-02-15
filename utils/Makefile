@@ -22,7 +22,7 @@ PCFLAGS = -std=c++14 -fopenmp -march=native -O3 -DOPENMP $(INTT) $(INTE)
 
 else
 PCC = g++
-PCFLAGS = -std=c++14 -O2 $(INTT) $(INTE)
+PCFLAGS = -std=c++14 -O3 $(INTT) $(INTE)
 endif
 
 COMMON = utils.h parseCommandLine.h parallel.h quickSort.h blockRadixSort.h transpose.h
