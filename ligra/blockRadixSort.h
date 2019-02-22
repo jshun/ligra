@@ -40,7 +40,6 @@ static int log2Up(T i) {
   while (b > 0) {b = b >> 1; a++;}
   return a;
 }
-
 namespace intSort {
 
   // Cannot be greater than 8 without changing definition of bIndexT
@@ -94,7 +93,6 @@ namespace intSort {
     void radixStep(E* A, E* B, bIndexT *Tmp, bint (*BK)[BUCKETS],
 		   long numBK, long n, long m, bool top, F extract) {
 
-
     // need 3 bucket sets per block
     long expand = (sizeof(E)<=4) ? 64 : 32;
     long blocks = min(numBK/3,(1+n/(BUCKETS*expand)));
@@ -115,13 +113,12 @@ namespace intSort {
     }
 
     transpose<bint,bint>(cnts, oA).trans(blocks, m);
-
+    
     long ss;
     if (top)
       ss = sequence::scan(oA, oA, blocks*m, addF<bint>(),(bint)0);
     else
       ss = sequence::scanSerial(oA, oA, blocks*m, addF<bint>(),(bint)0);
-    //utils::myAssert(ss == n, "radixStep: sizes don't match");
 
     blockTrans<E,bint>(B, A, oB, oA, cnts).trans(blocks, m);
 
@@ -200,6 +197,7 @@ namespace intSort {
   void iSortX(E *A, oint* bucketOffsets, long n, long m, bool bottomUp, 
 	      char* tmpSpace, F f) {
     typedef bint bucketsT[BUCKETS];
+    long esize = (n >= INT_MAX) ? sizeof(long) : sizeof(int);
 
     long bits = log2Up(m);
     long numBK = 1+n/(BUCKETS*8);
@@ -207,9 +205,11 @@ namespace intSort {
     // the temporary space is broken into 3 parts: B, Tmp and BK
     E *B = (E*) tmpSpace; 
     long Bsize =sizeof(E)*n;
-    bIndexT *Tmp = (bIndexT*) (tmpSpace+Bsize); // one byte per item
-    long tmpSize = sizeof(bIndexT)*n;
-    bucketsT *BK = (bucketsT*) (tmpSpace+Bsize+tmpSize);
+
+    bucketsT *BK = (bucketsT*) (tmpSpace+Bsize);
+    long BKsize = esize*BUCKETS*numBK;
+    bIndexT *Tmp = (bIndexT*) (tmpSpace+Bsize+BKsize); // one byte per item
+    
     if (bits <= MAX_RADIX) {
       radixStep(A, B, Tmp, BK, numBK, n, (long) 1 << bits, true, 
 		eBits<E,F>(bits,0,f));
