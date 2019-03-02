@@ -98,16 +98,10 @@ struct buckets {
       return get_cur_bucket();
     }
 
-    // Computes a bucket_dest for an identifier moving from bucket_id prev to
-    // bucket_id next.
-    inline bucket_dest get_bucket(const bucket_id& prev,
-                                  const bucket_id& next) const {
-      uintE pb = to_range(prev);
+    // Computes a bucket_dest for an identifier moving to bucket_id next.
+    inline bucket_dest get_bucket(const bucket_id& next) const {
       uintE nb = to_range(next);
-      if ((nb != null_bkt) && (
-          (prev == null_bkt) ||
-          (pb != nb) ||
-          (nb == cur_bkt))) {
+      if (nb != null_bkt && nb != open_buckets) {
         return nb;
       }
       return null_bkt;

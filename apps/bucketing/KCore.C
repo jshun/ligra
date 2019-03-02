@@ -24,7 +24,7 @@ array_imap<uintE> KCore(graph<vertex>& GA, size_t num_buckets=128) {
       if (deg > k) {
         uintE new_deg = max(deg - edgesRemoved, k);
         D.s[v] = new_deg;
-        uintE bkt = b.get_bucket(deg, new_deg);
+        uintE bkt = b.get_bucket(new_deg);
         return wrap(v, bkt);
       }
       return Maybe<tuple<uintE, uintE> >();
