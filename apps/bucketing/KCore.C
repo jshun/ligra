@@ -9,7 +9,7 @@ array_imap<uintE> KCore(graph<vertex>& GA, size_t num_buckets=128) {
   auto D = array_imap<uintE>(n, [&] (size_t i) { return GA.V[i].getOutDegree(); });
 
   auto em = EdgeMap<uintE, vertex>(GA, make_tuple(UINT_E_MAX, 0), (size_t)GA.m/5);
-  auto b = make_buckets(n, D, increasing, num_buckets);
+  auto b = make_buckets(n, D, increasing, strictly_decreasing, num_buckets);
 
   size_t finished = 0;
   while (finished != n) {

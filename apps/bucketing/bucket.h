@@ -216,6 +216,7 @@ struct buckets {
 
   private:
     const bucket_order bkt_order;
+    const priority_order pri_order;
     id_dyn_arr* bkts;
     size_t cur_bkt;
     size_t max_bkt;
@@ -349,6 +350,6 @@ struct buckets {
 };
 
 template <class D>
-buckets<D> make_buckets(size_t n, D d, bucket_order bkt_order, size_t total_buckets=128) {
-  return buckets<D>(n, d, bkt_order, total_buckets);
+buckets<D> make_buckets(size_t n, D d, bucket_order bkt_order, priority_order pri_order, size_t total_buckets=128) {
+  return buckets<D>(n, d, bkt_order, pri_order, total_buckets);
 }
