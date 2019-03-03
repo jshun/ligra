@@ -110,6 +110,8 @@ struct buckets {
     // Computes a bucket_dest for an identifier moving to bucket_id next.
     inline bucket_dest get_bucket(const bucket_id& next) const {
       uintE nb = to_range(next);
+      // Note that the interface currently only implements strictly_decreasing 
+      // priority, which is why the code below does not check pri_order.
       if (bkt_order == increasing) {
         if (nb != null_bkt && nb != open_buckets) {
           return nb;

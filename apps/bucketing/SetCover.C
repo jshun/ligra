@@ -28,7 +28,7 @@ dyn_arr<uintE> SetCover(graph<vertex>& G, size_t num_buckets=128) {
   auto D = array_imap<uintE>(G.n, [&] (size_t i) { return G.V[i].getOutDegree(); });
   auto get_bucket_clamped = [&] (size_t deg) -> uintE { return (deg == 0) ? UINT_E_MAX : (uintE)floor(x * log((double) deg)); };
   auto bucket_f = [&] (size_t i) { return get_bucket_clamped(D(i)); };
-  auto b = make_buckets(G.n, bucket_f, decreasing, num_buckets);
+  auto b = make_buckets(G.n, bucket_f, decreasing, strictly_decreasing, num_buckets);
   size_t rounds = 0;
   dyn_arr<uintE> cover = dyn_arr<uintE>();
   while (true) {
@@ -81,7 +81,7 @@ dyn_arr<uintE> SetCover(graph<vertex>& G, size_t num_buckets=128) {
       const uintE dv = D(v);
       uintE bkt = UINT_E_MAX;
       if (!(dv & TOP_BIT))
-        bkt = b.get_bucket(cur_bkt, get_bucket_clamped(dv));
+        bkt = b.get_bucket(get_bucket_clamped(dv));
       return Maybe<tuple<uintE, uintE> >(make_tuple(v, bkt));
     };
     b.update_buckets(f, active.size());
