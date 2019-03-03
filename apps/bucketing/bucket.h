@@ -15,9 +15,16 @@ using namespace std;
 typedef uintE bucket_id;
 typedef uintE bucket_dest;
 
+// Defines the order in which the buckets are accessed.
 enum bucket_order {
   decreasing,
   increasing
+};
+
+// Defines the order in which priorities are updated.
+enum priority_order {
+   strictly_decreasing,
+   strictly_increasing
 };
 
 struct bucket {
@@ -38,7 +45,8 @@ struct buckets {
     // Create a bucketing structure.
     //   n : the number of identifiers
     //   d : map from identifier -> bucket
-    //   order : the order to iterate over the buckets
+    //   bkt_order : the order to iterate over the buckets
+    //   pri_order : the order in which priorities are updated
     //   total_buckets: the total buckets to materialize
     //
     //   For an identifier i:
@@ -46,28 +54,29 @@ struct buckets {
     //   d(i) = UINT_E_MAX if i is not in any bucket
     buckets(size_t _n,
             D _d,
-            bucket_order _order,
+            bucket_order _bkt_order,
+            priority_order _pri_order,
             size_t _total_buckets) :
-        n(_n), d(_d), order(_order),
+        n(_n), d(_d), bkt_order(_bkt_order), pri_order(_pri_order),
         open_buckets(_total_buckets-1), total_buckets(_total_buckets),
         cur_bkt(0), max_bkt(_total_buckets), num_elms(0) {
       // Initialize array consisting of the materialized buckets.
       bkts = pbbs::new_array<id_dyn_arr>(total_buckets);
 
       // Set the current range being processed based on the order.
-      if (order == increasing) {
+      if (bkt_order == increasing) {
         auto imap = make_in_imap<uintE>(n, [&] (size_t i) { return d(i); });
         auto min = [] (uintE x, uintE y) { return std::min(x, y); };
         size_t min_b = pbbs::reduce(imap, min);
         cur_range = min_b / open_buckets;
-      } else if (order == decreasing) {
+      } else if (bkt_order == decreasing) {
         auto imap = make_in_imap<uintE>(n, [&] (size_t i) {
             return (d(i) == null_bkt) ? 0 : d(i); });
         auto max = [] (uintE x, uintE y) { return std::max(x,y); };
         size_t max_b = pbbs::reduce(imap, max);
         cur_range = (max_b + open_buckets) / open_buckets;
       } else {
-        cout << "Unknown order: " << order
+        cout << "Unknown order: " << bkt_order
              << ". Must be one of {increasing, decreasing}" << endl;
         abort();
       }
@@ -101,8 +110,14 @@ struct buckets {
     // Computes a bucket_dest for an identifier moving to bucket_id next.
     inline bucket_dest get_bucket(const bucket_id& next) const {
       uintE nb = to_range(next);
-      if (nb != null_bkt && nb != open_buckets) {
-        return nb;
+      if (bkt_order == increasing) {
+        if (nb != null_bkt && nb != open_buckets) {
+          return nb;
+        }
+      } else { // bkt_order == decreasing
+        if (nb != null_bkt) {
+          return nb;
+        }
       }
       return null_bkt;
     }
@@ -200,7 +215,7 @@ struct buckets {
     }
 
   private:
-    const bucket_order order;
+    const bucket_order bkt_order;
     id_dyn_arr* bkts;
     size_t cur_bkt;
     size_t max_bkt;
@@ -245,7 +260,7 @@ struct buckets {
       parallel_for(size_t i=0; i<m; i++) {
         tmp[i] = A[i];
       }
-      if (order == increasing) {
+      if (bkt_order == increasing) {
         cur_range++; // increment range
       } else {
         cur_range--;
@@ -291,7 +306,7 @@ struct buckets {
     // increasing: [cur_range*open_buckets, (cur_range+1)*open_buckets)
     // decreasing: [(cur_range-1)*open_buckets, cur_range*open_buckets)
     inline bucket_id to_range(uintE bkt) const {
-      if (order == increasing) {
+      if (bkt_order == increasing) {
         if (bkt < cur_range*open_buckets) { // this can happen because of the lazy bucketing
           return null_bkt;
         }
@@ -305,7 +320,7 @@ struct buckets {
     }
 
     size_t get_cur_bucket_num() const {
-      if (order == increasing) {
+      if (bkt_order == increasing) {
         return cur_range*open_buckets + cur_bkt;
       } else {
         return (cur_range)*(open_buckets) - cur_bkt - 1;
@@ -334,6 +349,6 @@ struct buckets {
 };
 
 template <class D>
-buckets<D> make_buckets(size_t n, D d, bucket_order order, size_t total_buckets=128) {
-  return buckets<D>(n, d, order, total_buckets);
+buckets<D> make_buckets(size_t n, D d, bucket_order bkt_order, size_t total_buckets=128) {
+  return buckets<D>(n, d, bkt_order, total_buckets);
 }
