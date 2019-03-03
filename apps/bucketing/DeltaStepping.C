@@ -58,7 +58,7 @@ void DeltaStepping(graph<vertex>& G, uintE src, uintE delta, size_t num_buckets=
     dists.s[v] = newDist; // Remove the TOP_BIT in the distance.
     // Compute the previous bucket and new bucket for the vertex.
     uintE prev_bkt = get_bkt(oldDist), new_bkt = get_bkt(newDist);
-    bucket_dest dest = b.get_bucket(prev_bkt, new_bkt);
+    bucket_dest dest = b.get_bucket(new_bkt);
     oldDist = dest; // write back
   };
 

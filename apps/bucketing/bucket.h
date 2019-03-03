@@ -119,8 +119,8 @@ struct buckets {
           return nb;
         } // case for strictly_increasing elided
       } else { // bkt_order == decreasing
-        // strictly_decreasing priorities, assuming elements start out in the structure.
         if (nb != null_bkt) {
+        // strictly_decreasing priorities, assuming elements start out in the structure.
           return nb;
         }
       }
