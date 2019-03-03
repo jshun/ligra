@@ -51,7 +51,7 @@ void DeltaStepping(graph<vertex>& G, uintE src, uintE delta, size_t num_buckets=
   auto get_ring = [&] (const size_t& v) -> const uintE {
     auto d = dists[v];
     return (d == INT_E_MAX) ? UINT_E_MAX : (d / delta); };
-  auto b = make_buckets(n, get_ring, increasing, num_buckets);
+  auto b = make_buckets(n, get_ring, increasing, strictly_decreasing, num_buckets);
 
   auto apply_f = [&] (const uintE v, uintE& oldDist) -> void {
     uintE newDist = dists.s[v] & VAL_MASK;
