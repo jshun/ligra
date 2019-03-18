@@ -63,6 +63,7 @@ void DeltaStepping(graph<vertex>& G, uintE src, uintE delta, size_t num_buckets=
   };
 
   auto bkt = b.next_bucket();
+  size_t rds = 0;
   while (bkt.id != b.null_bkt) {
     auto active = bkt.identifiers;
     // The output of the edgeMap is a vertexSubsetData<uintE> where the value
@@ -76,7 +77,9 @@ void DeltaStepping(graph<vertex>& G, uintE src, uintE delta, size_t num_buckets=
     }
     res.del(); active.del();
     bkt = b.next_bucket();
+    rds++;
   }
+  cout << "rds = " << rds << endl;
 }
 
 template <class vertex>
