@@ -30,7 +30,6 @@
 #include <string>
 #include <algorithm>
 #include "parallel.h"
-#include "gettime.h"
 #include "utils.h"
 #include "vertex.h"
 #include "compressedVertex.h"
@@ -481,9 +480,9 @@ int parallel_main(int argc, char* argv[]) {
         readCompressedGraph<compressedSymmetricVertex>(iFile,symmetric,mmap); //symmetric graph
       Compute(G,P);
       for(int r=0;r<rounds;r++) {
-        startTime();
+        pbbso::timer t;
         Compute(G,P);
-        nextTime("Running time");
+        t.stop(); t.reportTotal("Running time");
       }
       G.del();
     } else {
@@ -492,9 +491,9 @@ int parallel_main(int argc, char* argv[]) {
       Compute(G,P);
       if(G.transposed) G.transpose();
       for(int r=0;r<rounds;r++) {
-        startTime();
+        pbbso::timer t;
         Compute(G,P);
-        nextTime("Running time");
+        t.stop(); t.reportTotal("Running time");
         if(G.transposed) G.transpose();
       }
       G.del();
@@ -505,9 +504,9 @@ int parallel_main(int argc, char* argv[]) {
         readGraph<symmetricVertex>(iFile,compressed,symmetric,binary,mmap); //symmetric graph
       Compute(G,P);
       for(int r=0;r<rounds;r++) {
-        startTime();
+        pbbso::timer t;
         Compute(G,P);
-        nextTime("Running time");
+        t.stop(); t.reportTotal("Running time");
       }
       G.del();
     } else {
@@ -516,9 +515,9 @@ int parallel_main(int argc, char* argv[]) {
       Compute(G,P);
       if(G.transposed) G.transpose();
       for(int r=0;r<rounds;r++) {
-        startTime();
+        pbbso::timer t;
         Compute(G,P);
-        nextTime("Running time");
+        t.stop(); t.reportTotal("Running time");
         if(G.transposed) G.transpose();
       }
       G.del();

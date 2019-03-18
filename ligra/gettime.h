@@ -19,14 +19,14 @@
 // LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#ifndef _BENCH_GETTIME_INCLUDED
-#define _BENCH_GETTIME_INCLUDED
+#pragma once
 
 #include <stdlib.h>
 #include <sys/time.h>
 #include <iomanip>
 #include <iostream>
 
+namespace pbbso {
 struct timer {
   double totalTime;
   double lastTime;
@@ -35,7 +35,7 @@ struct timer {
   struct timezone tzp;
   timer() {
     struct timezone tz = {0, 0};
-    totalTime=0.0; 
+    totalTime=0.0;
     totalWeight=0.0;
     on=0; tzp = tz;}
   double getTime() {
@@ -46,20 +46,20 @@ struct timer {
   void start () {
     on = 1;
     lastTime = getTime();
-  } 
+  }
   double stop () {
     on = 0;
     double d = (getTime()-lastTime);
     totalTime += d;
     return d;
-  } 
+  }
   double stop (double weight) {
     on = 0;
     totalWeight += weight;
     double d = (getTime()-lastTime);
     totalTime += weight*d;
     return d;
-  } 
+  }
 
   double total() {
     if (on) return totalTime + getTime() - lastTime;
@@ -96,21 +96,12 @@ struct timer {
   }
 
   void reportTotal(std::string str) {
-    std::cout << str << " : "; 
+    std::cout << str << " : ";
     reportTotal();}
 
   void reportNext() {reportTime(next());}
 
   void reportNext(std::string str) {std::cout << str << " : "; reportNext();}
 };
-
-static timer _tm;
-#define timeStatement(_A,_string) _tm.start();  _A; _tm.reportNext(_string);
-#define startTime() _tm.start();
-#define stopTime(_weight,_str) _tm.reportStop(_weight,_str);
-#define reportTime(_str) _tm.reportTotal(_str);
-#define nextTime(_string) _tm.reportNext(_string);
-#define nextTimeN() _tm.reportT(_tm.next());
-
-#endif // _BENCH_GETTIME_INCLUDED
+} // namespace pbbso
 
