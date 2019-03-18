@@ -108,6 +108,7 @@ dyn_arr<uintE> SetCover(graph<vertex>& G, size_t num_buckets=128) {
     B.update_buckets(f, active.size());
     active.del(); still_active.del();
     rounds++;
+    r = r.next();
   }
   t.stop(); t.reportTotal("Running time: ");
 
