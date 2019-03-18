@@ -29,7 +29,7 @@
 #include "sequentialHT.h"
 #include "sequence.h"
 
-namespace pbbs {
+namespace pbbso {
 
   // Tunable parameters
   constexpr const size_t _hist_max_buckets = 2048;
@@ -68,7 +68,7 @@ namespace pbbs {
   template <class E, class O, class K, class V, class A, class Reduce, class Apply>
   inline pair<size_t, O*> seq_histogram_reduce(A& get_elm, size_t n, Reduce& reduce_f, Apply& apply_f, hist_table<K, V>& ht) {
     typedef tuple<K, V> KV;
-    long size = 1 << pbbs::log2_up(n+1);
+    long size = 1 << pbbso::log2_up(n+1);
     ht.resize(size);
     sequentialHT<K, V> S(ht.table, size, 1.0f, ht.empty);
     for (size_t i=0; i<n; i++) {
@@ -108,7 +108,7 @@ namespace pbbs {
     size_t low_mask = ~((size_t)15);
     size_t bucket_mask = num_buckets - 1;
     auto get_bucket = [&] (uintE i) {
-      return pbbs::hash64(get_key[i] & low_mask) & bucket_mask;
+      return pbbso::hash64(get_key[i] & low_mask) & bucket_mask;
     };
 
     auto p = _count_sort<int16_t, size_t, E>(get_elm, get_bucket, n, (uintE)num_buckets);
@@ -145,7 +145,7 @@ namespace pbbs {
       size_t size = bkt_counts[i*S_STRIDE];
       size_t ht_size = 0;
       if (size > 0) {
-        ht_size = 1 << pbbs::log2_up((intT)(size + 1));
+        ht_size = 1 << pbbso::log2_up((intT)(size + 1));
       }
       ht_offs[i+1] = ht_offs[i] + ht_size;
     }

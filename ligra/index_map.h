@@ -108,9 +108,9 @@ struct array_imap {
   array_imap() : alloc(false) {}
   array_imap(E* s, size_t n, bool alloc=false)
     : s(s), e(s + n), alloc(alloc) {};
-  array_imap(const size_t n) : s(pbbs::new_array_no_init<E>(n)), e(s + n), alloc(true) {};
+  array_imap(const size_t n) : s(pbbso::new_array_no_init<E>(n)), e(s + n), alloc(true) {};
   template <class F>
-  array_imap(const size_t n, F f) : s(pbbs::new_array_no_init<E>(n)), e(s + n), alloc(true) {
+  array_imap(const size_t n, F f) : s(pbbso::new_array_no_init<E>(n)), e(s + n), alloc(true) {
     granular_for(i, 0, n, (n > 2000), { s[i] = f(i); });
   };
   ~array_imap() { if (alloc) { free(s);}}

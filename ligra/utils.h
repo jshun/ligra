@@ -388,7 +388,7 @@ void remDuplicates(G& get_key, uintE* flags, long m, long n) {
   } \
   }
 
-namespace pbbs {
+namespace pbbso {
 
   struct empty {};
 

@@ -40,7 +40,7 @@ array_imap<uintE> KCore(graph<vertex>& GA, size_t num_buckets=128) {
 template <class vertex>
 void Compute(graph<vertex>& GA, commandLine P) {
   size_t num_buckets = P.getOptionLongValue("-nb", 128);
-  if (num_buckets != (1 << pbbs::log2_up(num_buckets))) {
+  if (num_buckets != (1 << pbbso::log2_up(num_buckets))) {
     cout << "Number of buckets must be a power of two." << endl;
     exit(-1);
   }

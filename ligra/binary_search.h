@@ -2,7 +2,7 @@
 
 #include <cstddef>
 
-namespace pbbs {
+namespace pbbso {
   // the following parameter can be tuned
   constexpr const size_t _binary_search_base = 16;
 

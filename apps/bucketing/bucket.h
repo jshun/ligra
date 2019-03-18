@@ -61,19 +61,19 @@ struct buckets {
         open_buckets(_total_buckets-1), total_buckets(_total_buckets),
         cur_bkt(0), max_bkt(_total_buckets), num_elms(0) {
       // Initialize array consisting of the materialized buckets.
-      bkts = pbbs::new_array<id_dyn_arr>(total_buckets);
+      bkts = pbbso::new_array<id_dyn_arr>(total_buckets);
 
       // Set the current range being processed based on the order.
       if (bkt_order == increasing) {
         auto imap = make_in_imap<uintE>(n, [&] (size_t i) { return d(i); });
         auto min = [] (uintE x, uintE y) { return std::min(x, y); };
-        size_t min_b = pbbs::reduce(imap, min);
+        size_t min_b = pbbso::reduce(imap, min);
         cur_range = min_b / open_buckets;
       } else if (bkt_order == decreasing) {
         auto imap = make_in_imap<uintE>(n, [&] (size_t i) {
             return (d(i) == null_bkt) ? 0 : d(i); });
         auto max = [] (uintE x, uintE y) { return std::max(x,y); };
-        size_t max_b = pbbs::reduce(imap, max);
+        size_t max_b = pbbso::reduce(imap, max);
         cur_range = (max_b + open_buckets) / open_buckets;
       } else {
         cout << "Unknown order: " << bkt_order
@@ -139,12 +139,12 @@ struct buckets {
 
        size_t ne_before = num_elms;
 
-       size_t block_bits = pbbs::log2_up(num_blocks);
+       size_t block_bits = pbbso::log2_up(num_blocks);
        num_blocks = 1 << block_bits;
        size_t block_size = (k + num_blocks - 1) / num_blocks;
 
-       uintE* hists = pbbs::new_array_no_init<uintE>((num_blocks+1) * total_buckets * CACHE_LINE_S);
-       uintE* outs = pbbs::new_array_no_init<uintE>((num_blocks+1) * total_buckets);
+       uintE* hists = pbbso::new_array_no_init<uintE>((num_blocks+1) * total_buckets * CACHE_LINE_S);
+       uintE* outs = pbbso::new_array_no_init<uintE>((num_blocks+1) * total_buckets);
 
        // 1. Compute per-block histograms
        parallel_for_1(size_t i=0; i<num_blocks; i++) {
@@ -172,7 +172,7 @@ struct buckets {
       auto in_map = make_in_imap<uintE>(num_blocks*total_buckets, get);
       auto out_map = array_imap<uintE>(outs, num_blocks*total_buckets);
 
-      size_t sum = pbbs::scan_add(in_map, out_map);
+      size_t sum = pbbso::scan_add(in_map, out_map);
       outs[num_blocks*total_buckets] = sum;
 
       // 3. Resize buckets based on the summed histogram.
@@ -341,7 +341,7 @@ struct buckets {
       size_t cur_bkt_num = get_cur_bucket_num();
       auto _d = d;
       auto p = [&] (size_t i) { return _d(i) == cur_bkt_num; };
-      size_t m = pbbs::filterf(bkt.A, out, size, p);
+      size_t m = pbbso::filterf(bkt.A, out, size, p);
       bkts[cur_bkt].size = 0;
       if (m == 0) {
         free(out);

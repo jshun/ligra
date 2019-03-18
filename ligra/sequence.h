@@ -27,7 +27,7 @@
 
 #include "index_map.h"
 
-namespace pbbs {
+namespace pbbso {
   using namespace std;
 
   constexpr const size_t _log_block_size = 12;

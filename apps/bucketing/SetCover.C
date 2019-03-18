@@ -92,7 +92,7 @@ dyn_arr<uintE> SetCover(graph<vertex>& G, size_t num_buckets=128) {
   t.stop(); t.reportTotal("Running time: ");
 
   auto elm_cov = make_in_imap<uintE>(G.n, [&] (uintE v) { return (uintE)(Elms[v] == COVERED); });
-  size_t elms_cov = pbbs::reduce_add(elm_cov);
+  size_t elms_cov = pbbso::reduce_add(elm_cov);
   cout << "|V| = " << G.n << " |E| = " << G.m << endl;
   cout << "|cover|: " << cover.size << endl;
   cout << "Rounds: " << rounds << endl;

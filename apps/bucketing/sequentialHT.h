@@ -40,11 +40,11 @@ class sequentialHT {
   T* table;
 
   inline size_t toRange(size_t h) {return h & mask;}
-  inline size_t firstIndex(K v) {return toRange(pbbs::hash64(v));}
+  inline size_t firstIndex(K v) {return toRange(pbbso::hash64(v));}
   inline size_t incrementIndex(size_t h) {return toRange(h+1);}
 
   sequentialHT(T* _table, size_t size, float loadFactor, tuple<K, V> _empty) :
-    m((size_t) 1 << pbbs::log2_up((size_t)(loadFactor*size))),
+    m((size_t) 1 << pbbso::log2_up((size_t)(loadFactor*size))),
     mask(m-1), table(_table), empty(_empty) { max_key = get<0>(empty); }
 
   // m must be a power of two

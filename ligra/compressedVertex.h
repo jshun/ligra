@@ -249,7 +249,7 @@ namespace decode_compressed {
     };
     copyOutNgh<V, uintE>(v, i, (uintT)0, f, gen);
 
-    size_t new_deg = pbbs::filterf(tmp1, tmp2, original_deg, [] (uintE v) { return v != UINT_E_MAX; });
+    size_t new_deg = pbbso::filterf(tmp1, tmp2, original_deg, [] (uintE v) { return v != UINT_E_MAX; });
     if (new_deg < original_deg) {
       sequentialCompressEdgeSet(nghArr, 0, new_deg, i, tmp2);
       v->setOutDegree(new_deg);

@@ -25,7 +25,7 @@
 #include "utils.h"
 #include "sequence.h"
 
-namespace pbbs {
+namespace pbbso {
 
   // the following parameters can be tuned
   constexpr const size_t _cs_seq_threshold = 2048;
