@@ -50,8 +50,8 @@ struct buckets {
     //   total_buckets: the total buckets to materialize
     //
     //   For an identifier i:
-    //   d(i) is the bucket currently containing i
-    //   d(i) = UINT_E_MAX if i is not in any bucket
+    //   d[i] is the bucket currently containing i
+    //   d[i] = UINT_E_MAX if i is not in any bucket
     buckets(size_t _n,
             D _d,
             bucket_order _bkt_order,
@@ -65,13 +65,13 @@ struct buckets {
 
       // Set the current range being processed based on the order.
       if (bkt_order == increasing) {
-        auto imap = make_in_imap<uintE>(n, [&] (size_t i) { return d(i); });
+        auto imap = make_in_imap<uintE>(n, [&] (size_t i) { return d[i]; });
         auto min = [] (uintE x, uintE y) { return std::min(x, y); };
         size_t min_b = pbbso::reduce(imap, min);
         cur_range = min_b / open_buckets;
       } else if (bkt_order == decreasing) {
         auto imap = make_in_imap<uintE>(n, [&] (size_t i) {
-            return (d(i) == null_bkt) ? 0 : d(i); });
+            return (d[i] == null_bkt) ? 0 : d[i]; });
         auto max = [] (uintE x, uintE y) { return std::max(x,y); };
         size_t max_b = pbbso::reduce(imap, max);
         cur_range = (max_b + open_buckets) / open_buckets;
@@ -84,7 +84,7 @@ struct buckets {
       // Update buckets with all (id, bucket) pairs. Identifiers with bkt =
       // null_bkt are ignored by update_buckets.
       auto get_id_and_bkt = [&] (uintE i) -> Maybe<tuple<uintE, uintE> > {
-        uintE bkt = _d(i);
+        uintE bkt = d[i];
         if (bkt != null_bkt) {
           bkt = to_range(bkt);
         }
@@ -260,7 +260,6 @@ struct buckets {
 
     inline void unpack() {
       size_t m = bkts[open_buckets].size;
-      auto _d = d;
       auto tmp = array_imap<uintE>(m);
       uintE* A = bkts[open_buckets].A;
       parallel_for(size_t i=0; i<m; i++) {
@@ -275,7 +274,7 @@ struct buckets {
 
       auto g = [&] (uintE i) -> Maybe<tuple<uintE, uintE> > {
         uintE v = tmp[i];
-        uintE bkt = to_range(_d(v));
+        uintE bkt = to_range(d[v]);
         return Maybe<tuple<uintE, uintE> >(make_tuple(v, bkt));
       };
 
@@ -289,7 +288,7 @@ struct buckets {
           if (bkts[i].size > 0) {
             for (size_t j=0; j<bkts[i].size; j++) {
               cout << bkts[i].A[j] << endl;
-              cout << "deg = " << _d(bkts[i].A[j]) << endl;
+              cout << "deg = " << d[bkts[i].A[j]] << endl;
               cout << "bkt = " << ((cur_range+1)*(open_buckets) - i - 1) << endl;
             }
           }
@@ -339,8 +338,7 @@ struct buckets {
       num_elms -= size;
       uintE* out = newA(uintE, size);
       size_t cur_bkt_num = get_cur_bucket_num();
-      auto _d = d;
-      auto p = [&] (size_t i) { return _d(i) == cur_bkt_num; };
+      auto p = [&] (size_t i) { return d[i] == cur_bkt_num; };
       size_t m = pbbso::filterf(bkt.A, out, size, p);
       bkts[cur_bkt].size = 0;
       if (m == 0) {
