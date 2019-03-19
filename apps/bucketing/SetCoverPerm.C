@@ -30,6 +30,7 @@ dyn_arr<uintE> SetCover(graph<vertex>& G, size_t num_buckets=128) {
   timer t; t.start();
   auto Elms = array_imap<uintE>(G.n, [&] (size_t i) { return UINT_E_MAX; });
 
+  timer bktt, packt, permt, emt, nbt;
   auto get_bucket_clamped = [&] (size_t deg) -> uintE { return (deg == 0) ? UINT_E_MAX : (uintE)floor(x * log((double) deg)); };
   auto D = array_imap<uintE>(G.n, [&] (size_t i) { return get_bucket_clamped(G.V[i].getOutDegree()); });
   auto B = make_buckets(G.n, D, decreasing, strictly_decreasing, num_buckets);
@@ -40,15 +41,19 @@ dyn_arr<uintE> SetCover(graph<vertex>& G, size_t num_buckets=128) {
   size_t rounds = 0;
   dyn_arr<uintE> cover = dyn_arr<uintE>();
   while (true) {
+    nbt.start();
     auto bkt = B.next_bucket();
     auto active = bkt.identifiers; size_t cur_bkt = bkt.id;
     if (cur_bkt == B.null_bkt) { break; }
+    nbt.stop();
 
+    packt.start();
     // 1. sets -> elements (Pack out sets and update their degree)
     auto pack_predicate = [&] (const uintE& u, const uintE& ngh) { return Elms[ngh] != COVERED; };
     auto pack_apply = [&] (uintE v, size_t ct) { D[v] = get_bucket_clamped(ct); };
     auto packed_vtxs = edgeMapFilter(G, active, pack_predicate, pack_edges);
     vertexMap(packed_vtxs, pack_apply);
+    packt.stop();
 
     // Calculate the sets which still have sufficient degree (degree >= threshold)
     size_t threshold = ceil(pow(1.0+epsilon,cur_bkt));
@@ -56,6 +61,7 @@ dyn_arr<uintE> SetCover(graph<vertex>& G, size_t num_buckets=128) {
     auto still_active = vertexFilter2<uintE>(packed_vtxs, above_threshold);
     packed_vtxs.del();
 
+    permt.start();
     still_active.toSparse();
 //    cout << "perm of size = " << still_active.size() << endl;
     auto P = pbbs::random_permutation<uintE>(still_active.size(), r);
@@ -68,7 +74,9 @@ dyn_arr<uintE> SetCover(graph<vertex>& G, size_t num_buckets=128) {
       perm[v] = P[i];
 //      cout << "v = " << v << endl;
     }
+    permt.stop();
 
+    emt.start();
     // 2. sets -> elements (writeMin to acquire neighboring elements)
     edgeMap(G, still_active, Visit_Elms(Elms.s, perm.s), -1, no_output | dense_forward);
 
@@ -94,23 +102,30 @@ dyn_arr<uintE> SetCover(graph<vertex>& G, size_t num_buckets=128) {
       } return false;
     };
     edgeMap(G, still_active, EdgeMap_F<decltype(reset_f)>(reset_f), -1, no_output | dense_forward);
+    emt.stop();
 
+    bktt.start();
     // Rebucket the active sets. Ignore those that joined the cover.
     active.toSparse();
     auto f = [&] (size_t i) -> Maybe<tuple<uintE, uintE> > {
       const uintE v = active.vtx(i);
-      const uintE v_bkt = D[v];
-      uintE bkt = UINT_E_MAX;
-      if (!(v_bkt == UINT_E_MAX))
-        bkt = B.get_bucket(v_bkt);
+      const uintE bkt = B.get_bucket(D[v]);
       return Maybe<tuple<uintE, uintE> >(make_tuple(v, bkt));
     };
     B.update_buckets(f, active.size());
     active.del(); still_active.del();
     rounds++;
     r = r.next();
+    bktt.stop();
   }
   t.stop(); t.reportTotal("Running time: ");
+
+  bktt.reportTotal("bucket");
+  nbt.reportTotal("next bucket time");
+  packt.reportTotal("pack");
+  permt.reportTotal("perm");
+  emt.reportTotal("emap");
+
 
   auto elm_cov = make_in_imap<uintE>(G.n, [&] (uintE v) { return (uintE)(Elms[v] == COVERED); });
   size_t elms_cov = pbbso::reduce_add(elm_cov);

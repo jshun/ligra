@@ -79,10 +79,7 @@ dyn_arr<uintE> SetCover(graph<vertex>& G, size_t num_buckets=128) {
     active.toSparse();
     auto f = [&] (size_t i) -> Maybe<tuple<uintE, uintE> > {
       const uintE v = active.vtx(i);
-      const uintE v_bkt = D[v];
-      uintE bkt = UINT_E_MAX;
-      if (!(v_bkt == UINT_E_MAX))
-        bkt = B.get_bucket(v_bkt);
+      const uintE bkt = B.get_bucket(D[v]);
       return Maybe<tuple<uintE, uintE> >(make_tuple(v, bkt));
     };
     B.update_buckets(f, active.size());
