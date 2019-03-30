@@ -41,9 +41,9 @@ PCC = g++
 PCFLAGS = -std=c++14 -O3 $(INTT) $(INTE) $(CODE) $(PD) $(MEM)
 endif
 
-COMMON= ligra.h graph.h compressedVertex.h vertex.h utils.h IO.h parallel.h gettime.h index_map.h maybe.h sequence.h edgeMap_utils.h binary_search.h quickSort.h blockRadixSort.h transpose.h parseCommandLine.h byte.h byteRLE.h nibble.h byte-pd.h byteRLE-pd.h nibble-pd.h vertexSubset.h encoder.C decoder.C
+COMMON= ligra.h graph.h compressedVertex.h vertex.h utils.h IO.h parallel.h gettime.h index_map.h maybe.h sequence.h edgeMap_utils.h binary_search.h quickSort.h blockRadixSort.h transpose.h parseCommandLine.h byte.h byteRLE.h nibble.h byte-pd.h byteRLE-pd.h nibble-pd.h vertexSubset.h decoder.C hypergraphIO.h ligra-h.h bucket.h counting_sort.h dyn_arr.h edgeMapReduce.h histogram.h sequentialHT.h hypergraphEncoder.C hypergraphDecoder.C
 
-ALL= encoder decoder BFS BC BellmanFord Components Radii PageRank PageRankDelta BFSCC BFS-Bitvector KCore MIS Triangle CF Components-Shortcut
+ALL= hypergraphEncoder hypergraphDecoder HyperReader WeightedHyperReader HyperBFS HyperCC HyperSSSP HyperPageRank HyperBC HyperBPath HyperMIS HyperKCore HyperKCore-Efficient
 
 all: $(ALL)
 
@@ -51,7 +51,7 @@ all: $(ALL)
 	$(PCC) $(PCFLAGS) -o $@ $<
 
 $(COMMON):
-	ln -s ../ligra/$@ .
+	ln -s ../../ligra/$@ .
 
 .PHONY : clean
 

@@ -117,7 +117,6 @@ void encodeGraphFromFile(char* fname, bool isSymmetric, char* outFile, bool bina
     strcat(idxFile,idx);
 
     ifstream in(configFile, ifstream::in);
-    //long n;
     in >> n;
     in.close();
 
