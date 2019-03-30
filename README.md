@@ -116,7 +116,6 @@ $ ./encoder -s ../inputs/rMatGraph_J_5_100 ../inputs/rMatGraph_J_5_100.compresse
 $ ./encoder -s -w ../inputs/rMatGraph_WJ_5_100 ../inputs/rMatGraph_WJ_5_100.compressed
 $ ./hypergraphEncoder -s ../inputs/test ../inputs/test.compressed
 $ ./hypergraphEncoder -s -w ../inputs/test-wgh ../inputs/test-wgh.compressed
-
 ```
  
 After compressing the inputs, the applications can be run in the same
@@ -128,7 +127,6 @@ $ ./BFS -s -c ../inputs/rMatGraph_J_5_100.compressed
 $ ./BellmanFord -s -c ../inputs/rMatGraph_WJ_5_100.compressed
 $ ./HyperBFS -s -c ../inputs/test.compressed
 $ ./HyperSSSP -s -c ../inputs/test-wgh.compressed
-
 ``` 
 
 Make sure that the compression method used for compilation of the
@@ -187,8 +185,7 @@ and to represent them as 64-bit integers, compile with the variable
 EDGELONG defined.
 
 Input Format for Ligra-H applications
-_________
-
+-----------
 The input can be in either adjacency hypergraph format or binary format, similar to graphs.
 
 1) The adjacency hypergraph format starts with a sequence of offsets
