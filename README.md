@@ -195,9 +195,9 @@ The input can be in either adjacency hypergraph format or binary format, similar
  finally a sequence of incident vertices (the vertex is an outgoing
  member of the hyperedge) ordered by hyperedge.  All vertices,
  hyperedges, and offsets are 0 based and represented in decimal. For a
- graph with nv vertices, mv incident hyperedges for the vertices, nh
- hyperedges, and mh incident vertices for the hyperedges, the specific
- format is as follows:
+ graph with *nv* vertices, *mv* incident hyperedges for the vertices,
+ *nh* hyperedges, and *mh* incident vertices for the hyperedges, the
+ specific format is as follows:
 
 AdjacencyHypergraph  
 &lt;nv>
@@ -225,8 +225,8 @@ This file is represented as plain text.
 
 2) In binary format. This requires five files NAME.config, NAME.vadj,
 NAME.vidx, NAME.hadj, NAME.hidx, where NAME is chosen by the user. The
-.config file stores nv, mv, nh, and mh in text format. The .vidx and
-.hidx files store in binary the offsets for the vertices and
+.config file stores *nv*, *mv*, *nh*, and *mh* in text format. The
+.vidx and .hidx files store in binary the offsets for the vertices and
 hyperedges (the &lt;ov>'s and &lt;oh>'s above). The .vadj and .hadj
 files stores in binary the neighbors (the &lt;ev>'s and &lt;eh>'s
 above).
@@ -309,7 +309,11 @@ $ ./adjToBinary -w rMatGraph_WJ_5_100 rMatGraph_WJ_5_100.idx rMatGraph_WJ_5_100.
 
 ### Random Hypergraph Generator
 
-The random hypergraph generator **randHypergraph** takes as input the number of vertices ('-nv'), number of hyperdges ('-nh') and cardinality of each hyperedge ('-c'). It generates a symmetric hypergraph where each hyperedge has the specified cardinality and where member vertices uniformly at random. 
+The random hypergraph generator **randHypergraph** takes as input the
+number of vertices ('-nv'), number of hyperdges ('-nh') and
+cardinality of each hyperedge ('-c'). It generates a symmetric
+hypergraph where each hyperedge has the specified cardinality and
+where member vertices uniformly at random.
 
 Examples:
 ```
