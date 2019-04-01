@@ -28,7 +28,7 @@
 // Algorithms (SODA), 1990 by Paul Beame and Michael Luby. We choose a
 // different sampling probability for better performance.
 #define HYPER 1
-#include "ligra-h.h"
+#include "hygra.h"
 
 //#define CHECK 1
 
@@ -38,11 +38,11 @@ struct MIS_Count_Neighbors {
   long round;
   MIS_Count_Neighbors(uintT* _flags, intT* _Degrees, long _round) : flags(_flags), Degrees(_Degrees), round(_round) {}
   inline bool update (uintE s, uintE d) {
-    xadd(&Degrees[s],1);
+    xadd(&Degrees[s],(intT)1);
     return 1;
   }
   inline bool updateAtomic (uintE s, uintE d) {
-    xadd(&Degrees[s],1);
+    xadd(&Degrees[s],(intT)1);
     return 1;
   }
   inline bool cond (uintE i) {return flags[i] == round;}
