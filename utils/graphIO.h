@@ -25,6 +25,8 @@
 #include <iostream>
 #include <stdint.h>
 #include <cstring>
+#include <assert.h>
+#include <limits.h>
 #include "parallel.h"
 #include "blockRadixSort.h"
 #include "quickSort.h"
@@ -100,9 +102,9 @@ struct graph {
   intT n;
   intT m;
   intT* allocatedInplace;
-  graph(vertex<intT>* VV, intT nn, uintT mm) 
+  graph(vertex<intT>* VV, intT nn, uintT mm)
     : V(VV), n(nn), m(mm), allocatedInplace(NULL) {}
-  graph(vertex<intT>* VV, intT nn, uintT mm, intT* ai) 
+  graph(vertex<intT>* VV, intT nn, uintT mm, intT* ai)
     : V(VV), n(nn), m(mm), allocatedInplace(ai) {}
   intT* vertices() { return allocatedInplace+2; }
   intT* edges() { return allocatedInplace+2+n; }
@@ -117,13 +119,13 @@ struct graph {
       _allocatedInplace[i+2] = allocatedInplace[i+2];
       VN[i] = V[i];
       VN[i].Neighbors = Edges + k;
-      for (intT j =0; j < V[i].degree; j++) 
+      for (intT j =0; j < V[i].degree; j++)
 	Edges[k++] = V[i].Neighbors[j];
     }
     return graph(VN, n, m, _allocatedInplace);
-  } 
+  }
   void del() {
-    if (allocatedInplace == NULL) 
+    if (allocatedInplace == NULL)
       for (intT i=0; i < n; i++) V[i].del();
     else free(allocatedInplace);
     free(V);
@@ -137,9 +139,9 @@ struct wghGraph {
   uintT m;
   intT* allocatedInplace;
   intT* weights;
-wghGraph(wghVertex<intT>* VV, intT nn, uintT mm) 
+wghGraph(wghVertex<intT>* VV, intT nn, uintT mm)
     : V(VV), n(nn), m(mm), allocatedInplace(NULL) {}
-wghGraph(wghVertex<intT>* VV, intT nn, uintT mm, intT* ai, intT* _weights) 
+wghGraph(wghVertex<intT>* VV, intT nn, uintT mm, intT* ai, intT* _weights)
 : V(VV), n(nn), m(mm), allocatedInplace(ai), weights(_weights) {}
   wghGraph copy() {
     wghVertex<intT>* VN = newA(wghVertex<intT>,n);
@@ -150,15 +152,15 @@ wghGraph(wghVertex<intT>* VV, intT nn, uintT mm, intT* ai, intT* _weights)
       VN[i] = V[i];
       VN[i].Neighbors = Edges + k;
       VN[i].nghWeights = Weights + k;
-      for (intT j =0; j < V[i].degree; j++){ 
+      for (intT j =0; j < V[i].degree; j++){
 	Edges[k] = V[i].Neighbors[j];
 	Weights[k++] = V[i].nghWeights[j];
       }
     }
     return wghGraph(VN, n, m, Edges, Weights);
-  } 
+  }
   void del() {
-    if (allocatedInplace == NULL) 
+    if (allocatedInplace == NULL)
       for (intT i=0; i < n; i++) V[i].del();
     else { free(allocatedInplace); }
     free(V);
@@ -249,7 +251,7 @@ edgeArray<intT> makeSymmetric(edgeArray<intT> A) {
 
   edgeArray<intT> R = remDuplicates(edgeArray<intT>(F,A.numRows,A.numCols,2*mm));
   free(F);
-  
+  std::cout << "made symmetric" << std::endl;
   return R;
 }
 
@@ -268,7 +270,7 @@ wghEdgeArray<intT> makeSymmetric(wghEdgeArray<intT> A) {
 
   wghEdgeArray<intT> R = remDuplicates(wghEdgeArray<intT>(F,A.numRows,A.numCols,2*mm));
   free(F);
-  
+
   return R;
 }
 
@@ -281,6 +283,7 @@ struct getuFWgh {intT operator() (wghEdge<intT> e) {return e.u;} };
 template <class intT>
 graph<intT> graphFromEdges(edgeArray<intT> EA, bool makeSym) {
   edgeArray<intT> A;
+
   if (makeSym) A = makeSymmetric<intT>(EA);
   else {  // should have copy constructor
     edge<intT> *E = newA(edge<intT>,EA.nonZeros);
@@ -289,10 +292,37 @@ graph<intT> graphFromEdges(edgeArray<intT> EA, bool makeSym) {
   }
   intT m = A.nonZeros;
   intT n = max<intT>(A.numCols,A.numRows);
-  intT* offsets = newA(intT,n*2);
-  intSort::iSort(A.E,offsets,m,n,getuF<intT>());
+  std::cout << "n =" << n << " m = " << m << endl;
+  intT* offsets = newA(intT,n+1);
+
+  quickSort(A.E, m, edgeCmp());
+
   intT *X = newA(intT,m);
+
   vertex<intT> *v = newA(vertex<intT>,n);
+
+  parallel_for (intT i=0; i<n; i++) {
+    offsets[i] = std::numeric_limits<intT>::max();
+  }
+
+  parallel_for (intT i=0; i<m; i++) {
+    uintE u = A.E[i].u;
+    if (i == 0 || A.E[i-1].u != A.E[i-1].v) {
+      offsets[u] = i; // start of this vtxs' edges.
+    }
+  }
+  offsets[n] = m; // last vtx
+
+  // seq copy scan, too lazy to write parallel in this old code
+  intT last = m;
+  for (long i=n-1; i >= 0; i--) {
+    if (offsets[i] == std::numeric_limits<intT>::max()) {
+      offsets[i] = last;
+    } else {
+      last = offsets[i];
+    }
+  }
+
   parallel_for (intT i=0; i < n; i++) {
     intT o = offsets[i];
     intT l = ((i == n-1) ? m : offsets[i+1])-offsets[i];
@@ -357,12 +387,12 @@ namespace benchIO {
       : Chars(C), n(nn), Strings(S), m(mm) {}
     void del() {free(Chars); free(Strings);}
   };
- 
+
   inline bool isSpace(char c) {
     switch (c)  {
-    case '\r': 
-    case '\t': 
-    case '\n': 
+    case '\r':
+    case '\t':
+    case '\n':
     case 0:
     case ' ' : return true;
     default : return false;
@@ -373,14 +403,14 @@ namespace benchIO {
 
   // parallel code for converting a string to words
   words stringToWords(char *Str, long n) {
-    parallel_for (long i=0; i < n; i++) 
-      if (isSpace(Str[i])) Str[i] = 0; 
+    parallel_for (long i=0; i < n; i++)
+      if (isSpace(Str[i])) Str[i] = 0;
 
     // mark start of words
     bool *FL = newA(bool,n);
     FL[0] = Str[0];
     parallel_for (long i=1; i < n; i++) FL[i] = Str[i] && !Str[i-1];
-    
+
     // offset for each start of word
     _seq<long> Off = sequence::packIndex<long>(FL, n);
     long m = Off.n;
@@ -424,11 +454,11 @@ namespace benchIO {
   inline void xToString(char* s, char* a) { sprintf(s,"%s",a);}
 
   template <class A, class B>
-  inline int xToStringLen(pair<A,B> a) { 
+  inline int xToStringLen(pair<A,B> a) {
     return xToStringLen(a.first) + xToStringLen(a.second) + 1;
   }
   template <class A, class B>
-  inline void xToString(char* s, pair<A,B> a) { 
+  inline void xToString(char* s, pair<A,B> a) {
     int l = xToStringLen(a.first);
     xToString(s,a.first);
     s[l] = ' ';
@@ -443,7 +473,7 @@ namespace benchIO {
     {parallel_for(long i=0; i < n; i++) L[i] = xToStringLen(A[i])+1;}
     long m = sequence::scan(L,L,n,addF<long>(),(long) 0);
     char* B = newA(char,m);
-    parallel_for(long j=0; j < m; j++) 
+    parallel_for(long j=0; j < m; j++)
       B[j] = 0;
     parallel_for(long i=0; i < n-1; i++) {
       xToString(B + L[i],A[i]);
@@ -470,7 +500,7 @@ namespace benchIO {
       os.write(S.A, S.n);
       S.del();
       offset += BSIZE;
-    }    
+    }
   }
 
   template <class T>
@@ -509,12 +539,12 @@ namespace benchIO {
 using namespace benchIO;
 
 template <class intT>
-int xToStringLen(edge<intT> a) { 
+int xToStringLen(edge<intT> a) {
   return xToStringLen(a.u) + xToStringLen(a.v) + 1;
 }
 
 template <class intT>
-void xToString(char* s, edge<intT> a) { 
+void xToString(char* s, edge<intT> a) {
   int l = xToStringLen(a.u);
   xToString(s, a.u);
   s[l] = ' ';
@@ -542,7 +572,7 @@ namespace benchIO {
     for (long i=0; i < n; i++) {
       intT *O = Out + (2 + n + Out[i+2]);
       vertex<intT> v = G.V[i];
-      for (long j = 0; j < v.degree; j++) 
+      for (long j = 0; j < v.degree; j++)
 	O[j] = v.Neighbors[j];
     }
     int r = writeArrayToFile(AdjGraphHeader, Out, totalLen, fname);
@@ -579,13 +609,13 @@ namespace benchIO {
   edgeArray<intT> readSNAP(char* fname) {
     _seq<char> S = readStringFromFile(fname);
     char* S2 = newA(char,S.n);
-    //ignore starting lines with '#' and find where to start in file 
+    //ignore starting lines with '#' and find where to start in file
     long k=0;
     while(1) {
       if(S.A[k] == '#') {
 	while(S.A[k++] != '\n') continue;
       }
-      if(k >= S.n || S.A[k] != '#') break; 
+      if(k >= S.n || S.A[k] != '#') break;
     }
     parallel_for(long i=0;i<S.n-k;i++) S2[i] = S.A[k+i];
     S.del();
@@ -594,7 +624,7 @@ namespace benchIO {
     long n = W.m/2;
     edge<intT> *E = newA(edge<intT>,n);
     {parallel_for(long i=0; i < n; i++)
-      E[i] = edge<intT>(atol(W.Strings[2*i]), 
+      E[i] = edge<intT>(atol(W.Strings[2*i]),
 		  atol(W.Strings[2*i + 1]));}
     W.del();
 
@@ -612,13 +642,13 @@ namespace benchIO {
   wghEdgeArray<intT> readWghSNAP(char* fname) {
     _seq<char> S = readStringFromFile(fname);
     char* S2 = newA(char,S.n);
-    //ignore starting lines with '#' and find where to start in file 
+    //ignore starting lines with '#' and find where to start in file
     long k=0;
     while(1) {
       if(S.A[k] == '#') {
 	while(S.A[k++] != '\n') continue;
       }
-      if(k >= S.n || S.A[k] != '#') break; 
+      if(k >= S.n || S.A[k] != '#') break;
     }
     parallel_for(long i=0;i<S.n-k;i++) S2[i] = S.A[k+i];
     S.del();
@@ -627,7 +657,7 @@ namespace benchIO {
     long n = W.m/3;
     wghEdge<intT> *E = newA(wghEdge<intT>,n);
     {parallel_for(long i=0; i < n; i++)
-      E[i] = wghEdge<intT>(atol(W.Strings[3*i]), 
+      E[i] = wghEdge<intT>(atol(W.Strings[3*i]),
 			atol(W.Strings[3*i + 1]),
 			atol(W.Strings[3*i + 2]));}
     W.del();
@@ -655,7 +685,7 @@ namespace benchIO {
     uintT * In = newA(uintT, len);
     {parallel_for(long i=0; i < len; i++) In[i] = atol(W.Strings[i + 1]);}
     W.del();
-    
+
     long n = In[0];
     long m = In[1];
 
@@ -684,12 +714,12 @@ namespace benchIO {
       cout << "Bad input file" << endl;
       abort();
     }
-    
+
     long len = W.m -1;
     intT * In = newA(intT, len);
     {parallel_for(long i=0; i < len; i++) In[i] = atol(W.Strings[i + 1]);}
     W.del();
-    
+
     long n = In[0];
     long m = In[1];
 

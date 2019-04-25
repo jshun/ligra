@@ -9,7 +9,7 @@ endif
 #compilers
 ifdef CILK
 PCC = g++
-PCFLAGS = -std=c++14 -fcilkplus -lcilkrts -O3 -DCILK $(INTT) $(INTE)
+PCFLAGS = -std=c++14 -fcilkplus -lcilkrts -O0 -g -DCILK $(INTT) $(INTE)
 PLFLAGS = -fcilkplus -lcilkrts
 
 else ifdef MKLROOT
@@ -27,7 +27,7 @@ endif
 
 COMMON = utils.h parseCommandLine.h parallel.h quickSort.h blockRadixSort.h transpose.h
 LOCAL_COMMON = graphIO.h
-GENERATORS = rMatGraph gridGraph randLocalGraph SNAPtoAdj wghSNAPtoAdj adjGraphAddWeights adjToBinary
+GENERATORS = rMatGraph gridGraph randLocalGraph SNAPtoAdj Symmetrize wghSNAPtoAdj adjGraphAddWeights adjToBinary
 
 .PHONY: all clean
 all: $(GENERATORS)
