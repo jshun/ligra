@@ -297,7 +297,7 @@ struct buckets {
 	  size_t minBkt = pbbs::reduce(imap, min);
 	  cur_range = minBkt/open_buckets-1; //will be incremented in next unpack() call
 	}
-	else if(order == increasing) {
+	else if(order == decreasing) {
 	  auto max = [] (size_t x, size_t y) { return std::max(x, y); };
 	  size_t minBkt = pbbs::reduce(imap, max);
 	  cur_range = (open_buckets+minBkt)/open_buckets+1; //will be decremented in next unpack() call
