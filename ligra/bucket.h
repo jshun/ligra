@@ -292,14 +292,16 @@ struct buckets {
       //none in range
       if(num_in_range == 0 && bkts[open_buckets].size > 0) {
 	auto imap = make_in_imap<uintE>(bkts[open_buckets].size, [&] (size_t j) { return (size_t)_d(bkts[open_buckets].A[j]); });
-        auto min = [] (size_t x, size_t y) { return std::min(x, y); };
-        size_t minBkt = pbbs::reduce(imap, min);
-	/* for(size_t j=0;j<bkts[open_buckets].size;j++) { */
-	/*   minBkt = min(minBkt,(size_t)_d(bkts[open_buckets].A[j])); */
-	/* } */
-	
-	//cout << cur_range << " " << minBkt/open_buckets << endl;
-	cur_range = minBkt/open_buckets-1; //will be incremented in next unpack() call
+	if(order == increasing) {
+	  auto min = [] (size_t x, size_t y) { return std::min(x, y); };
+	  size_t minBkt = pbbs::reduce(imap, min);
+	  cur_range = minBkt/open_buckets-1; //will be incremented in next unpack() call
+	}
+	else if(order == increasing) {
+	  auto max = [] (size_t x, size_t y) { return std::max(x, y); };
+	  size_t minBkt = pbbs::reduce(imap, max);
+	  cur_range = (open_buckets+minBkt)/open_buckets+1; //will be decremented in next unpack() call
+	}
       }
       num_elms -= m;
     }
