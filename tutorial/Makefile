@@ -9,7 +9,7 @@ endif
 #compilers
 ifdef CILK
 PCC = g++
-PCFLAGS = -fcilkplus -lcilkrts -O2 -DCILK $(INTT) $(INTE)
+PCFLAGS = -fcilkplus -lcilkrts -O3 -DCILK $(INTT) $(INTE)
 PLFLAGS = -fcilkplus -lcilkrts
 
 else ifdef MKLROOT
@@ -22,10 +22,10 @@ PCFLAGS = -fopenmp -march=native -O3 -DOPENMP $(INTT) $(INTE)
 
 else
 PCC = g++
-PCFLAGS = -O2 $(INTT) $(INTE)
+PCFLAGS = -O3 $(INTT) $(INTE)
 endif
 
-COMMON= ligra.h graph.h compressedVertex.h vertex.h utils.h IO.h parallel.h gettime.h quickSort.h parseCommandLine.h byte.h byteRLE.h nibble.h byte-pd.h byteRLE-pd.h nibble-pd.h vertexSubset.h encoder.C blockRadixSort.h transpose.h
+COMMON= ligra.h graph.h compressedVertex.h vertex.h utils.h IO.h parallel.h gettime.h quickSort.h parseCommandLine.h byte.h byteRLE.h nibble.h byte-pd.h byteRLE-pd.h nibble-pd.h vertexSubset.h encoder.C blockRadixSort.h transpose.h index_map.h maybe.h sequence.h edgeMap_utils.h binary_search.h
 
 ALL= encoder BFS BellmanFord Components Radii KCore
 

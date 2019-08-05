@@ -34,7 +34,7 @@ void Compute(graph<vertex>& GA, commandLine P) {
       cout << "negative cycle\n";
       break;
     }
-    vertexSubset output = edgeMap(GA, Frontier, BF_F(ShortestPathLen), GA.m/20, DENSE, true);
+    vertexSubset output = edgeMap(GA, Frontier, BF_F(ShortestPathLen), GA.m/20, remove_duplicates);
     Frontier.del();
     Frontier = output;
     round++;
