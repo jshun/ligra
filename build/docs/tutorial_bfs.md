@@ -187,10 +187,10 @@ Compile the application by running `make`, which will produce a binary called
 ### Testing
 
 Let's try running our program on one of the test-inputs provided by ligra in the `inputs/`
-directory. Note that the `-s` flag tells Ligra that the graph is symmetric (undirected). 
+directory. Note that the `-s` flag tells Ligra that the graph is symmetric (undirected) and the `-r` flag indicates the source vertex. 
 
 ``` 
-./BFS -s -start 1 ../inputs/rMatGraph_J_5_100
+./BFS -s -r 1 ../inputs/rMatGraph_J_5_100
 Running time : 0.000234
 Running time : 0.000359
 Running time : 0.000243
