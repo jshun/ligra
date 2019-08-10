@@ -34,7 +34,7 @@ We will examine the code piece by piece.
 
 template <class vertex>
 void Compute(graph<vertex>& G, commandLine P) {
-  long start = P.getOptionLongValue("-start",0);
+  long start = P.getOptionLongValue("-r",0);
   long n = GA.n;
   //creates Parents array, initialized to all -1, except for start
   long* Parents = new long[n];

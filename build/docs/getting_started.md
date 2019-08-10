@@ -71,7 +71,7 @@ $ make
 ln -s ../ligra/encoder.C .
 ln -s ../ligra/ligra.h .
 ...
-g++ -fcilkplus -lcilkrts -O2 -DCILK   -o encoder encoder.C
-g++ -fcilkplus -lcilkrts -O2 -DCILK   -o BFS BFS.C
+g++ -fcilkplus -lcilkrts -O3 -DCILK   -o encoder encoder.C
+g++ -fcilkplus -lcilkrts -O3 -DCILK   -o BFS BFS.C
 ...
 ```

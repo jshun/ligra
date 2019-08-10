@@ -59,3 +59,7 @@ International Conference on Very Large Data Bases (VLDB), 9(12),
 pp. 1041-1052, 2016.
 
 Laxman Dhulipala, Guy E. Blelloch, and Julian Shun. [*Julienne: A Framework for Parallel Graph Algorithms using Work-efficient Bucketing*](https://people.csail.mit.edu/jshun/bucketing.pdf). Proceedings of the ACM Symposium on Parallelism in Algorithms and Architectures (SPAA), pp. 293-304, 2017.
+
+Laxman Dhulipala, Guy E. Blelloch, and Julian Shun. [*Theoretically Efficient Parallel Graph Algorithms Can Be Fast and Scalable*](https://arxiv.org/abs/1805.05208). Proceedings of the ACM Symposium on Parallelism in Algorithms and Architectures (SPAA), pp. 393-404, 2018.
+
+Laxman Dhulipala, Guy E. Blelloch, and Julian Shun. [*Low-Latency Graph Streaming Using Compressed Purely-Functional Trees*](https://people.csail.mit.edu/jshun/aspen.pdf). Proceedings of the ACM SIGPLAN Conference on Programming Language Design and Implementation (PLDI), pp. 918-934, 2019.
