@@ -142,7 +142,7 @@ We will examine the code piece by piece.</p>
 
 <span class="k">template</span> <span class="o">&lt;</span><span class="k">class</span> <span class="nc">vertex</span><span class="o">&gt;</span>
 <span class="kt">void</span> <span class="n">Compute</span><span class="p">(</span><span class="n">graph</span><span class="o">&lt;</span><span class="n">vertex</span><span class="o">&gt;&amp;</span> <span class="n">G</span><span class="p">,</span> <span class="n">commandLine</span> <span class="n">P</span><span class="p">)</span> <span class="p">{</span>
-  <span class="kt">long</span> <span class="n">start</span> <span class="o">=</span> <span class="n">P</span><span class="p">.</span><span class="n">getOptionLongValue</span><span class="p">(</span><span class="s">&quot;-start&quot;</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span>
+  <span class="kt">long</span> <span class="n">start</span> <span class="o">=</span> <span class="n">P</span><span class="p">.</span><span class="n">getOptionLongValue</span><span class="p">(</span><span class="s">&quot;-r&quot;</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span>
   <span class="kt">long</span> <span class="n">n</span> <span class="o">=</span> <span class="n">GA</span><span class="p">.</span><span class="n">n</span><span class="p">;</span>
   <span class="c1">//creates Parents array, initialized to all -1, except for start</span>
   <span class="kt">long</span><span class="o">*</span> <span class="n">Parents</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">long</span><span class="p">[</span><span class="n">n</span><span class="p">];</span>
@@ -269,8 +269,8 @@ finished BFS algorithm should look as follows:</p>
 <code>BFS</code>.</p>
 <h3><a class="anchor" name="testing"></a>Testing <a class="hash-link" href="#testing">#</a></h3>
 <p>Let&#39;s try running our program on one of the test-inputs provided by ligra in the <code>inputs/</code>
-directory. Note that the <code>-s</code> flag tells Ligra that the graph is symmetric (undirected). </p>
-<div class="highlight"><pre><code class="language-text" data-lang="text"><span></span>./BFS -s -start 1 ../inputs/rMatGraph_J_5_100
+directory. Note that the <code>-s</code> flag tells Ligra that the graph is symmetric (undirected) and the <code>-r</code> flag indicates the source vertex. </p>
+<div class="highlight"><pre><code class="language-text" data-lang="text"><span></span>./BFS -s -r 1 ../inputs/rMatGraph_J_5_100
 Running time : 0.000234
 Running time : 0.000359
 Running time : 0.000243
