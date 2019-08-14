@@ -25,8 +25,8 @@ void Compute(graph<vertex>& GA, commandLine P) {
   vertexSubset Frontier(n,n,frontier); //initial frontier contains all vertices
 
   while(!Frontier.isEmpty()){ //iterate until IDS converge
-    vertexSubset output = edgeMap(GA, Frontier, CC_F(IDs),
-				  GA.m/20,DENSE,true); //tells edgemap to remove duplicates
+    vertexSubset output = edgeMap(GA, Frontier, CC_F(IDs), GA.m/20,
+				  remove_duplicates); //tells edgemap to remove duplicates
     Frontier.del();
     Frontier = output;
   }
