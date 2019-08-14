@@ -84,6 +84,11 @@ struct buckets {
       update_buckets(get_id_and_bkt, n);
     }
 
+    void del() {
+      for (size_t i=0; i<total_buckets; i++) { bkts[i].del(); }
+      free(bkts);
+    }
+
     // Returns the next non-empty bucket from the bucket structure. The return
     // value's bkt_id is null_bkt when no further buckets remain.
     inline bucket next_bucket() {
@@ -248,9 +253,10 @@ struct buckets {
       auto _d = d;
       auto tmp = array_imap<uintE>(m);
       uintE* A = bkts[open_buckets].A;
-      parallel_for(size_t i=0; i<m; i++) {
-        tmp[i] = A[i];
-      }
+      granular_for(i,0,m,m>1000,{tmp[i]=A[i];});
+      /* parallel_for(size_t i=0; i<m; i++) { */
+      /*   tmp[i] = A[i]; */
+      /* } */
       if (order == increasing) {
         cur_range++; // increment range
       } else {
@@ -283,6 +289,20 @@ struct buckets {
       }
       size_t updated = update_buckets(g, m);
       size_t num_in_range = updated - bkts[open_buckets].size;
+      //none in range
+      if(num_in_range == 0 && bkts[open_buckets].size > 0) {
+	auto imap = make_in_imap<uintE>(bkts[open_buckets].size, [&] (size_t j) { return (size_t)_d(bkts[open_buckets].A[j]); });
+	if(order == increasing) {
+	  auto min = [] (size_t x, size_t y) { return std::min(x, y); };
+	  size_t minBkt = pbbs::reduce(imap, min);
+	  cur_range = minBkt/open_buckets-1; //will be incremented in next unpack() call
+	}
+	else if(order == decreasing) {
+	  auto max = [] (size_t x, size_t y) { return std::max(x, y); };
+	  size_t minBkt = pbbs::reduce(imap, max);
+	  cur_range = (open_buckets+minBkt)/open_buckets+1; //will be decremented in next unpack() call
+	}
+      }
       num_elms -= m;
     }
 
