@@ -342,7 +342,7 @@ file name.
 
 **hyperAdjToBinary** converts an input in adjacency hypergraph format
 to binary format. The argument is the adjacency hypergraph file
-name. For a weighted graph, pass the "-w" flag before the file
+name. For a weighted hypergraph, pass the "-w" flag before the file
 name. The program will generate 5 output files with the input file
 name followed by each of the prefixes .config, .vadj, .vidx, .hadj,
 and .hidx.
