@@ -74,7 +74,7 @@ void Compute(hypergraph<vertex>& GA, commandLine P) {
 
   long round = 0;
   while(1){
-    if(round == (nv+nh)) {
+    if(round == nv-1) {
       //negative weight cycle
       {parallel_for(long i=0;i<nv;i++) ShortestPathLenV[i] = -(INT_E_MAX/2);}
       break;
