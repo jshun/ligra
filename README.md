@@ -201,9 +201,9 @@ The input can be in either adjacency hypergraph format or binary format, similar
 
 AdjacencyHypergraph  
 &lt;nv>		     
-&lt;mv>	
-&lt;nh>	
-&lt;mh>	
+&lt;mv>		     
+&lt;nh>		     
+&lt;mh>		     
 &lt;ov0>  
 &lt;ov1>  
 ...  
@@ -532,3 +532,8 @@ Framework for Parallel Graph Algorithms using Work-efficient
 Bucketing*](https://people.csail.mit.edu/jshun/bucketing.pdf). Proceedings
 of the ACM Symposium on Parallelism in Algorithms and Architectures
 (SPAA), pp. 293-304, 2017.
+
+Julian Shun. [*Practical Parallel Hypergraph
+Algorithms*](https://people.csail.mit.edu/jshun/hygra.pdf). Proceedings
+of the ACM SIGPLAN Symposium on Principles and Practice of Parallel
+Programming (PPoPP), pp. 232-249, 2020.
