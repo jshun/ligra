@@ -1,5 +1,5 @@
 #define HYPER 1
-#include "ligra-h.h"
+#include "hygra.h"
 #include "index_map.h"
 #include "bucket.h"
 #include "edgeMapReduce.h"
@@ -69,10 +69,10 @@ void Compute(hypergraph<vertex>& GA, commandLine P) {
     cout << "Number of buckets must be a power of two." << endl;
     exit(-1);
   }
-  cout << "### Application: k-core" << endl;
-  cout << "### Graph: " << P.getArgument(0) << endl;
-  cout << "### Workers: " << getWorkers() << endl;
-  cout << "### Buckets: " << num_buckets << endl;
+  //cout << "### Application: k-core" << endl;
+  //cout << "### Graph: " << P.getArgument(0) << endl;
+  //cout << "### Workers: " << getWorkers() << endl;
+  //cout << "### Buckets: " << num_buckets << endl;
 
   auto cores = KCore(GA, num_buckets);
   //cout << "### Max core: " << sequence::reduce(cores.s,GA.nv,maxF<uintE>()) << endl;

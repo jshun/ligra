@@ -28,7 +28,7 @@
 // Algorithms (SODA), 1990 by Paul Beame and Michael Luby. We choose a
 // different sampling probability for better performance.
 #define HYPER 1
-#include "ligra-h.h"
+#include "hygra.h"
 
 //#define CHECK 1
 

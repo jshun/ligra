@@ -25,7 +25,7 @@
 // Parallel implementation of K-Core decomposition of a symmetric
 // hypergraph.
 #define HYPER 1
-#include "ligra-h.h"
+#include "hygra.h"
 
 struct Remove_Hyperedge {
   uintE* Flags;
@@ -133,7 +133,7 @@ void Compute(hypergraph<vertex>& GA, commandLine P) {
     }
     if(Frontier.numNonzeros() == 0) { largestCore = k-1; break; }
   }
-  cout << "largestCore was " << largestCore << endl;
+  //cout << "largestCore was " << largestCore << endl;
   //cout << "### Max core: " << sequence::reduce(Degrees,GA.nv,maxF<uintE>()) << endl;
   Frontier.del(); free(Degrees); free(Flags);
 }

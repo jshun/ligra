@@ -22,7 +22,7 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define HYPER 1
-#include "ligra-h.h"
+#include "hygra.h"
 
 template <class vertex>
 void Compute(hypergraph<vertex>& GA, commandLine P) {
