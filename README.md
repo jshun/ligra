@@ -4,7 +4,7 @@ Ligra: A Lightweight Graph Processing Framework for Shared Memory
 Organization
 --------
 
-The code for Ligra, Ligra+, and Ligra-H is located in the ligra/
+The code for Ligra, Ligra+, and Hygra is located in the ligra/
 directory.  The code for the applications is in the apps/ directory,
 which is where compilation should be performed.  Example inputs are
 provided in the inputs/ directory. Graph and hypergraph utilities are
@@ -84,7 +84,7 @@ $ numactl -i all ./BFS -s <input file>
 ```
 
 
-Running code in Ligra-H
+Running code in Hygra
 -------
 The hypergraph applications are located in the apps/hyper/
 directory. The applications take the input hypergraph as input as well
@@ -184,7 +184,7 @@ default the vertex IDs (edge values) are stored as 32-bit integers,
 and to represent them as 64-bit integers, compile with the variable
 EDGELONG defined.
 
-Input Format for Ligra-H applications
+Input Format for Hygra applications
 -----------
 The input can be in either adjacency hypergraph format or binary format, similar to graphs.
 
@@ -200,10 +200,10 @@ The input can be in either adjacency hypergraph format or binary format, similar
  specific format is as follows:
 
 AdjacencyHypergraph  
-&lt;nv>
-&lt;mv>
-&lt;nh>
-&lt;mh>
+&lt;nv>		     
+&lt;mv>	
+&lt;nh>	
+&lt;mh>	
 &lt;ov0>  
 &lt;ov1>  
 ...  
@@ -349,9 +349,9 @@ and .hidx.
 
 Examples:
 ```
-$ ./communityToHyperAdj SNAPfile LigraFile
-$ ./KONECTtoHyperAdj KONECTfile Ligrafile
-$ ./adjHypergraphAddWeights unweightedLigraFile weightedLigraFile
+$ ./communityToHyperAdj SNAPfile HygraFile
+$ ./KONECTtoHyperAdj KONECTfile Hygrafile
+$ ./adjHypergraphAddWeights unweightedHygraFile weightedHygraFile
 $ ./hyperAdjToBinary test
 $ ./hyperAdjToBinary -w test-wgh
 ```
