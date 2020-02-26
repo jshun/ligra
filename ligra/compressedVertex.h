@@ -269,6 +269,10 @@ struct compressedSymmetricVertex {
   intT getOutNeighbor(intT j) const { return -1; } //should not be called
   uintT getInDegree() const { return degree; }
   uintT getOutDegree() const { return degree; }
+#ifdef WEIGHTED
+  intT getInWeight(intT j) const { return -1; } //should not be called
+  intT getOutWeight(intT j) const { return -1; } //should not be called
+#endif
   void setInNeighbors(uchar* _i) { neighbors = _i; }
   void setOutNeighbors(uchar* _i) { neighbors = _i; }
   void setInDegree(uintT _d) { degree = _d; }
@@ -327,6 +331,10 @@ struct compressedAsymmetricVertex {
   intT getOutNeighbor(intT j) const { return -1; } //should not be called
   uintT getInDegree() const { return inDegree; }
   uintT getOutDegree() const { return outDegree; }
+#ifdef WEIGHTED
+  intT getInWeight(intT j) const { return -1; } //should not be called
+  intT getOutWeight(intT j) const { return -1; } //should not be called
+#endif
   void setInNeighbors(uchar* _i) { inNeighbors = _i; }
   void setOutNeighbors(uchar* _i) { outNeighbors = _i; }
   void setInDegree(uintT _d) { inDegree = _d; }

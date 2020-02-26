@@ -331,6 +331,38 @@ inline void writeAdd(ET *a, ET b) {
   while (!CAS(a, oldV, newV));
 }
 
+inline long xaddl(long *variable, long value) {
+   asm volatile( 
+		"lock; xaddl %%eax, %2;"
+		:"=a" (value)                   //Output
+		: "a" (value), "m" (*variable)  //Input
+		:"memory" );
+   return value;
+}
+
+inline int xaddi(int *variable, int value) {
+   asm volatile( 
+		"lock; xadd %%eax, %2;"
+		:"=a" (value)                   //Output
+		: "a" (value), "m" (*variable)  //Input
+		:"memory" );
+   return value;
+}
+
+// The conditional should be removed by the compiler
+// this should work with pointer types, or pairs of integers
+template <class ET>
+inline ET xadd(ET *variable, ET value) {
+  if (sizeof(ET) == 8) {
+    return xaddl((long*)variable,(long)value);
+  } else if (sizeof(ET) == 4) {
+    return xaddi((int*)variable,(int)value);
+  } else {
+    std::cout << "xadd bad length" << std::endl;
+    abort();
+  }
+}
+
 inline uint hashInt(uint a) {
    a = (a+0x7ed55d16) + (a<<12);
    a = (a^0xc761c23c) ^ (a>>19);

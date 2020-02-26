@@ -54,6 +54,17 @@ struct edgeArray {
 };
 
 template <class intT>
+struct hyperedgeArray {
+  edge<intT>* VE;
+  edge<intT>* HE;
+  long nv,nh,mv,mh;
+  void del() {free(VE);free(HE);}
+hyperedgeArray(edge<intT>* _VE, edge<intT>* _HE, long _nv, long _nh, long _mv, long _mh) :
+  VE(_VE), HE(_HE), nv(_nv), nh(_nh), mv(_mv), mh(_mh) {}
+  hyperedgeArray() {}
+};
+
+template <class intT>
 struct wghEdge {
   intT u;
   intT v;
@@ -71,6 +82,17 @@ struct wghEdgeArray {
   wghEdgeArray(wghEdge<intT> *EE, intT r, intT c, intT nz) :
     E(EE), numRows(r), numCols(c), nonZeros(nz) {}
   wghEdgeArray() {}
+};
+
+template <class intT>
+struct wghHyperedgeArray {
+  wghEdge<intT>* VE;
+  wghEdge<intT>* HE;
+  long nv,nh,mv,mh;
+  void del() {free(VE);free(HE);}
+wghHyperedgeArray(wghEdge<intT>* _VE, wghEdge<intT>* _HE, long _nv, long _nh, long _mv, long _mh) :
+  VE(_VE), HE(_HE), nv(_nv), nh(_nh), mv(_mv), mh(_mh) {}
+  wghHyperedgeArray() {}
 };
 
 // **************************************************************
@@ -131,6 +153,26 @@ struct graph {
 };
 
 template <class intT>
+struct hypergraph {
+  vertex<intT> *V;
+  vertex<intT> *H;
+  long nv;
+  long mv;
+  long nh;
+  long mh;
+  intT* edgesV, *edgesH;
+  intT* allocatedInplace;
+
+hypergraph(vertex<intT>* _V, vertex<intT>* _H, long _nv, long _mv, long _nh, long _mh, intT* _edgesV, intT* _edgesH) : V(_V), H(_H), nv(_nv), mv(_mv), nh(_nh), mh(_mh), edgesV(_edgesV), edgesH(_edgesH), allocatedInplace(0) {}
+hypergraph(vertex<intT>* _V, vertex<intT>* _H, long _nv, long _mv, long _nh, long _mh, intT* ai) : V(_V), H(_H), nv(_nv), mv(_mv), nh(_nh), mh(_mh), allocatedInplace(ai) {}
+  void del() {
+    free(H); free(V);
+    if(allocatedInplace) free(allocatedInplace);
+    else {free(edgesV); free(edgesH);}
+  }
+};
+
+template <class intT>
 struct wghGraph {
   wghVertex<intT> *V;
   intT n;
@@ -162,6 +204,25 @@ wghGraph(wghVertex<intT>* VV, intT nn, uintT mm, intT* ai, intT* _weights)
       for (intT i=0; i < n; i++) V[i].del();
     else { free(allocatedInplace); }
     free(V);
+  }
+};
+
+template <class intT>
+struct wghHypergraph {
+  wghVertex<intT> *V;
+  wghVertex<intT> *H;
+  long nv;
+  long mv;
+  long nh;
+  long mh;
+  intT* edgesV, *edgesH;
+  intT* allocatedInplace;
+wghHypergraph(wghVertex<intT>* _V, wghVertex<intT>* _H, long _nv, long _mv, long _nh, long _mh, intT* _edgesV, intT* _edgesH) : V(_V), H(_H), nv(_nv), mv(_mv), nh(_nh), mh(_mh), edgesV(_edgesV), edgesH(_edgesH), allocatedInplace(0) {}
+wghHypergraph(wghVertex<intT>* _V, wghVertex<intT>* _H, long _nv, long _mv, long _nh, long _mh, intT* ai) : V(_V), H(_H), nv(_nv), mv(_mv), nh(_nh), mh(_mh), allocatedInplace(ai) {}
+  void del() {
+    free(H); free(V);
+    if(allocatedInplace) free(allocatedInplace);
+    else {free(edgesV); free(edgesH);} 
   }
 };
 
@@ -289,7 +350,7 @@ graph<intT> graphFromEdges(edgeArray<intT> EA, bool makeSym) {
   }
   intT m = A.nonZeros;
   intT n = max<intT>(A.numCols,A.numRows);
-  intT* offsets = newA(intT,n*2);
+  intT* offsets = newA(intT,n);
   intSort::iSort(A.E,offsets,m,n,getuF<intT>());
   intT *X = newA(intT,m);
   vertex<intT> *v = newA(vertex<intT>,n);
@@ -306,6 +367,45 @@ graph<intT> graphFromEdges(edgeArray<intT> EA, bool makeSym) {
   free(offsets);
   return graph<intT>(v,n,m,X);
 }
+ 
+template <class intT>
+hypergraph<intT> hypergraphFromHyperedges(hyperedgeArray<intT> EA) {
+  long nv = EA.nv, nh = EA.nh, mv = EA.mv, mh = EA.mh;
+  intT* offsetsV = newA(intT,nv);
+  edge<intT>* E = newA(edge<intT>,mv);
+  parallel_for(long i=0;i<mv;i++) E[i] = EA.VE[i];
+  intSort::iSort(E,offsetsV,mv,nv,getuF<intT>());
+  intT *edgesV = newA(intT,mv);
+  vertex<intT> *v = newA(vertex<intT>,nv);
+  parallel_for (intT i=0; i < nv; i++) {
+    intT o = offsetsV[i];
+    intT l = ((i == nv-1) ? mv : offsetsV[i+1])-offsetsV[i];
+    v[i].degree = l;
+    v[i].Neighbors = edgesV+o;
+    for (intT j=0; j < l; j++) {
+      v[i].Neighbors[j] = E[o+j].v;
+    }
+  }
+  free(offsetsV);
+
+  intT* offsetsH = newA(intT,nh);
+  parallel_for(long i=0;i<mh;i++) E[i] = EA.HE[i];
+  intSort::iSort(E,offsetsH,mh,nh,getuF<intT>()); //don't need?
+  intT *edgesH = newA(intT,mh);
+  vertex<intT> *h = newA(vertex<intT>,nh);
+  parallel_for (intT i=0; i<nh;i++) {
+    intT o = offsetsH[i];
+    intT l = ((i == nh-1) ? mh : offsetsH[i+1])-offsetsH[i];
+    h[i].degree = l;
+    h[i].Neighbors = edgesH+o;
+    for (intT j=0; j < l; j++) {
+      h[i].Neighbors[j] = E[o+j].v;
+    }
+  }
+  free(offsetsH);
+  free(E);
+  return hypergraph<intT>(v,h,nv,mv,nh,mh,edgesV,edgesH);
+}
 
 template <class intT>
 wghGraph<intT> wghGraphFromWghEdges(wghEdgeArray<intT> EA, bool makeSym) {
@@ -318,7 +418,7 @@ wghGraph<intT> wghGraphFromWghEdges(wghEdgeArray<intT> EA, bool makeSym) {
   }
   intT m = A.nonZeros;
   intT n = max<intT>(A.numCols,A.numRows);
-  intT* offsets = newA(intT,n*2);
+  intT* offsets = newA(intT,n);
   intSort::iSort(A.E,offsets,m,n,getuFWgh<intT>());
   intT *X = newA(intT,2*m);
   intT *Weights = X+m;
@@ -339,6 +439,51 @@ wghGraph<intT> wghGraphFromWghEdges(wghEdgeArray<intT> EA, bool makeSym) {
   return wghGraph<intT>(v,n,m,X,Weights);
 }
 
+template <class intT>
+wghHypergraph<intT> wghHypergraphFromWghHyperedges(wghHyperedgeArray<intT> EA) {
+  long nv = EA.nv, nh = EA.nh, mv = EA.mv, mh = EA.mh;
+  intT* offsetsV = newA(intT,nv);
+  wghEdge<intT>* E = newA(wghEdge<intT>,mv);
+  parallel_for(long i=0;i<mv;i++) E[i] = EA.VE[i];
+  intSort::iSort(E,offsetsV,mv,nv,getuFWgh<intT>());
+  intT *edgesV = newA(intT,mv*2);
+  intT *WeightsV = edgesV + mv;
+  wghVertex<intT> *v = newA(wghVertex<intT>,nv);
+  parallel_for (intT i=0; i < nv; i++) {
+    intT o = offsetsV[i];
+    intT l = ((i == nv-1) ? mv : offsetsV[i+1])-offsetsV[i];
+    v[i].degree = l;
+    v[i].Neighbors = edgesV+o;
+    v[i].nghWeights = WeightsV+o;
+    for (intT j=0; j < l; j++) {
+      v[i].Neighbors[j] = E[o+j].v;
+      v[i].nghWeights[j] = E[o+j].w;
+    }
+  }
+  free(offsetsV);
+
+  intT* offsetsH = newA(intT,nh);
+  parallel_for(long i=0;i<mh;i++) E[i] = EA.HE[i];
+  intSort::iSort(E,offsetsH,mh,nh,getuFWgh<intT>()); //don't need?
+  intT *edgesH = newA(intT,mh*2);
+  intT *WeightsH = edgesH + mh;
+  wghVertex<intT> *h = newA(wghVertex<intT>,nh);
+  parallel_for (intT i=0; i<nh;i++) {
+    intT o = offsetsH[i];
+    intT l = ((i == nh-1) ? mh : offsetsH[i+1])-offsetsH[i];
+    h[i].degree = l;
+    h[i].Neighbors = edgesH+o;
+    h[i].nghWeights = WeightsH+o;
+    for (intT j=0; j < l; j++) {
+      h[i].Neighbors[j] = E[o+j].v;
+      h[i].nghWeights[j] = E[o+j].w;
+    }
+  }
+  free(offsetsH);
+  free(E);
+  return wghHypergraph<intT>(v,h,nv,mv,nh,mh,edgesV,edgesH);
+}
+
 // **************************************************************
 //    BASIC I/O
 // **************************************************************
@@ -357,7 +502,20 @@ namespace benchIO {
       : Chars(C), n(nn), Strings(S), m(mm) {}
     void del() {free(Chars); free(Strings);}
   };
- 
+
+  struct lines {
+    long n; // total number of characters
+    char* Chars;  // array storing all strings
+    long m; // number of substrings
+    char** Strings; // pointers to strings (all should be null terminated)
+    long numLines;
+    intT* Lines; //offsets of beginning of lines
+    lines() {}
+  lines(char* C, long nn, char** S, long mm, intT* _Lines, long _numLines)
+  : Chars(C), n(nn), Strings(S), m(mm), Lines(_Lines), numLines(_numLines) {}
+    void del() {free(Chars); free(Strings); free(Lines);}
+  };
+
   inline bool isSpace(char c) {
     switch (c)  {
     case '\r': 
@@ -392,6 +550,37 @@ namespace benchIO {
 
     free(offsets); free(FL);
     return words(Str,n,SA,m);
+  }
+
+  lines stringToLinesOfWords(char *Str, long n) {
+
+    // mark start of words
+    bool *FL = newA(bool,n);
+    FL[0] = Str[0];
+    parallel_for (long i=1; i < n; i++) FL[i] = !isSpace(Str[i]) && isSpace(Str[i-1]); //!Str[i-1];
+    
+    // offset for each start of word
+    _seq<long> Off = sequence::packIndex<long>(FL, n);
+    long m = Off.n;
+    long *offsets = Off.A;
+
+    // pointer to each start of word
+    char **SA = newA(char*, m);
+    parallel_for (long j=0; j < m; j++) SA[j] = Str+offsets[j];
+
+    //mark start of lines
+    FL[0] = 1;
+    parallel_for(long j=1;j<m;j++) {
+      FL[j] = !isSpace(Str[offsets[j]]) && (Str[offsets[j]-1] == '\n' || Str[offsets[j]-1] == '\r');} //check if new line
+    _seq<intT> LinesSeq = sequence::packIndex<intT>(FL, m);
+    long numLines = LinesSeq.n;
+    intT* Lines = LinesSeq.A;
+
+    parallel_for (long i=0; i < n; i++) 
+      if (isSpace(Str[i])) Str[i] = 0; 
+
+    free(offsets); free(FL);
+    return lines(Str,n,SA,m,Lines,numLines);
   }
 
   int writeStringToFile(char* S, long n, char* fileName) {
@@ -526,13 +715,15 @@ namespace benchIO {
 
   string AdjGraphHeader = "AdjacencyGraph";
   string WghAdjGraphHeader = "WeightedAdjacencyGraph";
+  string AdjHypergraphHeader = "AdjacencyHypergraph";
+  string WghAdjHypergraphHeader = "WeightedAdjacencyHypergraph";
 
   template <class intT>
   int writeGraphToFile(graph<intT> G, char* fname) {
     long m = G.m;
     long n = G.n;
     long totalLen = 2 + n + m;
-    intT *Out = newA(uintT, totalLen);
+    intT *Out = newA(intT, totalLen);
     Out[0] = n;
     Out[1] = m;
     parallel_for (long i=0; i < n; i++) {
@@ -546,6 +737,31 @@ namespace benchIO {
 	O[j] = v.Neighbors[j];
     }
     int r = writeArrayToFile(AdjGraphHeader, Out, totalLen, fname);
+    free(Out);
+    return r;
+  }
+
+  template <class intT>
+  int writeHypergraphToFile(hypergraph<intT> G, char* fname) {
+    long nv = G.nv, mv = G.mv, nh = G.nh, mh = G.mh;
+    long totalLen = 4 + nv + mv + nh + mh;
+    intT *Out = newA(intT, totalLen);
+    Out[0] = nv; Out[1] = mv; Out[2] = nh; Out[3] = mh;
+    parallel_for(long i=0;i<nv;i++) Out[4+i] = G.V[i].degree;
+    sequence::scan(4+Out,4+Out,nv,addF<intT>(),(intT)0);
+    for(long i=0;i<nv;i++) {
+      intT *O = Out + 4 + nv + Out[4+i];
+      vertex<intT> v = G.V[i];
+      for(long j=0;j < v.degree; j++) O[j] = v.Neighbors[j];
+    }
+    parallel_for(long i=0;i<nh;i++) Out[nv+mv+4+i] = G.H[i].degree;
+    sequence::scan(nv+mv+4+Out,nv+mv+4+Out,nh,addF<intT>(),(intT)0);
+    for(long i=0;i<nh;i++) {
+      intT *O = Out + 4 + nv + mv + nh + Out[nv+mv+4+i];
+      vertex<intT> h = G.H[i];
+      for(long j=0;j < h.degree; j++) O[j] = h.Neighbors[j];
+    }
+    int r = writeArrayToFile(AdjHypergraphHeader,Out,totalLen,fname);
     free(Out);
     return r;
   }
@@ -571,6 +787,37 @@ namespace benchIO {
       }
     }
     int r = writeArrayToFile(WghAdjGraphHeader, Out, totalLen, fname);
+    free(Out);
+    return r;
+  }
+
+  template <class intT>
+  int writeWghHypergraphToFile(wghHypergraph<intT> G, char* fname) {
+    long nv = G.nv, mv = G.mv, nh = G.nh, mh = G.mh;
+    long totalLen = 4 + nv + mv*2 + nh + mh*2;
+    intT *Out = newA(intT, totalLen);
+    Out[0] = nv; Out[1] = mv; Out[2] = nh; Out[3] = mh;
+    parallel_for(long i=0;i<nv;i++) Out[4+i] = G.V[i].degree;
+    sequence::scan(4+Out,4+Out,nv,addF<intT>(),(intT)0);
+    for(long i=0;i<nv;i++) {
+      intT *O = Out + 4 + nv + Out[4+i];
+      wghVertex<intT> v = G.V[i];
+      for(long j=0;j < v.degree; j++) {
+	O[j] = v.Neighbors[j];
+	O[j+mv] = v.nghWeights[j];
+      }
+    }
+    parallel_for(long i=0;i<nh;i++) Out[nv+2*mv+4+i] = G.H[i].degree;
+    sequence::scan(nv+2*mv+4+Out,nv+2*mv+4+Out,nh,addF<intT>(),(intT)0);
+    for(long i=0;i<nh;i++) {
+      intT *O = Out + 4 + nv + 2*mv + nh + Out[nv+2*mv+4+i];
+      wghVertex<intT> h = G.H[i];
+      for(long j=0;j < h.degree; j++) {
+	O[j] = h.Neighbors[j];
+	O[j+mh] = h.nghWeights[j];
+      }
+    }
+    int r = writeArrayToFile(WghAdjHypergraphHeader,Out,totalLen,fname);
     free(Out);
     return r;
   }
@@ -642,6 +889,227 @@ namespace benchIO {
     return wghEdgeArray<intT>(E, maxrc, maxrc, n);
   }
 
+  //SNAP format
+  template <class intT>
+  hyperedgeArray<intT> readHyperedges(char* fname) {
+    _seq<char> S = readStringFromFile(fname);
+    char* S2 = newA(char,S.n);
+    //ignore starting lines with '#' and find where to start in file 
+    long k=0;
+    while(1) {
+      if(S.A[k] == '#') {
+	while(S.A[k++] != '\n') continue;
+      }
+      if(k >= S.n || S.A[k] != '#') break; 
+    }
+    
+    parallel_for(long i=0;i<S.n-k;i++) S2[i] = S.A[k+i];
+    S.del();
+    
+    lines W = stringToLinesOfWords(S2, S.n-k);
+    long nh = W.numLines;
+    long m = W.m;
+    edge<intT> *VE = newA(edge<intT>,m);
+    edge<intT> *HE = newA(edge<intT>,m);
+    
+    {parallel_for(long i=0;i<nh;i++) {
+	long offset = W.Lines[i];
+	long degree = (i == nh-1) ? m-W.Lines[i] : W.Lines[i+1]-W.Lines[i];
+	for(long j=0;j<degree;j++) {
+	  VE[offset+j] = edge<intT>(atol(W.Strings[offset+j]),i);
+	  HE[offset+j] = edge<intT>(i,atol(W.Strings[offset+j]));
+	}
+      }} 
+    W.del();
+
+    long maxID = 0;
+    for (long i=0; i < m; i++) {
+      maxID = max<intT>(maxID, VE[i].u);
+    }
+    maxID++;
+    //compress IDs into contiguous range
+    intT* IDs = newA(intT,maxID);
+    {parallel_for(long i=0;i<maxID;i++) IDs[i]=0;}
+    {parallel_for(long i=0; i < m; i++) if(!IDs[VE[i].u]) CAS(&IDs[VE[i].u],(intT)0,(intT)1);}
+    long nv = sequence::plusScan(IDs,IDs,maxID);
+
+    {parallel_for(long i=0;i<m;i++) {
+	VE[i].u = IDs[VE[i].u];
+	HE[i].v = IDs[HE[i].v];
+      }}
+    free(IDs);
+    return hyperedgeArray<intT>(VE,HE,nv,nh,m,m);
+  }
+
+  //SNAP format
+  //one hyperedge per line followed by weight on a separate line
+  template <class intT>
+    wghHyperedgeArray<intT> readWghHyperedges(char* fname) {
+    _seq<char> S = readStringFromFile(fname);
+    char* S2 = newA(char,S.n);
+    //ignore starting lines with '#' and find where to start in file 
+    long k=0;
+    while(1) {
+      if(S.A[k] == '#') {
+	while(S.A[k++] != '\n') continue;
+      }
+      if(k >= S.n || S.A[k] != '#') break; 
+    }
+    
+    parallel_for(long i=0;i<S.n-k;i++) S2[i] = S.A[k+i];
+    S.del();
+    
+    lines W = stringToLinesOfWords(S2, S.n-k);
+    long n = W.numLines/2;
+    long m = W.m-n;
+    wghEdge<intT> *VE = newA(wghEdge<intT>,m);
+    wghEdge<intT> *HE = newA(wghEdge<intT>,m);
+    {parallel_for(long i=0;i<n;i++) {
+	long offset = W.Lines[2*i];
+	long degree = W.Lines[2*i+1]-W.Lines[2*i];
+	for(long j=0;j<degree;j++) {
+	  VE[offset+j-i] = wghEdge<intT>(atol(W.Strings[offset+j]),i,atol(W.Strings[W.Lines[2*i+1]]));
+	  HE[offset+j-i] = wghEdge<intT>(i,atol(W.Strings[offset+j]),atol(W.Strings[W.Lines[2*i+1]]));
+	}
+      }} 
+    W.del();
+
+    long maxID = 0;
+    for (long i=0; i < m; i++) {
+      maxID = max<intT>(maxID, VE[i].u);
+    }
+    maxID++;
+    //compress IDs into contiguous range
+    intT* IDs = newA(intT,maxID);
+    {parallel_for(long i=0;i<maxID;i++) IDs[i]=0;}
+    {parallel_for(long i=0; i < m; i++) if(!IDs[VE[i].u]) CAS(&IDs[VE[i].u],(intT)0,(intT)1);}
+    long nv = sequence::plusScan(IDs,IDs,maxID);
+
+    {parallel_for(long i=0;i<m;i++) {
+	VE[i].u = IDs[VE[i].u];
+	HE[i].v = IDs[HE[i].v];
+      }}
+    free(IDs);
+    return wghHyperedgeArray<intT>(VE,HE,nv,n,m,m);
+  }
+
+  //KONECT format
+  template <class intT>
+  hyperedgeArray<intT> readKONECT(char* fname) {
+    _seq<char> S = readStringFromFile(fname);
+    char* S2 = newA(char,S.n);
+    //ignore starting lines with '#' and find where to start in file 
+    long k=0;
+    while(1) {
+      if(S.A[k] == '%') {
+	while(S.A[k++] != '\n') continue;
+      }
+      if(k >= S.n || S.A[k] != '%') break; 
+    }
+    
+    parallel_for(long i=0;i<S.n-k;i++) S2[i] = S.A[k+i];
+    S.del();
+    
+    words W = stringToWords(S2, S.n-k);
+    long m = W.m/2;
+    edge<intT> *VE = newA(edge<intT>,m);
+    edge<intT> *HE = newA(edge<intT>,m);
+
+    {parallel_for(long i=0; i < m; i++) {
+	VE[i] = edge<intT>(atol(W.Strings[2*i]), 
+			  atol(W.Strings[2*i + 1]));
+	HE[i] = edge<intT>(atol(W.Strings[2*i+1]),atol(W.Strings[2*i]));
+      }}
+    W.del();
+
+    long maxV = 0, maxH = 0;
+    for (long i=0; i < m; i++) {
+      maxV = max<intT>(maxV,VE[i].u);
+      maxH = max<intT>(maxH,HE[i].u);
+    }
+    maxV++; maxH++;
+    //compress IDs into contiguous range
+    intT* IDsV = newA(intT,maxV);
+    {parallel_for(long i=0;i<maxV;i++) IDsV[i]=0;}
+    {parallel_for(long i=0; i < m; i++) if(!IDsV[VE[i].u]) CAS(&IDsV[VE[i].u],(intT)0,(intT)1);}
+    long nv = sequence::plusScan(IDsV,IDsV,maxV);
+
+    intT* IDsH = newA(intT,maxH);
+    {parallel_for(long i=0;i<maxH;i++) IDsH[i]=0;}
+    {parallel_for(long i=0; i < m; i++) if(!IDsH[VE[i].v]) CAS(&IDsH[VE[i].v],(intT)0,(intT)1);}
+    long nh = sequence::plusScan(IDsH,IDsH,maxH);
+
+    {parallel_for(long i=0;i<m;i++) {
+    	VE[i].u = IDsV[VE[i].u];
+	VE[i].v = IDsH[VE[i].v];
+	HE[i].u = IDsH[HE[i].u];
+	HE[i].v = IDsV[HE[i].v];
+      }}
+    free(IDsV);
+    free(IDsH);
+    return hyperedgeArray<intT>(VE,HE,nv,nh,m,m);
+  }
+
+  //KONECT format
+  template <class intT>
+    wghHyperedgeArray<intT> readWghKONECT(char* fname) {
+    _seq<char> S = readStringFromFile(fname);
+    char* S2 = newA(char,S.n);
+    //ignore starting lines with '#' and find where to start in file 
+    long k=0;
+    while(1) {
+      if(S.A[k] == '%') {
+	while(S.A[k++] != '\n') continue;
+      }
+      if(k >= S.n || S.A[k] != '%') break; 
+    }
+    
+    parallel_for(long i=0;i<S.n-k;i++) S2[i] = S.A[k+i];
+    S.del();
+    
+    words W = stringToWords(S2, S.n-k);
+    long m = W.m/4;
+    wghEdge<intT> *VE = newA(wghEdge<intT>,m);
+    wghEdge<intT> *HE = newA(wghEdge<intT>,m);
+
+    {parallel_for(long i=0; i < m; i++) {
+	VE[i] = wghEdge<intT>(atol(W.Strings[4*i]), 
+			   atol(W.Strings[4*i+1]),
+			   atol(W.Strings[4*i+2]));
+	HE[i] = wghEdge<intT>(atol(W.Strings[4*i+1]),
+			   atol(W.Strings[4*i]),
+			   atol(W.Strings[4*i+2]));
+      }}
+    W.del();
+
+    long maxV = 0, maxH = 0;
+    for (long i=0; i < m; i++) {
+      maxV = max<intT>(maxV,VE[i].u);
+      maxH = max<intT>(maxH,HE[i].u);
+    }
+    maxV++; maxH++;
+    //compress IDs into contiguous range
+    intT* IDsV = newA(intT,maxV);
+    {parallel_for(long i=0;i<maxV;i++) IDsV[i]=0;}
+    {parallel_for(long i=0; i < m; i++) if(!IDsV[VE[i].u]) CAS(&IDsV[VE[i].u],(intT)0,(intT)1);}
+    long nv = sequence::plusScan(IDsV,IDsV,maxV);
+
+    intT* IDsH = newA(intT,maxH);
+    {parallel_for(long i=0;i<maxH;i++) IDsH[i]=0;}
+    {parallel_for(long i=0; i < m; i++) if(!IDsH[VE[i].v]) CAS(&IDsH[VE[i].v],(intT)0,(intT)1);}
+    long nh = sequence::plusScan(IDsH,IDsH,maxH);
+
+    {parallel_for(long i=0;i<m;i++) {
+    	VE[i].u = IDsV[VE[i].u];
+	VE[i].v = IDsH[VE[i].v];
+	HE[i].u = IDsH[HE[i].u];
+	HE[i].v = IDsV[HE[i].v];
+      }}
+    free(IDsV);
+    free(IDsH);
+    return wghHyperedgeArray<intT>(VE,HE,nv,nh,m,m);
+  }
+
   template <class intT>
   graph<intT> readGraphFromFile(char* fname) {
     _seq<char> S = readStringFromFile(fname);
@@ -710,6 +1178,104 @@ namespace benchIO {
     }
     return wghGraph<intT>(v,(intT)n,(uintT)m,(intT*)In,weights);
   }
+
+  template <class intT>
+  hypergraph<intT> readHypergraphFromFile(char* fname) {
+    _seq<char> S = readStringFromFile(fname);
+    words W = stringToWords(S.A, S.n);
+    if (W.Strings[0] != AdjHypergraphHeader) {
+      cout << "Bad input file: missing header: " << AdjHypergraphHeader << endl;
+      abort();
+    }
+
+    long len = W.m -1;
+    uintT * In = newA(uintT, len);
+    {parallel_for(long i=0; i < len; i++) In[i] = atol(W.Strings[i + 1]);}
+    W.del();
+    
+    long nv = In[0];
+    long mv = In[1];
+    long nh = In[2];
+    long mh = In[3];
+    
+    if (len != nv + mv + nh + mh + 4) {
+      cout << "Bad input file: length = "<<len<< " nv+mv+nh+mh+4 = " << nv+mv+nh+mh+4 << endl;
+      abort();
+    }
+    vertex<intT> *v = newA(vertex<intT>,nv);
+    vertex<intT> *h = newA(vertex<intT>,nh);
+    uintT* offsetsV = In+4;
+    uintT* edgesV = In+4+nv;
+    uintT* offsetsH = In+4+nv+mv;
+    uintT* edgesH = In+4+nv+mv+nh;
+
+    parallel_for (uintT i=0; i < nv; i++) {
+      uintT o = offsetsV[i];
+      uintT l = ((i == nv-1) ? mv : offsetsV[i+1])-offsetsV[i];
+      v[i].degree = l;
+      v[i].Neighbors = (intT*)(edgesV+o);
+    }
+    parallel_for (uintT i=0; i < nh; i++) {
+      uintT o = offsetsH[i];
+      uintT l = ((i == nh-1) ? mh : offsetsH[i+1])-offsetsH[i];
+      h[i].degree = l;
+      h[i].Neighbors = (intT*)(edgesH+o);
+    }
+
+    return hypergraph<intT>(v,h,nv,mv,nh,mh,(intT*)In);
+  }
+
+  template <class intT>
+    wghHypergraph<intT> readWghHypergraphFromFile(char* fname) {
+    _seq<char> S = readStringFromFile(fname);
+    words W = stringToWords(S.A, S.n);
+    if (W.Strings[0] != WghAdjHypergraphHeader) {
+      cout << "Bad input file: missing header: " << WghAdjHypergraphHeader << endl;
+      abort();
+    }
+    
+    long len = W.m -1;
+    intT * In = newA(intT, len);
+    {parallel_for(long i=0; i < len; i++) In[i] = atol(W.Strings[i + 1]);}
+    W.del();
+    
+    long nv = In[0];
+    long mv = In[1];
+    long nh = In[2];
+    long mh = In[3];
+    
+    if (len != nv + 2*mv + nh + 2*mh + 4) {
+      cout << "Bad input file" << endl;
+      abort();
+    }
+    wghVertex<intT> *v = newA(wghVertex<intT>,nv);
+    wghVertex<intT> *h = newA(wghVertex<intT>,nh);
+    uintT* offsetsV = (uintT*)In+4;
+    uintT* edgesV = (uintT*)In+4+nv;
+    intT* weightsV = In+4+nv+mv;
+    uintT* offsetsH = (uintT*)In+4+nv+2*mv;
+    uintT* edgesH = (uintT*)In+4+nv+2*mv+nh;
+    intT* weightsH = In+4+nv+2*mv+nh+mh;
+    
+    parallel_for (uintT i=0; i < nv; i++) {
+      uintT o = offsetsV[i];
+      uintT l = ((i == nv-1) ? mv : offsetsV[i+1])-offsetsV[i];
+      v[i].degree = l;
+      v[i].Neighbors = (intT*)(edgesV+o);
+      v[i].nghWeights = (weightsV+o);
+    }
+
+    parallel_for (uintT i=0; i < nh; i++) {
+      uintT o = offsetsH[i];
+      uintT l = ((i == nh-1) ? mh : offsetsH[i+1])-offsetsH[i];
+      h[i].degree = l;
+      h[i].Neighbors = (intT*)(edgesH+o);
+      h[i].nghWeights = (weightsH+o);
+    }
+
+    return wghHypergraph<intT>(v,h,nv,mv,nh,mh,In);
+  }
+
 };
 
 #endif // _BENCH_GRAPH_IO

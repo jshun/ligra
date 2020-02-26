@@ -1,20 +1,20 @@
-Ligra (and Ligra+): A Lightweight Graph Processing Framework for Shared Memory
+Ligra: A Lightweight Graph Processing Framework for Shared Memory
 ======================
 
 Organization
 --------
 
-The code for the Ligra (and Ligra+) framework is located in the ligra/
+The code for Ligra, Ligra+, and Ligra-H is located in the ligra/
 directory.  The code for the applications is in the apps/ directory,
 which is where compilation should be performed.  Example inputs are
-provided in the inputs/ directory. Graph utilities are provided in the
-utils/ directory.
+provided in the inputs/ directory. Graph and hypergraph utilities are
+provided in the utils/ directory.
 
 Compilation
 --------
 
 Compilation is done from within the apps/ directory. The compiled code
-will work on both uncompressed and compressed graphs.
+will work on both uncompressed and compressed graphs and hypergraphs.
 
 Compilers
 
@@ -34,14 +34,15 @@ Note: OpenMP support in Ligra has not been thoroughly tested. If you
 experience any errors, please send an email to [Julian
 Shun](mailto:jshun@mit.edu).
 
-For processing compressed graph files, there are three compression
-schemes currently implemented that can be used---byte codes, byte
-codes with run-length encoding and nibble codes. By default, the code
-is compiled for byte codes with run-length encoding. To use byte codes
-instead, define the environment variable BYTE, and to use nibble codes
-instead, define the environment variable NIBBLE. Parallel decoding
-within a vertex can be enabled by defining the environment variable PD
-(by default, a vertex's edge list is decoded sequentially).
+For processing compressed graph and hypergraph files, there are three
+compression schemes currently implemented that can be used---byte
+codes, byte codes with run-length encoding and nibble codes. By
+default, the code is compiled for byte codes with run-length
+encoding. To use byte codes instead, define the environment variable
+BYTE, and to use nibble codes instead, define the environment variable
+NIBBLE. Parallel decoding within a vertex can be enabled by defining
+the environment variable PD (by default, a vertex's edge list is
+decoded sequentially).
 
 After the appropriate environment variables are set, to compile,
 simply run
@@ -82,34 +83,58 @@ the program may improve performance for large graphs. For example:
 $ numactl -i all ./BFS -s <input file>
 ```
 
-Running code on compressed graphs (Ligra+) 
+
+Running code in Ligra-H
+-------
+The hypergraph applications are located in the apps/hyper/
+directory. The applications take the input hypergraph as input as well
+as an optional flag "-s" to indicate a symmetric hypergraph.
+Symmetric hypergraphs should be called with the "-s" flag for better
+performance. For example:
+
+```
+$ ./HyperBFS -s ../inputs/test
+$ ./HyperSSSP -s ../inputs/test-wgh
+``` 
+
+For traversal algorithms, one can also pass the "-r" flag followed by
+an integer to indicate the source vertex.  Random hypergraphs can be
+generated with the hypergraph generator in the utils/ directory.
+
+
+Running code on compressed graphs and hypergraphs (Ligra+) 
 -----------
-When using Ligra+, graphs must first be compressed using the encoder
-program provided. The encoder program takes as input a file in the
+When using Ligra+, graphs and hypergraphs must first be compressed using the encoder
+program provided (encoder and hypergraphEncoder). The encoder program takes as input a file in the
 format described in the next section, as well as an output file
-name. For symmetric graphs, the flag "-s" should be passed before the
-filenames, and for weighted graphs, the flag "-w" should be passed
+name. For symmetric graphs and hypergraphs, the flag "-s" should be passed before the
+filenames, and for weighted graphs and hypergraphs, the flag "-w" should be passed
 before the filenames. For example:
 
 ```
 $ ./encoder -s ../inputs/rMatGraph_J_5_100 ../inputs/rMatGraph_J_5_100.compressed
 $ ./encoder -s -w ../inputs/rMatGraph_WJ_5_100 ../inputs/rMatGraph_WJ_5_100.compressed
+$ ./hypergraphEncoder -s ../inputs/test ../inputs/test.compressed
+$ ./hypergraphEncoder -s -w ../inputs/test-wgh ../inputs/test-wgh.compressed
 ```
  
-After compressing the graphs, the applications can be run in the same
-manner as on uncompressed graphs, but with an additional "-c"
+After compressing the inputs, the applications can be run in the same
+manner as on uncompressed inputs, but with an additional "-c"
 flag. For example:
 
 ```
 $ ./BFS -s -c ../inputs/rMatGraph_J_5_100.compressed
 $ ./BellmanFord -s -c ../inputs/rMatGraph_WJ_5_100.compressed
+$ ./HyperBFS -s -c ../inputs/test.compressed
+$ ./HyperSSSP -s -c ../inputs/test-wgh.compressed
 ``` 
 
 Make sure that the compression method used for compilation of the
-applications is consistent with the method used to compress the graph
+applications is consistent with the method used to compress the input
 with the encoder program.
 
-Input Format for Ligra applications and the Ligra+ encoder
+
+Input Format for Ligra applications
 -----------
 The input format of unweighted graphs should be in one of two
 formats (the Ligra+ encoder currently only supports the first format).
@@ -159,10 +184,65 @@ default the vertex IDs (edge values) are stored as 32-bit integers,
 and to represent them as 64-bit integers, compile with the variable
 EDGELONG defined.
 
-Graph Utilities
+Input Format for Ligra-H applications
+-----------
+The input can be in either adjacency hypergraph format or binary format, similar to graphs.
+
+1) The adjacency hypergraph format starts with a sequence of offsets
+ one for each vertex, followed by a sequence of incident hyperedges
+ (the vertex is an incoming member of the hyperedge) ordered by
+ vertex, followed by a sequence of offsets one for each hyperedge, and
+ finally a sequence of incident vertices (the vertex is an outgoing
+ member of the hyperedge) ordered by hyperedge.  All vertices,
+ hyperedges, and offsets are 0 based and represented in decimal. For a
+ graph with *nv* vertices, *mv* incident hyperedges for the vertices,
+ *nh* hyperedges, and *mh* incident vertices for the hyperedges, the
+ specific format is as follows:
+
+AdjacencyHypergraph  
+&lt;nv>
+&lt;mv>
+&lt;nh>
+&lt;mh>
+&lt;ov0>  
+&lt;ov1>  
+...  
+&lt;ov(nv-1)>  
+&lt;ev0>  
+&lt;ev1>  
+...  
+&lt;ev(mv-1)>  
+&lt;oh0>  
+&lt;oh1>  
+...  
+&lt;oh(nh-1)>  
+&lt;eh0>  
+&lt;eh1>  
+...  
+&lt;eh(mh-1)>  
+
+This file is represented as plain text.
+
+2) In binary format. This requires five files NAME.config, NAME.vadj,
+NAME.vidx, NAME.hadj, NAME.hidx, where NAME is chosen by the user. The
+.config file stores *nv*, *mv*, *nh*, and *mh* in text format. The
+.vidx and .hidx files store in binary the offsets for the vertices and
+hyperedges (the &lt;ov>'s and &lt;oh>'s above). The .vadj and .hadj
+files stores in binary the neighbors (the &lt;ev>'s and &lt;eh>'s
+above).
+
+Weighted hypergraphs: For format (1), the weights are listed as
+another sequence following the sequence of neighbors for vertices or
+hyperedges file (i.e., after &lt;ev(mv-1)> and &lt;eh(mh-1)>), and the
+first line of the file should store the string
+"WeightedAdjacencyHypergraph". For format (2), the weights are stored
+after all of the edge targets in the .vadj and .hadj files.
+
+
+Utilities
 ---------
 
-Several graph utilities are provided in the utils/ directory and can
+Several utilities are provided in the utils/ directory and can
 be compiled using "make".
 
 ### Graph Generators
@@ -227,6 +307,54 @@ $ ./adjToBinary rMatGraph_J_5_100 rMatGraph_J_5_100.idx rMatGraph_J_5_100.adj rM
 $ ./adjToBinary -w rMatGraph_WJ_5_100 rMatGraph_WJ_5_100.idx rMatGraph_WJ_5_100.adj rMatGraph_WJ_5_100.config 
 ```
 
+### Random Hypergraph Generator
+
+The random hypergraph generator **randHypergraph** takes as input the
+number of vertices ('-nv'), number of hyperdges ('-nh') and
+cardinality of each hyperedge ('-c'). It generates a symmetric
+hypergraph where each hyperedge has the specified cardinality and
+where member vertices uniformly at random.
+
+Examples:
+```
+$ ./randHypergraph -nv 100000000 -nh 100000000 -c 10 randHypergraph_output 
+```
+
+### Hypergraph Converters
+
+**communityToHyperAdj** converts a communities network in [SNAP
+format](http://snap.stanford.edu/data/index.html) and converts it to
+symmetric adjacency hypergraph format. The first required parameter is
+the input (SNAP) file name and second required parameter is the output
+(Ligra) file name.
+
+**KONECTtoHyperAdj** converts a bipartite graph in [KONECT
+format](http://konect.uni-koblenz.de/) (the out.* file) and converts
+it to symmetric adjacency hypergraph format. The first required
+parameter is the input (KONECT) file name and second required
+parameter is the output (Ligra) file name.
+
+**adjHypergraphAddWeights** adds random integer weights in the range
+[1,...,*log<sub>2</sub>*(max(number of vertices, number of
+hyperedges))] to an unweighted hypergraph in adjacency hypergraph
+format, and takes as input the input file name followed by the output
+file name.
+
+**hyperAdjToBinary** converts an input in adjacency hypergraph format
+to binary format. The argument is the adjacency hypergraph file
+name. For a weighted hypergraph, pass the "-w" flag before the file
+name. The program will generate 5 output files with the input file
+name followed by each of the prefixes .config, .vadj, .vidx, .hadj,
+and .hidx.
+
+Examples:
+```
+$ ./communityToHyperAdj SNAPfile LigraFile
+$ ./KONECTtoHyperAdj KONECTfile Ligrafile
+$ ./adjHypergraphAddWeights unweightedLigraFile weightedLigraFile
+$ ./hyperAdjToBinary test
+$ ./hyperAdjToBinary -w test-wgh
+```
 
 Ligra Data Structure and Functions
 ---------
@@ -363,6 +491,16 @@ implementations are designed for undirected graphs.  To output the
 eccentricity estimates to a file, use the "-out" flag followed by the
 name of the output file. The file format is one integer per line, with
 the eccentricity estimate for vertex *i* on line *i*.
+
+Hypergraph Applications
+---------
+Implementation files are provided in the apps/ directory:
+**HyperBFS.C** (hypertree), **HyperBPath.C** (hyperpaths),
+**HyperBC.C** (betweenness centrality), **HyperCC.C** (connected
+components), **HyperSSSP.C** (shortest paths), **HyperPageRank.C**
+(PageRank), **HyperMIS.C** (maximal independent set), **HyperKCore.C**
+(work-inefficient K-core decomposition), and
+**HyperKCore-Efficient.C** (work-efficient K-core decomposition).
 
 Resources  
 -------- 
