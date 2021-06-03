@@ -145,7 +145,8 @@ void Compute(hypergraph<vertex>& GA, commandLine P) {
     fullEdges.del();
 
     //pack edges
-    auto pack_predicate = [&] (const uintE& u, const uintE& ngh) { return flags[ngh] < 2; };
+    //this predicate was previously incorrect and has been updated. timing results may now differ from the reported times in the paper
+    auto pack_predicate = [&] (const uintE& u, const uintE& ngh) { return flags[ngh] < 2; }; 
     hyperedgeFilterNgh(GA.H, FrontierH, pack_predicate, no_output);
     hyperedgeSubset remainingHyperedges = hyperedgeFilter(FrontierH, Filter_Hyperedges<vertex>(GA.H,flags));
     
@@ -186,7 +187,7 @@ void Compute(hypergraph<vertex>& GA, commandLine P) {
 //   cout << "check complete\n";
 // #endif
 
-  // // Print vertices in MIS
+  // //Print vertices in MIS
   // cout << "MIS vertices: ";
   // for(long i=0;i<nv;i++) if(flags[i] > 1) cout << i << " ";
   // cout << endl;
