@@ -135,31 +135,61 @@ void Compute(hypergraph<vertex>& GA, commandLine P) {
   while (!FrontierV.isEmpty()) {
     round++;
     vertexMap(FrontierV,Random_Sample(flags,round,numVerticesProcessed,inverseProb));
+
     numVerticesProcessed += FrontierV.numNonzeros();
     hyperedgeMap(FrontierH,Degrees_Reset(Degrees));
     hyperedgeProp(GA, FrontierH, MIS_Count_Neighbors(flags,Degrees,round), -1, no_output);
+
     hyperedgeSubset fullEdges = hyperedgeFilter(FrontierH, Check_Independence<vertex>(GA.H,Degrees));
     hyperedgeProp(GA, fullEdges, MIS_Reset_Neighbors(flags,round), -1, no_output);
-    //cout << "round = " << round << " vertices = " << FrontierV.numNonzeros() << " hyperedges = " << FrontierH.numNonzeros() << " full edges = " << fullEdges.numNonzeros() << endl;
     fullEdges.del();
+
     //pack edges
-    auto pack_predicate = [&] (const uintE& u, const uintE& ngh) { return flags[ngh] == 0; };
+    auto pack_predicate = [&] (const uintE& u, const uintE& ngh) { return flags[ngh] < 2; };
     hyperedgeFilterNgh(GA.H, FrontierH, pack_predicate, no_output);
     hyperedgeSubset remainingHyperedges = hyperedgeFilter(FrontierH, Filter_Hyperedges<vertex>(GA.H,flags));
+    
     FrontierH.del();
     FrontierH = remainingHyperedges;
     vertexSubset output = vertexFilter(FrontierV, MIS_Filter(flags));
     FrontierV.del();
     FrontierV = output;
   }
+
 // #ifdef CHECK
-//   {for(long i=0;i<nh;i++) {
-//       vertex h = GA.H[i];
-//       long inSet = 0;
-//       for(long j=0;j<h.getInDegree();j++) if(flags[h.getInNeighbor(j)] > 1) inSet++;
-//       if(inSet == h.getInDegree()) {cout << "incorrect answer " << i << " " << inSet << " " << h.getInDegree() << " " << h.getOutDegree() << endl; exit(0);}
-//     }}
+//   for(long i=0;i<nh;i++) {
+//     vertex h = GA.H[i];
+//     long inSet = 0;
+//     for(long j=0;j<h.getInDegree();j++) if(flags[h.getInNeighbor(j)] > 1) inSet++;
+//     if(h.getInDegree() > 0 && inSet == h.getInDegree()) {cout << "hyperedge " << i << " is violated" << endl; cout << inSet << " " << h.getInDegree() << " " << h.getOutDegree() << endl; exit(0);}
+//   }
+
+//   //does not currently work due to hypergraph mutation
+//   for(long i=0;i<nv;i++) {
+//     if(flags[i] == 1) //not in MIS, check if adding it would violate any hyperedge
+//       {
+// 	vertex v = GA.V[i];    
+// 	bool wouldViolate = 0;
+// 	for(long j=0;j<v.getOutDegree();j++) {
+// 	  if(wouldViolate) break;
+// 	  vertex h = GA.H[v.getOutNeighbor(j)];
+// 	  long inSet = 0;
+// 	  for(long k=0;k<h.getOutDegree();k++) {
+// 	    if(flags[h.getOutNeighbor(k)] > 1) inSet++;
+// 	  }
+// 	  if(inSet == h.getOutDegree()-1) wouldViolate = 1;
+	    
+// 	}
+// 	if(!wouldViolate) { cout << "vertex " << i << " is not in MIS but could be added" << endl; exit(0);}
+//       }
+//   }  
+//   cout << "check complete\n";
 // #endif
+
+  // // Print vertices in MIS
+  // cout << "MIS vertices: ";
+  // for(long i=0;i<nv;i++) if(flags[i] > 1) cout << i << " ";
+  // cout << endl;
   
   free(flags); free(Degrees);
   FrontierV.del(); FrontierH.del();
