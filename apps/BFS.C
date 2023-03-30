@@ -1,5 +1,5 @@
 // This code is part of the project "Ligra: A Lightweight Graph Processing
-// Framework for Shared Memory", presented at Principles and Practice of 
+// Framework for Shared Memory", presented at Principles and Practice of
 // Parallel Programming, 2013.
 // Copyright (c) 2013 Julian Shun and Guy Blelloch
 //
@@ -26,31 +26,37 @@
 struct BFS_F {
   uintE* Parents;
   BFS_F(uintE* _Parents) : Parents(_Parents) {}
-  inline bool update (uintE s, uintE d) { //Update
-    if(Parents[d] == UINT_E_MAX) { Parents[d] = s; return 1; }
-    else return 0;
+  inline bool update(uintE s, uintE d) {  // Update
+    if (Parents[d] == UINT_E_MAX) {
+      Parents[d] = s;
+      return 1;
+    } else
+      return 0;
   }
-  inline bool updateAtomic (uintE s, uintE d){ //atomic version of Update
-    return (CAS(&Parents[d],UINT_E_MAX,s));
+  inline bool updateAtomic(uintE s, uintE d) {  // atomic version of Update
+    return (CAS(&Parents[d], UINT_E_MAX, s));
   }
-  //cond function checks if vertex has been visited yet
-  inline bool cond (uintE d) { return (Parents[d] == UINT_E_MAX); } 
+  // cond function checks if vertex has been visited yet
+  inline bool cond(uintE d) { return (Parents[d] == UINT_E_MAX); }
 };
 
 template <class vertex>
 void Compute(graph<vertex>& GA, commandLine P) {
-  long start = P.getOptionLongValue("-r",0);
+  // FIXME(jmf): Remove this, just using it to obtain perf profile from here.
+  //  cerr << "halted, press enter to continue:" << endl;
+  //  getchar();
+  long start = P.getOptionLongValue("-r", 0);
   long n = GA.n;
-  //creates Parents array, initialized to all -1, except for start
-  uintE* Parents = newA(uintE,n);
-  parallel_for(long i=0;i<n;i++) Parents[i] = UINT_E_MAX;
+  // creates Parents array, initialized to all -1, except for start
+  uintE* Parents = newA(uintE, n);
+  parallel_for(long i = 0; i < n; i++) Parents[i] = UINT_E_MAX;
   Parents[start] = start;
-  vertexSubset Frontier(n,start); //creates initial frontier
-  while(!Frontier.isEmpty()){ //loop until frontier is empty
-    vertexSubset output = edgeMap(GA, Frontier, BFS_F(Parents));    
+  vertexSubset Frontier(n, start);  // creates initial frontier
+  while (!Frontier.isEmpty()) {     // loop until frontier is empty
+    vertexSubset output = edgeMap(GA, Frontier, BFS_F(Parents));
     Frontier.del();
-    Frontier = output; //set new frontier
-  } 
+    Frontier = output;  // set new frontier
+  }
   Frontier.del();
-  free(Parents); 
+  free(Parents);
 }

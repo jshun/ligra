@@ -22,6 +22,8 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+#define WEIGHTED_TEMPORAL 1
+
 // Parallel implementation of K-Core decomposition of a symmetric
 // graph.
 #include "ligra.h"
@@ -30,12 +32,14 @@ struct Update_Deg {
   intE* Degrees;
   Update_Deg(intE* _Degrees) : Degrees(_Degrees) {}
 
-  inline bool update(uintE s, uintE d) {
+  inline bool update(uintE s, uintE d, uintE w, uintE start_time,
+                     uintE end_time) {
     Degrees[d]--;
     return 1;
   }
 
-  inline bool updateAtomic(uintE s, uintE d) {
+  inline bool updateAtomic(uintE s, uintE d, uintE w, uintE start_time,
+                           uintE end_time) {
     writeAdd(&Degrees[d], -1);
     return 1;
   }
