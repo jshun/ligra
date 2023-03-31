@@ -1,5 +1,5 @@
 // This code is part of the project "Ligra: A Lightweight Graph Processing
-// Framework for Shared Memory", presented at Principles and Practice of 
+// Framework for Shared Memory", presented at Principles and Practice of
 // Parallel Programming, 2013.
 // Copyright (c) 2013 Julian Shun and Guy Blelloch
 //
@@ -24,55 +24,75 @@
 
 // Converts a Ligra graph in adjacency graph format into binary format
 
-#include "parseCommandLine.h"
-#include "graphIO.h"
-#include "parallel.h"
 #include <iostream>
 #include <sstream>
+#include "graphIO.h"
+#include "parallel.h"
+#include "parseCommandLine.h"
 using namespace benchIO;
 using namespace std;
 
 int parallel_main(int argc, char* argv[]) {
-  commandLine P(argc,argv," [-w] <inFile> <idxFile> <adjFile> <configFile>");
+  commandLine P(argc, argv, " [-w] <inFile> <idxFile> <adjFile> <configFile>");
   char* iFile = P.getArgument(3);
   char* idxFile = P.getArgument(2);
   char* adjFile = P.getArgument(1);
   char* configFile = P.getArgument(0);
   bool weighted = P.getOptionValue("-w");
+  bool temporal = P.getOptionValue("-t");
 
   ofstream idx(idxFile, ofstream::out | ios::binary);
   ofstream adj(adjFile, ofstream::out | ios::binary);
   ofstream config(configFile, ofstream::out);
-  if(!weighted) {
+  if (!weighted && !temporal) {
     graph<uintT> G = readGraphFromFile<uintT>(iFile);
     config << G.n;
     uintT* In = G.allocatedInplace;
-    uintT* offsets = In+2;
-    uintT* edges = In+2+G.n;
-    idx.write((char*)offsets,sizeof(uintT)*G.n);
-    if(sizeof(uintE) != sizeof(uintT)) {
-      uintE* E = newA(uintE,G.m);
-      parallel_for(long i=0;i<G.m;i++) E[i] = edges[i];
-      adj.write((char*)E,sizeof(uintE)*G.m);
+    uintT* offsets = In + 2;
+    uintT* edges = In + 2 + G.n;
+    idx.write((char*)offsets, sizeof(uintT) * G.n);
+    if (sizeof(uintE) != sizeof(uintT)) {
+      uintE* E = newA(uintE, G.m);
+      parallel_for(long i = 0; i < G.m; i++) E[i] = edges[i];
+      adj.write((char*)E, sizeof(uintE) * G.m);
       free(E);
     } else {
-      adj.write((char*)edges,sizeof(uintT)*G.m);
+      adj.write((char*)edges, sizeof(uintT) * G.m);
     }
     G.del();
-  } else {
+    // WEIGHTED_TEMPORAL
+  } else if (weighted && temporal) {
+    wghGraphTemporal<uintT> G = readWghGraphTemporalFromFile<uintT>(iFile);
+    config << G.n;
+    uintT* In = G.allocatedInplace;
+    uintT* offsets = In + 2;
+    uintT* edges = In + 2 + G.n;
+    idx.write((char*)offsets, sizeof(uintT) * G.n);
+    if (sizeof(uintE) != sizeof(uintT)) {
+      intE* E = newA(intE, 4 * G.m);
+      parallel_for(long i = 0; i < 4 * G.m; i++) E[i] = edges[i];
+      adj.write((char*)E, sizeof(intE) * 4 * G.m);
+      free(E);
+    } else {
+      // edges, weights, start and end times
+      adj.write((char*)edges, sizeof(uintT) * 4 * G.m);
+    }
+    G.del();
+    // WEIGHTED
+  } else if (weighted) {
     wghGraph<uintT> G = readWghGraphFromFile<uintT>(iFile);
     config << G.n;
     uintT* In = G.allocatedInplace;
-    uintT* offsets = In+2;
-    uintT* edges = In+2+G.n;
-    idx.write((char*)offsets,sizeof(uintT)*G.n);
-    if(sizeof(uintE) != sizeof(uintT)) {
-      intE* E = newA(intE,2*G.m);
-      parallel_for(long i=0;i<2*G.m;i++) E[i] = edges[i];
-      adj.write((char*)E,sizeof(intE)*2*G.m);
+    uintT* offsets = In + 2;
+    uintT* edges = In + 2 + G.n;
+    idx.write((char*)offsets, sizeof(uintT) * G.n);
+    if (sizeof(uintE) != sizeof(uintT)) {
+      intE* E = newA(intE, 2 * G.m);
+      parallel_for(long i = 0; i < 2 * G.m; i++) E[i] = edges[i];
+      adj.write((char*)E, sizeof(intE) * 2 * G.m);
       free(E);
     } else {
-      adj.write((char*)edges,sizeof(uintT)*2*G.m);  //edges and weights
+      adj.write((char*)edges, sizeof(uintT) * 2 * G.m);  // edges and weights
     }
     G.del();
   }

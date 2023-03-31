@@ -18,26 +18,36 @@ else
 CODE = -DBYTERLE
 endif
 
-#compilers
+#compiler
+GXX=g++  # clang++
+
+# ---- with local cilkrts build ----
+ifdef CILKPLUS_HOME
+CILK=1
+CILKPLUS=${CILKPLUS_HOME}
+GXX=clang++ -isystem $(CILKPLUS)/include/ -I$(CILKPLUS)/include/ -L$(CILKPLUS)
+endif
+# ---- with local cilkrts build ----
+
 ifdef CILK
-PCC = g++
-PCFLAGS = -std=c++14 -fcilkplus -lcilkrts -O3 -DCILK $(INTT) $(INTE) $(CODE) $(PD) $(FLAGS)
+PCC = $(GXX)
+PCFLAGS = -std=c++14 $(GXX_FLAGS) -fcilkplus -lcilkrts -O3 -DCILK $(INTT) $(INTE) $(CODE) $(PD) $(FLAGS)
 PLFLAGS = -fcilkplus -lcilkrts
 
 else ifdef MKLROOT
 PCC = icpc
-PCFLAGS = -std=c++14 -O3 -DCILKP $(INTT) $(INTE) $(CODE) $(PD)
+PCFLAGS = -std=c++14 $(GXX_FLAGS) -O3 -DCILKP $(INTT) $(INTE) $(CODE) $(PD)
 
 else ifdef OPENMP
-PCC = g++
-PCFLAGS = -std=c++14 -fopenmp -march=native -O3 -DOPENMP $(INTT) $(INTE) $(CODE) $(PD)
+PCC = $(GXX)
+PCFLAGS = -std=c++14 $(GXX_FLAGS) -fopenmp -march=native -O3 -DOPENMP $(INTT) $(INTE) $(CODE) $(PD)
 
 else
-PCC = g++
-PCFLAGS = -std=c++14 -O3 $(INTT) $(INTE) $(CODE) $(PD)
+PCC = $(GXX)
+PCFLAGS = -std=c++14 $(GXX_FLAGS) -O3 $(INTT) $(INTE) $(CODE) $(PD)
 endif
 
-COMMON= ligra.h edgeMap_utils.h index_map.h sequence.h maybe.h binary_search.h graph.h compressedVertex.h vertex.h utils.h IO.h parallel.h gettime.h quickSort.h blockRadixSort.h transpose.h parseCommandLine.h byte.h byteRLE.h nibble.h byte-pd.h byteRLE-pd.h nibble-pd.h vertexSubset.h encoder.C bucket.h counting_sort.h dyn_arr.h edgeMapReduce.h histogram.h sequentialHT.h
+COMMON= ligra.h ligra_app.h ligra_app_main.h edgeMap_utils.h index_map.h sequence.h maybe.h binary_search.h graph.h compressedVertex.h vertex.h utils.h IO.h parallel.h gettime.h quickSort.h blockRadixSort.h transpose.h parseCommandLine.h byte.h byteRLE.h nibble.h byte-pd.h byteRLE-pd.h nibble-pd.h vertexSubset.h encoder.C bucket.h counting_sort.h dyn_arr.h edgeMapReduce.h histogram.h sequentialHT.h
 
 ALL= DeltaStepping KCore KCoreSerial SetCover
 

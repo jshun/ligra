@@ -6,28 +6,45 @@ ifdef EDGELONG
 INTE = -DEDGELONG
 endif
 
-#compilers
+#compiler
+GXX=g++  # clang++
+
+# ---- with local cilkrts build ----
+ifdef CILKPLUS_HOME
+CILK=1
+CILKPLUS=${CILKPLUS_HOME}
+GXX=clang++ -isystem $(CILKPLUS)/include/ -I$(CILKPLUS)/include/ -L$(CILKPLUS)
+endif
+# ---- with local cilkrts build ----
+
+GXX_FLAGS=#-Wall -Wextra -Werror
+
 ifdef CILK
-PCC = g++
-PCFLAGS = -std=c++14 -fcilkplus -lcilkrts -O3 -DCILK $(INTT) $(INTE)
+PCC = $(GXX)
+PCFLAGS = -std=c++14 $(GXX_FLAGS) -fcilkplus -lcilkrts -O3 -DCILK $(INTT) $(INTE)
+PLFLAGS = -fcilkplus -lcilkrts
+
+else ifdef CILKDBG
+PCC = $(GXX)
+PCFLAGS = -std=c++14 $(GXX_FLAGS) -fcilkplus -lcilkrts -ggdb -DCILK $(INTT) $(INTE)
 PLFLAGS = -fcilkplus -lcilkrts
 
 else ifdef MKLROOT
 PCC = icpc
-PCFLAGS = -std=c++14 -O3 -DCILKP $(INTT) $(INTE)
+PCFLAGS = -std=c++14 $(GXX_FLAGS) -O3 -DCILKP $(INTT) $(INTE)
 
 else ifdef OPENMP
-PCC = g++
-PCFLAGS = -std=c++14 -fopenmp -march=native -O3 -DOPENMP $(INTT) $(INTE)
+PCC = $(GXX)
+PCFLAGS = -std=c++14 $(GXX_FLAGS) -fopenmp -march=native -O3 -DOPENMP $(INTT) $(INTE)
 
 else
-PCC = g++
-PCFLAGS = -std=c++14 -O3 $(INTT) $(INTE)
+PCC = $(GXX)
+PCFLAGS = -std=c++14 $(GXX_FLAGS) -O3 $(INTT) $(INTE)
 endif
 
 COMMON = utils.h parseCommandLine.h parallel.h quickSort.h blockRadixSort.h transpose.h
 LOCAL_COMMON = graphIO.h
-GENERATORS = rMatGraph gridGraph randLocalGraph SNAPtoAdj wghSNAPtoAdj adjGraphAddWeights adjToBinary communityToHyperAdj hyperAdjToBinary adjHypergraphAddWeights randHypergraph KONECTtoHyperAdj KONECTtoClique communityToClique communityToMESH KONECTtoMESH
+GENERATORS = rMatGraph gridGraph randLocalGraph SNAPtoAdj wghSNAPtoAdj wghTemporalSNAPtoAdj adjGraphAddWeights adjToBinary communityToHyperAdj hyperAdjToBinary adjHypergraphAddWeights randHypergraph KONECTtoHyperAdj KONECTtoClique communityToClique communityToMESH KONECTtoMESH
 
 .PHONY: all clean
 all: $(GENERATORS)

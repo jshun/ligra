@@ -1,5 +1,5 @@
 // This code is part of the project "Ligra: A Lightweight Graph Processing
-// Framework for Shared Memory", presented at Principles and Practice of 
+// Framework for Shared Memory", presented at Principles and Practice of
 // Parallel Programming, 2013.
 // Copyright (c) 2013 Julian Shun and Guy Blelloch
 //
@@ -21,55 +21,37 @@
 // LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#ifndef _PARALLEL_H
-#define _PARALLEL_H
+#ifndef _LIGRA_PARALLEL_H
+#define _LIGRA_PARALLEL_H
 
-#if defined(CILK)
+// cilkarts cilk++ or intel cilk+
+// TODO: merge these two?
+#if defined(CILK) || defined(CILKP)
 #include <cilk/cilk.h>
 #define parallel_main main
 #define parallel_for cilk_for
-#define parallel_for_1 _Pragma("cilk_grainsize = 1") cilk_for
-#define parallel_for_256 _Pragma("cilk_grainsize = 256") cilk_for
+#define parallel_for_1 _Pragma("cilk grainsize 1") cilk_for
+#define parallel_for_256 _Pragma("cilk grainsize 256") cilk_for
 #include <cilk/cilk_api.h>
-#include <sstream>
-#include <iostream>
 #include <cstdlib>
-static int getWorkers() {
-  return __cilkrts_get_nworkers();
-}
+#include <iostream>
+#include <sstream>
+
+// XXX: Yuckiness to avoid clashing with symbols already defined in pbbs.
+// TODO: Should probably do a cleanup in both codebases to reduce copy-pasta.
+#ifndef USE_PBBS_SYMBOLS
+static int getWorkers() { return __cilkrts_get_nworkers(); }
 static void setWorkers(int n) {
   __cilkrts_end_cilk();
   //__cilkrts_init();
-  std::stringstream ss; ss << n;
+  std::stringstream ss;
+  ss << n;
   if (0 != __cilkrts_set_param("nworkers", ss.str().c_str())) {
     std::cerr << "failed to set worker count!" << std::endl;
     std::abort();
   }
 }
-
-// intel cilk+
-#elif defined(CILKP)
-#include <cilk/cilk.h>
-#define parallel_for cilk_for
-#define parallel_main main
-#define parallel_for_1 _Pragma("cilk grainsize = 1") cilk_for
-#define parallel_for_256 _Pragma("cilk grainsize = 256") cilk_for
-#include <cilk/cilk_api.h>
-#include <sstream>
-#include <iostream>
-#include <cstdlib>
-static int getWorkers() {
-  return __cilkrts_get_nworkers();
-}
-static void setWorkers(int n) {
-  __cilkrts_end_cilk();
-  //__cilkrts_init();
-  std::stringstream ss; ss << n;
-  if (0 != __cilkrts_set_param("nworkers", ss.str().c_str())) {
-    std::cerr << "failed to set worker count!" << std::endl;
-    std::abort();
-  }
-}
+#endif  // USE_PBBS_SYMBOLS
 
 // openmp
 #elif defined(OPENMP)
@@ -80,8 +62,13 @@ static void setWorkers(int n) {
 #define parallel_for _Pragma("omp parallel for") for
 #define parallel_for_1 _Pragma("omp parallel for schedule (static,1)") for
 #define parallel_for_256 _Pragma("omp parallel for schedule (static,256)") for
+
+// XXX: Yuckiness to avoid clashing with symbols already defined in pbbs.
+// TODO: Should probably do a cleanup in both codebases to reduce copy-pasta.
+#ifndef USE_PBBS_SYMBOLS
 static int getWorkers() { return omp_get_max_threads(); }
 static void setWorkers(int n) { omp_set_num_threads(n); }
+#endif  // USE_PBBS_SYMBOLS
 
 // c++
 #else
@@ -92,8 +79,13 @@ static void setWorkers(int n) { omp_set_num_threads(n); }
 #define parallel_for_1 for
 #define parallel_for_256 for
 #define cilk_for for
+
+// XXX: Yuckiness to avoid clashing with symbols already defined in pbbs.
+// TODO: Should probably do a cleanup in both codebases to reduce copy-pasta.
+#ifndef USE_PBBS_SYMBOLS
 static int getWorkers() { return 1; }
-static void setWorkers(int n) { }
+static void setWorkers(int n) {}
+#endif  // USE_PBBS_SYMBOLS
 
 #endif
 
@@ -111,7 +103,7 @@ typedef unsigned int uintT;
 #define UINT_T_MAX UINT_MAX
 #endif
 
-//edges store 32-bit quantities unless EDGELONG is defined
+// edges store 32-bit quantities unless EDGELONG is defined
 #if defined(EDGELONG)
 typedef long intE;
 typedef unsigned long uintE;
@@ -124,4 +116,4 @@ typedef unsigned int uintE;
 #define UINT_E_MAX UINT_MAX
 #endif
 
-#endif // _PARALLEL_H
+#endif  // _LIGRA_PARALLEL_H
