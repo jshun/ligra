@@ -245,7 +245,7 @@ vertexSubsetData<data> edgeMapData(graph<vertex>& GA, VS &vs, F f,
   uintT* degrees = NULL;
   vertex* frontierVertices = NULL;
   uintT outDegrees = 0;
-  if(threshold > 0) { //compute sum of out-degrees if threshold > 0 
+  if((fl & no_dense) || threshold > 0) { //compute sum of out-degrees if threshold > 0 
     vs.toSparse();
     degrees = newA(uintT, m);
     frontierVertices = newA(vertex,m);
