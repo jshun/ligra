@@ -52,7 +52,7 @@ dyn_arr<uintE> SetCover(graph<vertex>& G, size_t num_buckets=128) {
     edgeMap(G, still_active, Visit_Elms(Elms.s), -1, no_output | dense_forward);
 
     // 3. sets -> elements (count and add to cover if enough elms were won)
-    const size_t low_threshold = std::max((size_t)ceil(pow(1.0+epsilon,cur_bkt-1)), (size_t)1);
+    const size_t low_threshold = std::max((size_t)ceil(pow(1.0+epsilon,static_cast<double>(cur_bkt)-1)), (size_t)1);
     auto won_ngh_f = [&] (const uintE& u, const uintE& v) -> bool { return Elms[v] == u; };
     auto threshold_f = [&] (const uintE& v, const uintE& numWon) {
       if (numWon >= low_threshold) D[v] |= TOP_BIT;
